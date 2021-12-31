@@ -180,7 +180,7 @@ namespace avocado
 		 * Instead, this method is provided to convert CPU memory descriptor into the host pointer.
 		 * If anything goes wrong, a null pointer will be returned.
 		 */
-		DLL_PUBLIC void* refGetMemoryPointer(avMemoryDescriptor_t mem);
+		DLL_PUBLIC void* cpuGetMemoryPointer(avMemoryDescriptor_t mem);
 
 		/**
 		 * \brief Creates new tensor descriptor.
