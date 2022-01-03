@@ -7,170 +7,245 @@
 
 #include <avocado/cpu_backend.h>
 #include "kernel_definitions.hpp"
-#include "context.hpp"
 
 namespace avocado
 {
 	namespace backend
 	{
-		avStatus_t cpuScaleTensor(avContext_t context, avTensor_t dst, const avScalar_t src)
+		avStatus_t cpuChangeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType, const avMemoryDescriptor_t src,
+				avDataType_t srcType, avSize_t elements)
 		{
-//			switch (getSimdSupport(context))
-//			{
-//				case SimdLevel::AVX2:
-//					return ns_avx2::cpuScaleTensor(context, dst, src);
-//				case SimdLevel::F16C:
-//					return ns_f16c::cpuScaleTensor(context, dst, src);
-//				case SimdLevel::AVX:
-//					return ns_avx::cpuScaleTensor(context, dst, src);
-//				case SimdLevel::SSE41:
-//					return ns_sse41::cpuScaleTensor(context, dst, src);
-//				case SimdLevel::SSE2:
-//					return ns_sse2::cpuScaleTensor(context, dst, src);
-//				default:
-//					return ns_none::cpuScaleTensor(context, dst, src);
-//			}
-		}
-		avStatus_t cpuAddScalarToTensor(avContext_t context, avTensor_t dst, const avScalar_t src)
-		{
-		}
-		avStatus_t cpuOpTensor(avContext_t context, avOpTensorOp_t operation, const avScalar_t alpha1, const avTensor_t input1,
-				const avScalar_t alpha2, const avTensor_t input2, const avScalar_t beta, avTensor_t output)
-		{
-		}
-		avStatus_t cpuReduceTensor(avContext_t context, avReduceTensorOp_t operation, const avScalar_t alpha, const avScalar_t beta,
-				const avTensor_t input, avTensor_t output)
-		{
-		}
-		avStatus_t cpuAddTensors(avContext_t context, const avScalar_t alpha, const avScalar_t beta, const avTensor_t input, avTensor_t output,
-				avActivationType_t activation)
-		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
 
-		avStatus_t cpuActivationForward(avContext_t context, const avActivationType_t activation, const avScalar_t alpha1, const avScalar_t alpha2,
-				const avScalar_t beta, const avTensor_t input, avTensor_t output)
+		avStatus_t cpuConcatTensors(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
+				const avTensorDescriptor_t aDesc[], const avMemoryDescriptor_t aMem[], int nbTensors)
 		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
 
-		avStatus_t cpuActivationBackward(avContext_t context, const avActivationType_t activation, const void *alpha, const void *beta,
-				avTensor_t gradientPrev, const avTensor_t gradientNext, const avTensor_t output)
+		avStatus_t cpuSplitTensors(avContextDescriptor_t context, const avTensorDescriptor_t cDesc[], avMemoryDescriptor_t cMem[],
+				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, int nbTensors)
 		{
-		}
-		avStatus_t cpuSoftmaxForward(avContext_t context, avSoftmaxMode_t mode, const avScalar_t alpha, const avScalar_t beta, const avTensor_t input,
-				avTensor_t output)
-		{
-		}
-		avStatus_t cpuSoftmaxBackward(avContext_t context, avSoftmaxMode_t mode, const avScalar_t alpha, const avScalar_t beta,
-				avTensor_t gradientPrev, const avTensor_t gradientNext, const avTensor_t output)
-		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
 
-		avStatus_t cpuAffineForward(avContext_t context, const avScalar_t alpha, const avScalar_t beta, const avTensor_t input, avTensor_t output,
-				const avTensor_t weight, const avTensor_t bias, const avActivationType_t activation)
+		avStatus_t cpuTranspose(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
+				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const int newDimOrder[])
 		{
-		}
-		avStatus_t cpuBatchNormInference(avContext_t context, const avScalar_t alpha, const avScalar_t beta, const avTensor_t input,
-				avTensor_t output, const avTensor_t scale, const avTensor_t bias, const avTensor_t estimatedMean, const avTensor_t estimatedVariance,
-				const avScalar_t epsilon, const avActivationType_t activation)
-		{
-		}
-		avStatus_t cpuBatchNormForward(avContext_t context, const avScalar_t alpha, const avScalar_t beta, const avTensor_t input, avTensor_t output,
-				const avTensor_t scale, const avTensor_t bias, avTensor_t savedMean, avTensor_t savedVariance, const avScalar_t epsilon,
-				const avActivationType_t activation)
-		{
-		}
-		avStatus_t cpuBatchNormBackward(avContext_t context, const avActivationType_t activation, const avScalar_t alpha, const avScalar_t beta,
-				const avTensor_t input, const avTensor_t output, avTensor_t gradientPrev, avTensor_t gradientNext, const avTensor_t scale,
-				const avTensor_t savedMean, const avTensor_t savedVariance, const avScalar_t epsilon)
-		{
-		}
-		avStatus_t cpuBatchNormUpdate(avContext_t context, const avScalar_t alpha, const avScalar_t beta, const avTensor_t input,
-				const avTensor_t gradientNext, avTensor_t scaleUpdate, avTensor_t biasUpdate, const avTensor_t savedMean,
-				const avTensor_t savedVariance, const avScalar_t epsilon)
-		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
 
-		avStatus_t cpuDropoutForward(avContext_t context, const avDropout_t config, const avTensor_t input, avTensor_t output, avTensor_t states)
+		avStatus_t cpuScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, const void *alpha)
 		{
-		}
-		avStatus_t cpuDropoutBackward(avContext_t context, const avDropout_t config, avTensor_t gradientPrev, const avTensor_t gradientNext,
-				const avTensor_t states)
-		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
 
-		avStatus_t cpuPoolingForward(avContext_t context, const avPooling_t config, const avScalar_t alpha, const avScalar_t beta,
-				const avTensor_t input, avTensor_t output)
+		avStatus_t cpuAddScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
+				const void *scalar)
 		{
-		}
-		avStatus_t cpuPoolingBackward(avContext_t context, const avPooling_t config, const avScalar_t alpha, const avScalar_t beta,
-				const avTensor_t input, avTensor_t gradientPrev, const avTensor_t gradientNext)
-		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
 
-		avStatus_t cpuIm2Col(avContext_t context, const avConvolution_t config, const avTensor_t input, avTensor_t output);
-
-		avStatus_t cpuWinogradWeightTransform(avContext_t context, const avConvolution_t config, int tileSize, const avTensor_t weights,
-				avTensor_t matrices)
+		avStatus_t cpuBinaryOp(avContextDescriptor_t context, avBinaryOp_t operation, const void *alpha1, const avTensorDescriptor_t aDesc,
+				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
+				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-		}
-		avStatus_t cpuWinogradInputTransform(avContext_t context, const avConvolution_t config, int tileSize, const avTensor_t input,
-				avTensor_t matrices, const avTensor_t bias, const avActivationType_t activation)
-		{
-		}
-		avStatus_t cpuWinogradOutputTransform(avContext_t context, const avConvolution_t config, int tileSize, const avScalar_t alpha,
-				const avScalar_t beta, const avTensor_t matrices, avTensor_t output)
-		{
-		}
-		avStatus_t cpuWinogradGradientTransform(avContext_t context, const avConvolution_t config, int tileSize, const avTensor_t gradient,
-				avTensor_t matrices)
-		{
-		}
-		avStatus_t cpuWinogradUpdateTransform(avContext_t context, const avConvolution_t config, int tileSize, const avScalar_t alpha,
-				const avScalar_t beta, const avTensor_t matrices, avTensor_t update)
-		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
 
-		avStatus_t cpuConvolutionBiasActivationForward(avContext_t context, const avConvolution_t config, const avScalar_t alpha1,
-				const avScalar_t beta, const avTensor_t input, avTensor_t output, const avTensor_t weights, const avTensor_t bias,
-				const avActivationType_t activation, const avScalar_t alpha2, const avTensor_t add)
+		avStatus_t cpuUnaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
+				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-		}
-		avStatus_t cpuConvolutionForward(avContext_t context, const avConvolution_t config, const avScalar_t alpha, const avScalar_t beta,
-				const avTensor_t input, avTensor_t output, const avTensor_t weights)
-		{
-		}
-		avStatus_t cpuConvolutionBackward(avContext_t context, const avConvolution_t config, const avScalar_t alpha, const avScalar_t beta,
-				avTensor_t gradientPrev, avTensor_t gradientNext, const avTensor_t output, const avTensor_t weights,
-				const avActivationType_t activation)
-		{
-		}
-		avStatus_t cpuConvolutionUpdate(avContext_t context, const avConvolution_t config, const avScalar_t alpha, const avScalar_t beta,
-				const avTensor_t input, const avTensor_t gradientNext, avTensor_t weightUpdate, avTensor_t biasUpdate)
-		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
 
-		avStatus_t cpuMetricFunction(avContext_t context, avMetricType_t metricType, avScalar_t result, const avTensor_t output,
-				const avTensor_t target)
+		avStatus_t cpuReduceTensor(avContextDescriptor_t context, avReduceOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
+				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
 
-		avStatus_t cpuLossFunction(avContext_t context, avLossType_t lossType, avScalar_t result, const avTensor_t output, const avTensor_t target)
+		avStatus_t cpuAddBias(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t aDesc,
+				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
+				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, avActivationType_t activation)
 		{
-		}
-		avStatus_t cpuLossGradient(avContext_t context, avLossType_t lossType, const avScalar_t alpha, const avScalar_t beta, avTensor_t gradient,
-				const avTensor_t output, const avTensor_t target, bool isFused)
-		{
-		}
-
-		avStatus_t cpuOptimizerLearn(avContext_t context, const avOptimizer_t optimizer, const avScalar_t alpha, const avScalar_t beta,
-				avTensor_t weight, const avTensor_t update, avTensor_t workspace1, avTensor_t workspace2)
-		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
 
-		avStatus_t cpuRegularizerL2(avContext_t context, avTensor_t gradient, const avTensor_t weight, const avScalar_t coefficient,
-				const avScalar_t offset)
+		avStatus_t cpuActivationForward(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem)
 		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
+
+		avStatus_t cpuActivationBackward(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
+				const avTensorDescriptor_t yDesc, const avMemoryDescriptor_t yMem, const avTensorDescriptor_t dyDesc,
+				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuSoftmaxForward(avContextDescriptor_t context, avSoftmaxMode_t mode, const void *alpha, const avTensorDescriptor_t xDesc,
+				const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuSoftmaxBackward(avContextDescriptor_t context, avSoftmaxMode_t mode, const void *alpha, const avTensorDescriptor_t yDesc,
+				const avMemoryDescriptor_t yMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta,
+				const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuAffineForward(avContextDescriptor_t context, avActivationType_t activation, const avTensorDescriptor_t wDesc,
+				const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuBatchNormInference(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem, const avTensorDescriptor_t scaleBiasMeanVarDesc, const avMemoryDescriptor_t scaleMem,
+				const avMemoryDescriptor_t biasMem, const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, double epsilon)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuBatchNormForward(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem, const avTensorDescriptor_t scaleBiasMeanVarDesc, const avMemoryDescriptor_t scaleMem,
+				const avMemoryDescriptor_t biasMem, avMemoryDescriptor_t meanMem, avMemoryDescriptor_t varianceMem, double epsilon)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuBatchNormBackward(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t yDesc, const avMemoryDescriptor_t yMem,
+				const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avTensorDescriptor_t dyDesc,
+				avMemoryDescriptor_t dyMem, const avTensorDescriptor_t scaleMeanVarDesc, const avMemoryDescriptor_t scaleMem,
+				const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, double epsilon)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuBatchNormUpdate(avContextDescriptor_t context, const void *alpha, const avTensorDescriptor_t xDesc,
+				const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta,
+				const avTensorDescriptor_t scaleBiasDesc, avMemoryDescriptor_t scaleUpdateMem, avMemoryDescriptor_t biasUpdateMem,
+				const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, double epsilon)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuDropoutForward(avContextDescriptor_t context, const avDropoutDescriptor_t config, const avTensorDescriptor_t xDesc,
+				const avMemoryDescriptor_t xMem, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, avMemoryDescriptor_t states)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuDropoutBackward(avContextDescriptor_t context, const avDropoutDescriptor_t config, const avTensorDescriptor_t dyDesc,
+				const avMemoryDescriptor_t dyMem, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avTensorDescriptor_t states)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuPoolingForward(avContextDescriptor_t context, const avPoolingDescriptor_t config, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuPoolingBackward(avContextDescriptor_t context, const avPoolingDescriptor_t config, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc,
+				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuIm2Col(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t filterDesc,
+				const avTensorDescriptor_t srcDesc, const avMemoryDescriptor_t srcMem, const avTensorDescriptor_t colDesc,
+				avMemoryDescriptor_t colMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuGetConvolutionWorkspaceSize(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
+				const avTensorDescriptor_t xDesc, const avTensorDescriptor_t wDesc, const avTensorDescriptor_t bDesc, avSize_t *result)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuPrecomputeConvolutionWorkspace(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
+				const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
+				avMemoryDescriptor_t workspace)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuConvolutionBiasActivationForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
+				const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2, const avTensorDescriptor_t zDesc,
+				const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem,
+				const avActivationType_t activation, avMemoryDescriptor_t workspace)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuConvolutionForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
+				const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuConvolutionUpdate(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc,
+				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuMetricFunction(avContextDescriptor_t context, avMetricType_t metricType, const avTensorDescriptor_t outputDesc,
+				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, void *result)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuLossFunction(avContextDescriptor_t context, avLossType_t lossType, const avTensorDescriptor_t outputDesc,
+				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, void *result)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuLossGradient(avContextDescriptor_t context, avLossType_t lossType, const void *alpha, const avTensorDescriptor_t outputDesc,
+				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, const void *beta,
+				const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem, bool isFused)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, avSize_t *result)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const avTensorDescriptor_t wDesc,
+				avMemoryDescriptor_t wMem, const avTensorDescriptor_t dwDesc, const avTensorDescriptor_t dwMem, avMemoryDescriptor_t workspace)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
+		avStatus_t cpuRegularizerL2(avContextDescriptor_t context, const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem,
+				const avTensorDescriptor_t weightDesc, const avMemoryDescriptor_t weightMem, const void *coefficient, const void *offset, void *loss)
+		{
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		}
+
 	} /* namespace backend */
 } /* namespace avocado */
 
