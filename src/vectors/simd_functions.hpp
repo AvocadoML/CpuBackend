@@ -18,6 +18,37 @@ namespace SIMD_NAMESPACE
 		return x * x;
 	}
 
+	static inline SIMD<float> to_float(SIMD<int32_t> x) noexcept
+	{
+#if SUPPORTS_AVX
+		return _mm256_cvtepi32_ps(x);
+#elif SUPPORTS_SSE2
+		return _mm_cvtepi32_ps(x);
+#else
+		return SIMD<float>(static_cast<float>(static_cast<int32_t>(x)));
+#endif
+	}
+	template<typename T>
+	static inline T horizontal_max(SIMD<T> x) noexcept
+	{
+		T tmp[SIMD<T>::length];
+		x.storeu(tmp);
+		T result = tmp[0];
+		for (size_t i = 1; i < SIMD<T>::length; i++)
+			result = std::max(result, tmp[i]);
+		return result;
+	}
+	template<typename T>
+	static inline T horizontal_min(SIMD<T> x) noexcept
+	{
+		T tmp[SIMD<T>::length];
+		x.storeu(tmp);
+		T result = tmp[0];
+		for (size_t i = 1; i < SIMD<T>::length; i++)
+			result = std::min(result, tmp[i]);
+		return result;
+	}
+
 	template<typename T>
 	static inline SIMD<T> mod(SIMD<T> x, SIMD<T> y) noexcept
 	{
