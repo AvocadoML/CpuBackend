@@ -103,7 +103,7 @@ namespace avocado
 			std::memcpy(getPointer(dst), getPointer(src), count);
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		void* refGetMemoryPointer(avMemoryDescriptor_t mem)
+		void* cpuGetMemoryPointer(avMemoryDescriptor_t mem)
 		{
 			return getPointer(mem);
 		}

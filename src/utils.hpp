@@ -70,7 +70,7 @@ namespace avocado
 			AVX512VL_BW_DQ
 		};
 
-		inline bool supPorts_simd(avDeviceProperty_t prop)
+		inline bool supports_simd(avDeviceProperty_t prop)
 		{
 			bool result = false;
 			cpuGetDeviceProperty(prop, &result);
@@ -81,27 +81,27 @@ namespace avocado
 		{
 			static const SimdLevel supported_simd_level = []()
 			{
-//				if (supPorts_simd (AVOCADO_DEVICE_SUPPORTS_AVX512_VL_BW_DQ))
+//				if (supports_simd (AVOCADO_DEVICE_SUPPORTS_AVX512_VL_BW_DQ))
 //					return SimdLevel::AVX512VL_BW_DQ;
-//				if (supPorts_simd (AVOCADO_DEVICE_SUPPORTS_AVX512_F))
+//				if (supports_simd (AVOCADO_DEVICE_SUPPORTS_AVX512_F))
 //					return SimdLevel::AVX512F;
-				if (supPorts_simd (AVOCADO_DEVICE_SUPPORTS_AVX2))
+				if (supports_simd (AVOCADO_DEVICE_SUPPORTS_AVX2))
 					return SimdLevel::AVX2;
-				if (supPorts_simd (AVOCADO_DEVICE_SUPPORTS_HALF_PRECISION))
+				if (supports_simd (AVOCADO_DEVICE_SUPPORTS_HALF_PRECISION))
 					return SimdLevel::F16C;
-				if (supPorts_simd (AVOCADO_DEVICE_SUPPORTS_AVX))
+				if (supports_simd (AVOCADO_DEVICE_SUPPORTS_AVX))
 					return SimdLevel::AVX;
-//				if (supPorts_simd (AVOCADO_DEVICE_SUPPORTS_SSE42))
+//				if (supports_simd (AVOCADO_DEVICE_SUPPORTS_SSE42))
 //					return SimdLevel::SSE42;
-				if (supPorts_simd (AVOCADO_DEVICE_SUPPORTS_SSE41))
+				if (supports_simd (AVOCADO_DEVICE_SUPPORTS_SSE41))
 					return SimdLevel::SSE41;
-//				if (supPorts_simd (AVOCADO_DEVICE_SUPPORTS_SSSE3))
+//				if (supports_simd (AVOCADO_DEVICE_SUPPORTS_SSSE3))
 //					return SimdLevel::SSSE3;
-//				if (supPorts_simd (AVOCADO_DEVICE_SUPPORTS_SSE3))
+//				if (supports_simd (AVOCADO_DEVICE_SUPPORTS_SSE3))
 //					return SimdLevel::SSE3;
-				if (supPorts_simd (AVOCADO_DEVICE_SUPPORTS_SSE2))
+				if (supports_simd (AVOCADO_DEVICE_SUPPORTS_SSE2))
 					return SimdLevel::SSE2;
-//				if (supPorts_simd (AVOCADO_DEVICE_SUPPORTS_SSE))
+//				if (supports_simd (AVOCADO_DEVICE_SUPPORTS_SSE))
 //					return SimdLevel::SSE;
 				return SimdLevel::NONE;
 			}();

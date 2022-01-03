@@ -436,22 +436,34 @@ namespace avocado
 
 		/**
 		 *
-		 * C = alpha1 * activation(alpha2 * A + beta2 * C) + beta1 * C
+		 * C = alpha3 * activation(alpha1 * A + alpha2 * B) + beta1 * C
+		 *
+		 * Supported data type configurations:
+		 *  cDesc dtype | aDesc dtype | bDesc dtype
+		 * -------------|-------------|------------
+		 *  INT8        | INT8        | FLOAT32
+		 *  INT32       | INT8        | FLOAT32
+		 *  FLOAT16     | FLOAT16     | FLOAT32
+		 *  BFLOAT16    | BFLOAT16    | FLOAT32
+		 *  FLOAT32     | FLOAT32     | FLOAT32
+		 *  FLOAT64     | FLOAT64     | FLOAT64
 		 *
 		 * \param[in] context Context in which the operation is performed.
+		 * \param[in] alpha3
 		 * \param[in] alpha1
-		 * \param[in] alpha2
 		 * \param[in] aDesc
 		 * \param[in] aMem
-		 * \param[in] beta1
-		 * \param[in] beta2
+		 * \param[in] alpha2
+		 * \param[in] bDesc
+		 * \param[in] bMem
+		 * \param[in] beta
 		 * \param[in] cDesc
 		 * \param[out] cMem
 		 * \param[in] activation
 		 */
-		DLL_PUBLIC avStatus_t cpuAddTensors(avContextDescriptor_t context, const void *alpha1, const void *alpha2, const avTensorDescriptor_t bDesc,
-				const avMemoryDescriptor_t bMem, const void *beta1, const void *beta2, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
-				avActivationType_t activation);
+		DLL_PUBLIC avStatus_t cpuAddBias(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t aDesc,
+				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
+				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, avActivationType_t activation);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.

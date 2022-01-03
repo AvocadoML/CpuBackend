@@ -21,19 +21,11 @@
 
 #if USE_OPENBLAS
 #    ifdef __linux__
-#      include <cblas.h>
+#      include <openblas/include/cblas.h>
 #    else
 #      include <openblas/cblas.h>
 #    endif
 #endif
-
-namespace
-{
-	constexpr bool is_transpose(avocado::backend::avGemmOperation_t op) noexcept
-	{
-		return op == avocado::backend::AVOCADO_GEMM_OPERATION_T;
-	}
-}
 
 namespace avocado
 {
@@ -64,6 +56,18 @@ namespace avocado
 
 			switch (getTensor(cDesc).dtype())
 			{
+//				case AVOCADO_DTYPE_BFLOAT16:
+//				{
+//					float c_alpha = getAlphaValue<float>(alpha);
+//					float c_beta = getBetaValue<float>(beta);
+//					const uint16_t *A_ptr = getPointer<uint16_t>(aMem);
+//					const uint16_t *B_ptr = getPointer<uint16_t>(bMem);
+//					float *C_ptr = getPointer<float>(cMem);
+//#if USE_OPENBLAS
+//					cblas_sbgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, c_alpha, A_ptr, LDA, B_ptr, LDB, c_beta, C_ptr, LDC);
+//#endif
+//					return AVOCADO_STATUS_SUCCESS;
+//				}
 				case AVOCADO_DTYPE_FLOAT32:
 				{
 					float c_alpha = getAlphaValue<float>(alpha);
@@ -74,7 +78,6 @@ namespace avocado
 #if USE_BLIS
 					bli_sgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<float*>(A_ptr), LDA, 1, const_cast<float*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
 #endif
-
 #if USE_OPENBLAS
 					cblas_sgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, c_alpha, A_ptr, LDA, B_ptr, LDB, c_beta, C_ptr, LDC);
 #endif
@@ -82,7 +85,6 @@ namespace avocado
 				}
 				case AVOCADO_DTYPE_FLOAT64:
 				{
-
 					double c_alpha = getAlphaValue<double>(alpha);
 					double c_beta = getBetaValue<double>(beta);
 					const double *A_ptr = getPointer<double>(aMem);
@@ -106,7 +108,6 @@ namespace avocado
 #if USE_BLIS
 					bli_sgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<std::complex<float>*>(A_ptr), LDA, 1, const_cast<std::complex<float>*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
 #endif
-
 #if USE_OPENBLAS
 					cblas_cgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, &c_alpha, A_ptr, LDA, B_ptr, LDB, &c_beta, C_ptr, LDC);
 #endif
@@ -146,7 +147,6 @@ namespace avocado
 			int M = is_transpose(aOp) ? getTensor(aDesc).dimension(2) : getTensor(aDesc).dimension(1);
 			int N = is_transpose(bOp) ? getTensor(bDesc).dimension(1) : getTensor(bDesc).dimension(2);
 			int K = is_transpose(aOp) ? getTensor(aDesc).dimension(1) : getTensor(aDesc).dimension(2);
-			;
 
 			int LDA = getTensor(aDesc).dimension(2);
 			int LDB = getTensor(bDesc).dimension(2);
@@ -154,6 +154,21 @@ namespace avocado
 
 			switch (getTensor(cDesc).dtype())
 			{
+//				case AVOCADO_DTYPE_BFLOAT16:
+//				{
+//					float c_alpha = getAlphaValue<float>(alpha);
+//					float c_beta = getBetaValue<float>(beta);
+//					for (int i = 0; i < getTensor(aDesc).firstDim(); i++)
+//					{
+//						const uint16_t *A_ptr = getPointer<uint16_t>(aMem) + i * M * K;
+//						const uint16_t *B_ptr = getPointer<uint16_t>(bMem) + i * N * K;
+//						float *C_ptr = getPointer<float>(cMem) + i * M * N;
+//#if USE_OPENBLAS
+//						cblas_sbgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, c_alpha, A_ptr, LDA, B_ptr, LDB, c_beta, C_ptr, LDC);
+//#endif
+//					}
+//					return AVOCADO_STATUS_SUCCESS;
+//				}
 				case AVOCADO_DTYPE_FLOAT32:
 				{
 					float c_alpha = getAlphaValue<float>(alpha);
