@@ -1,5 +1,5 @@
 /*
- * cpu_features.cpp
+ * cpu_properties.cpp
  *
  *  Created on: May 12, 2020
  *      Author: Alexander J. Yee
@@ -280,9 +280,9 @@ struct cpu_x86
 
 				HYPER_THREADING = (info[3] & (1 << 28)) != 0;
 #if defined(_WIN32)
-			SYSTEM_INFO systeminfo;
-			GetSystemInfo(&systeminfo);
-			cores = systeminfo.dwNumberOfProcessors;
+				SYSTEM_INFO systeminfo;
+				GetSystemInfo(&systeminfo);
+				cores = systeminfo.dwNumberOfProcessors;
 #else
 				cores = sysconf( _SC_NPROCESSORS_ONLN);
 #endif // defined(_WIN32)
@@ -349,9 +349,11 @@ namespace avocado
 	{
 		avStatus_t cpuGetDeviceProperty(avDeviceProperty_t propertyName, void *result)
 		{
+			static const cpu_x86 features;
+
 			if (result == nullptr)
 				return AVOCADO_STATUS_BAD_PARAM;
-			static cpu_x86 features;
+
 			switch (propertyName)
 			{
 				case AVOCADO_DEVICE_NAME:
