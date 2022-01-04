@@ -20,6 +20,15 @@ namespace avocado
 		struct bfloat16
 		{
 				uint16_t m_data;
+
+				friend bool operator==(bfloat16 lhs, bfloat16 rhs) noexcept
+				{
+					return lhs.m_data == rhs.m_data;
+				}
+				friend bool operator!=(bfloat16 lhs, bfloat16 rhs) noexcept
+				{
+					return lhs.m_data != rhs.m_data;
+				}
 		};
 	}
 }
@@ -222,17 +231,30 @@ namespace SIMD_NAMESPACE
 				return extract(index);
 			}
 
+			static bfloat16 scalar_zero() noexcept
+			{
+				return bfloat16 { 0x0000u };
+			}
+			static bfloat16 scalar_one() noexcept
+			{
+				return bfloat16 { 0x3f80u };
+			}
+			static bfloat16 scalar_epsilon() noexcept
+			{
+				return bfloat16 { 0x0800u };
+			}
+
 			static SIMD<bfloat16> zero() noexcept
 			{
-				return SIMD<bfloat16>(bfloat16 { 0x0000u });
+				return SIMD<bfloat16>(scalar_zero());
 			}
 			static SIMD<bfloat16> one() noexcept
 			{
-				return SIMD<bfloat16>(bfloat16 { 0x3f80u });
+				return SIMD<bfloat16>(scalar_one());
 			}
 			static SIMD<bfloat16> epsilon() noexcept
 			{
-				return SIMD<bfloat16>(bfloat16 { 0x0800u });
+				return SIMD<bfloat16>(scalar_epsilon());
 			}
 	};
 

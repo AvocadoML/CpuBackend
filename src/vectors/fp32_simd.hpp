@@ -224,17 +224,30 @@ namespace SIMD_NAMESPACE
 				return extract(index);
 			}
 
+			static float scalar_zero() noexcept
+			{
+				return 0.0f;
+			}
+			static float scalar_one() noexcept
+			{
+				return 1.0f;
+			}
+			static float scalar_epsilon() noexcept
+			{
+				return std::numeric_limits<float>::epsilon();
+			}
+
 			static SIMD<float> zero() noexcept
 			{
-				return SIMD<float>(0.0f);
+				return SIMD<float>(scalar_zero());
 			}
 			static SIMD<float> one() noexcept
 			{
-				return SIMD<float>(1.0f);
+				return SIMD<float>(scalar_one());
 			}
 			static SIMD<float> epsilon() noexcept
 			{
-				return SIMD<float>(std::numeric_limits<float>::epsilon());
+				return SIMD<float>(scalar_epsilon());
 			}
 	};
 

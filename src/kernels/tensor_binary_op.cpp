@@ -168,7 +168,7 @@ namespace
 		if (dimensions.first == 1) // both src1 and src2 have the same shape
 		{
 #pragma omp parallel for
-			for (int i = 0; i < dimensions.last; i++)
+			for (int i = 0; i < dimensions.last; i += SIMD<T>::length)
 			{
 				const int elements_left = std::min(dimensions.last - i, SIMD<T>::length);
 				SIMD<T> lhs(src1 + i, elements_left);
@@ -199,7 +199,7 @@ namespace
 				if (not LogicalOp)
 					rhs = alpha2 * rhs;
 #pragma omp parallel for
-				for (int i = 0; i < dimensions.first; i++)
+				for (int i = 0; i < dimensions.first; i += SIMD<T>::length)
 				{
 					const int elements_left = std::min(dimensions.first - i, SIMD<T>::length);
 					SIMD<T> lhs(src1 + i, elements_left);
@@ -223,7 +223,7 @@ namespace
 			{
 #pragma omp parallel for
 				for (int i = 0; i < dimensions.first; i++)
-					for (int j = 0; j < dimensions.last; j++)
+					for (int j = 0; j < dimensions.last; j += SIMD<T>::length)
 					{
 						const int elements_left = std::min(dimensions.last - j, SIMD<T>::length);
 						SIMD<T> lhs(src1 + (i * dimensions.last + j), elements_left);

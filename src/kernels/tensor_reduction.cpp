@@ -238,7 +238,7 @@ namespace
 			{
 				SIMD<T> acc = reduction.init();
 #pragma omp for
-				for (int i = 0; i < dimensions.first; i++)
+				for (int i = 0; i < dimensions.first; i += SIMD<T>::length)
 				{
 					const int elements_left = std::min(dimensions.first - i, SIMD<T>::length);
 					SIMD<T> data(src + i, elements_left);
@@ -260,15 +260,15 @@ namespace
 #pragma omp parallel
 			{
 				T *thread_workspace = workspace + (1 + omp_get_thread_num()) * dimensions.last;
-				for (int j = 0; j < dimensions.last; j++)
+				for (int j = 0; j < dimensions.last; j += SIMD<T>::length)
 				{
 					const int elements_left = std::min(dimensions.last - j, SIMD<T>::length);
 					SIMD<T> tmp = reduction.init();
 					tmp.storeu(thread_workspace + j, elements_left);
 				}
 #pragma omp for
-				for (int64_t i = 0; i < dimensions.first; i++)
-					for (int j = 0; j < dimensions.last; j++)
+				for (int i = 0; i < dimensions.first; i++)
+					for (int j = 0; j < dimensions.last; j += SIMD<T>::length)
 					{
 						const int elements_left = std::min(dimensions.last - j, SIMD<T>::length);
 						SIMD<T> acc(thread_workspace + j, elements_left);
@@ -278,7 +278,7 @@ namespace
 					}
 #pragma omp critical
 				{
-					for (int j = 0; j < dimensions.last; j++)
+					for (int j = 0; j < dimensions.last; j += SIMD<T>::length)
 					{
 						const int elements_left = std::min(dimensions.last - j, SIMD<T>::length);
 						SIMD<T> master_acc(master_workspace + j, elements_left);
@@ -289,7 +289,7 @@ namespace
 					}
 				}
 			}
-			for (int j = 0; j < dimensions.last; j++)
+			for (int j = 0; j < dimensions.last; j += SIMD<T>::length)
 			{
 				const int elements_left = std::min(dimensions.last - j, SIMD<T>::length);
 				SIMD<T> master_acc(master_workspace + j, elements_left);
@@ -349,7 +349,7 @@ namespace avocado
 		{
 			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(aDesc), getTensor(cDesc));
 
-			const avSize_t required_workspace_size = (1 + cpuGetNumberOfThreads()) * dimensions.last * dataTypeSize(getTensor(aDesc).dtype());
+			const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * dimensions.last * dataTypeSize(getTensor(aDesc).dtype());
 			if (getContext(context).getWorkspace().size() < required_workspace_size)
 				return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
