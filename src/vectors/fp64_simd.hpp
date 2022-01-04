@@ -31,11 +31,11 @@ namespace SIMD_NAMESPACE
 		public:
 
 #if SUPPORTS_AVX
-			static constexpr size_t length = 4;
+			static constexpr int64_t length = 4;
 #elif SUPPORTS_SSE2
-			static constexpr size_t length = 2;
+			static constexpr int64_t length = 2;
 #else
-			static constexpr size_t length = 1;
+			static constexpr int64_t length = 1;
 #endif
 
 			SIMD() noexcept // @suppress("Class members should be properly initialized")
@@ -292,9 +292,13 @@ namespace SIMD_NAMESPACE
 		return bitwise_cast<double>(bitwise_cast<uint64_t>(lhs) ^ bitwise_cast<uint64_t>(rhs));
 #endif
 	}
-	static inline SIMD<double> operator!(SIMD<double> x) noexcept
+	static inline SIMD<double> operator~(SIMD<double> x) noexcept
 	{
 		return x == SIMD<double>(0.0);
+	}
+	static inline SIMD<double> operator!(SIMD<double> x) noexcept
+	{
+		return ~x;
 	}
 
 	/*

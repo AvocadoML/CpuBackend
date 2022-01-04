@@ -73,7 +73,7 @@ namespace SIMD_NAMESPACE
 			T m_data;
 #endif
 		public:
-			static constexpr size_t length = sizeof(m_data) / sizeof(T);
+			static constexpr int64_t length = sizeof(m_data) / sizeof(T);
 
 			SIMD() noexcept // @suppress("Class members should be properly initialized")
 			{

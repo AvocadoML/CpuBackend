@@ -15,5 +15,6 @@
 #include "fp32_simd.hpp"
 #include "fp64_simd.hpp"
 #include "integer_simd.hpp"
+#include "simd_functions.hpp"
 
 #endif /* VECTORS_SIMD_VECTORS_HPP_ */

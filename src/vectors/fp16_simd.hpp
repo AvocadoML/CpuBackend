@@ -47,7 +47,7 @@ namespace SIMD_NAMESPACE
 		private:
 			SIMD<float> m_data;
 		public:
-			static constexpr size_t length = SIMD<float>::length;
+			static constexpr int64_t length = SIMD<float>::length;
 
 			SIMD() noexcept
 			{
@@ -88,8 +88,8 @@ namespace SIMD_NAMESPACE
 			{
 				assert(ptr != nullptr);
 #if SUPPORTS_AVX and SUPPORTS_FP16
-					__m128i tmp = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr));
-					m_data = _mm256_cvtph_ps(tmp);
+				__m128i tmp = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr));
+				m_data = _mm256_cvtph_ps(tmp);
 #elif SUPPORTS_SSE2 and SUPPORTS_FP16
 				__m128i tmp = _mm_loadu_si64(reinterpret_cast<const __m128i*>(ptr));
 				m_data = _mm_cvtph_ps(tmp);
@@ -106,8 +106,8 @@ namespace SIMD_NAMESPACE
 				assert(ptr != nullptr);
 				assert(num <= length);
 #if SUPPORTS_AVX and SUPPORTS_FP16
-					__m128i tmp = partial_load(ptr, num * sizeof(avocado::backend::float16));
-					m_data = SIMD<float>(_mm256_cvtph_ps(tmp));
+				__m128i tmp = partial_load(ptr, num * sizeof(avocado::backend::float16));
+				m_data = SIMD<float>(_mm256_cvtph_ps(tmp));
 #elif SUPPORTS_SSE2 and SUPPORTS_FP16
 				__m128i tmp = partial_load(ptr, num * sizeof(avocado::backend::float16));
 				m_data = _mm_cvtph_ps(tmp);
@@ -123,8 +123,8 @@ namespace SIMD_NAMESPACE
 			{
 				assert(ptr != nullptr);
 #if SUPPORTS_AVX and SUPPORTS_FP16
-					__m128i tmp = _mm256_cvtps_ph(m_data, _MM_FROUND_NO_EXC);
-					_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), tmp);
+				__m128i tmp = _mm256_cvtps_ph(m_data, _MM_FROUND_NO_EXC);
+				_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), tmp);
 #elif SUPPORTS_SSE2 and SUPPORTS_FP16
 				__m128i tmp = _mm_cvtps_ph(m_data, _MM_FROUND_NO_EXC);
 				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), tmp);
@@ -163,138 +163,6 @@ namespace SIMD_NAMESPACE
 				return extract(index);
 			}
 	};
-
-/* Half-float vector arithmetics */
-//		static inline SIMD<float16> operator+(SIMD<float16> lhs, SIMD<float16> rhs) noexcept
-//		{
-//			return static_cast<SIMD<float>>(lhs) + static_cast<SIMD<float>>(rhs);
-//		}
-//		static inline SIMD<float16> operator+(SIMD<float16> lhs, float rhs) noexcept
-//		{
-//			return lhs + SIMD<float16>(rhs);
-//		}
-//		static inline SIMD<float16> operator+(float lhs, SIMD<float16> rhs) noexcept
-//		{
-//			return SIMD<float16>(lhs) + rhs;
-//		}
-//		static inline SIMD<float16>& operator+=(SIMD<float16> &lhs, SIMD<float16> rhs) noexcept
-//		{
-//			lhs = lhs + rhs;
-//			return lhs;
-//		}
-//
-//		static inline SIMD<float16> operator-(SIMD<float16> lhs, SIMD<float16> rhs) noexcept
-//		{
-//			return static_cast<SIMD<float>>(lhs) - static_cast<SIMD<float>>(rhs);
-//		}
-//		static inline SIMD<float16> operator-(SIMD<float16> lhs, float rhs) noexcept
-//		{
-//			return lhs - SIMD<float16>(rhs);
-//		}
-//		static inline SIMD<float16> operator-(float lhs, SIMD<float16> rhs) noexcept
-//		{
-//			return SIMD<float16>(lhs) - rhs;
-//		}
-//		static inline SIMD<float16>& operator-=(SIMD<float16> &lhs, SIMD<float16> rhs) noexcept
-//		{
-//			lhs = lhs - rhs;
-//			return lhs;
-//		}
-//		static inline SIMD<float16> operator-(SIMD<float16> x) noexcept
-//		{
-//			return -static_cast<SIMD<float>>(x);
-//		}
-//
-//		static inline SIMD<float16> operator*(SIMD<float16> lhs, SIMD<float16> rhs) noexcept
-//		{
-//			return static_cast<SIMD<float>>(lhs) * static_cast<SIMD<float>>(rhs);
-//		}
-//		static inline SIMD<float16> operator*(SIMD<float16> lhs, float rhs) noexcept
-//		{
-//			return lhs * SIMD<float16>(rhs);
-//		}
-//		static inline SIMD<float16> operator*(float lhs, SIMD<float16> rhs) noexcept
-//		{
-//			return SIMD<float16>(lhs) * rhs;
-//		}
-//		static inline SIMD<float16>& operator*=(SIMD<float16> &lhs, SIMD<float16> rhs) noexcept
-//		{
-//			lhs = lhs * rhs;
-//			return lhs;
-//		}
-//
-//		static inline SIMD<float16> operator/(SIMD<float16> lhs, SIMD<float16> rhs) noexcept
-//		{
-//			return static_cast<SIMD<float>>(lhs) / static_cast<SIMD<float>>(rhs);
-//		}
-//		static inline SIMD<float16> operator/(SIMD<float16> lhs, float rhs) noexcept
-//		{
-//			return lhs / SIMD<float16>(rhs);
-//		}
-//		static inline SIMD<float16> operator/(float lhs, SIMD<float16> rhs) noexcept
-//		{
-//			return SIMD<float16>(lhs) / rhs;
-//		}
-//		static inline SIMD<float16>& operator/=(SIMD<float16> &lhs, SIMD<float16> rhs) noexcept
-//		{
-//			lhs = lhs / rhs;
-//			return lhs;
-//		}
-//
-//		/* Float vector functions */
-//		static inline SIMD<float16> max(SIMD<float16> lhs, SIMD<float16> rhs) noexcept
-//		{
-//			return max(static_cast<SIMD<float>>(lhs), static_cast<SIMD<float>>(rhs));
-//		}
-//		static inline SIMD<float16> min(SIMD<float16> lhs, SIMD<float16> rhs) noexcept
-//		{
-//			return min(static_cast<SIMD<float>>(lhs), static_cast<SIMD<float>>(rhs));
-//		}
-//		static inline SIMD<float16> abs(SIMD<float16> x) noexcept
-//		{
-//			return abs(static_cast<SIMD<float>>(x));
-//		}
-//		static inline SIMD<float16> sqrt(SIMD<float16> x) noexcept
-//		{
-//			return sqrt(static_cast<SIMD<float>>(x));
-//		}
-//		static inline SIMD<float16> square(SIMD<float16> x) noexcept
-//		{
-//			return x * x;
-//		}
-//		static inline SIMD<float16> approx_recipr(SIMD<float16> x) noexcept
-//		{
-//			return approx_recipr(static_cast<SIMD<float>>(x));
-//		}
-//		static inline SIMD<float16> approx_rsqrt(SIMD<float16> x) noexcept
-//		{
-//			return approx_rsqrt(static_cast<SIMD<float>>(x));
-//		}
-//		static inline SIMD<float16> sgn(SIMD<float16> x) noexcept
-//		{
-//			return sgn(static_cast<SIMD<float>>(x));
-//		}
-//
-//		static inline SIMD<float16> exp(SIMD<float16> x) noexcept
-//		{
-//			return exp(static_cast<SIMD<float>>(x));
-//		}
-//		static inline SIMD<float16> log(SIMD<float16> x) noexcept
-//		{
-//			return log(static_cast<SIMD<float>>(x));
-//		}
-//		static inline SIMD<float16> tanh(SIMD<float16> x) noexcept
-//		{
-//			return tanh(static_cast<SIMD<float>>(x));
-//		}
-//		static inline SIMD<float16> expm1(SIMD<float16> x) noexcept
-//		{
-//			return expm1(static_cast<SIMD<float>>(x));
-//		}
-//		static inline SIMD<float16> log1p(SIMD<float16> x) noexcept
-//		{
-//			return log1p(static_cast<SIMD<float>>(x));
-//		}
 }
 
 #endif /* VECTORS_FP16_SIMD_HPP_ */
