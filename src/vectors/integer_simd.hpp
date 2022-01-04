@@ -73,31 +73,35 @@ namespace SIMD_NAMESPACE
 			T m_data;
 #endif
 		public:
-			static constexpr int64_t length = sizeof(m_data) / sizeof(T);
+			static constexpr int length = sizeof(m_data) / sizeof(T);
 
 			SIMD() noexcept // @suppress("Class members should be properly initialized")
 			{
 			}
-			SIMD(T x) noexcept
+			SIMD(T x) noexcept :
+					m_data(set1(x))
 			{
-				m_data = set1(x);
 			}
 			SIMD(const T *ptr) noexcept // @suppress("Class members should be properly initialized")
 			{
 				loadu(ptr);
 			}
-			SIMD(const T *ptr, size_t num) noexcept // @suppress("Class members should be properly initialized")
+			SIMD(const T *ptr, int num) noexcept // @suppress("Class members should be properly initialized")
 			{
 				loadu(ptr, num);
 			}
 #if SUPPORTS_AVX
-			SIMD(__m256i x) noexcept
+			SIMD(__m256i x) noexcept :
+					m_data(x)
 			{
-				m_data = x;
 			}
-			SIMD(__m128i low, __m128i high) noexcept
+			SIMD(__m128i low) noexcept :
+					m_data(_mm256_setr_m128i(low, _mm_setzero_si128()))
 			{
-				m_data = _mm256_setr_m128i(low, high);
+			}
+			SIMD(__m128i low, __m128i high) noexcept :
+					m_data(_mm256_setr_m128i(low, high))
+			{
 			}
 			SIMD& operator=(__m256i x) noexcept
 			{
@@ -109,9 +113,9 @@ namespace SIMD_NAMESPACE
 				return m_data;
 			}
 #elif SUPPORTS_SSE2
-			SIMD(__m128i x) noexcept
+			SIMD(__m128i x) noexcept:
+					m_data(x)
 			{
-				m_data = x;
 			}
 			SIMD& operator=(__m128i x) noexcept
 			{
@@ -139,20 +143,20 @@ namespace SIMD_NAMESPACE
 				m_data = ptr[0];
 #endif
 			}
-			void loadu(const T *ptr, size_t num) noexcept
+			void loadu(const T *ptr, int num) noexcept
 			{
 				assert(ptr != nullptr);
-				assert(num <= length);
+				assert(num >= 0 && num <= length);
 #if SUPPORTS_AVX
 				if (num == length)
 					m_data = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr));
 				else
 				{
 					if (num > length / 2)
-						*this = integer_register(_mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr)),
-								partial_load(ptr + length / 2, sizeof(T) * (num - length / 2)));
+						*this = SIMD<T>(_mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr)),
+								partial_load(ptr + (length / 2), sizeof(T) * (num - length / 2)));
 					else
-						*this = integer_register(partial_load(ptr, sizeof(T) * num), _mm_setzero_si128());
+						*this = SIMD<T>(partial_load(ptr, sizeof(T) * num));
 				}
 #elif SUPPORTS_SSE2
 				m_data = partial_load(ptr, sizeof(T) * num);
@@ -171,11 +175,10 @@ namespace SIMD_NAMESPACE
 				ptr[0] = m_data;
 #endif
 			}
-			void storeu(T *ptr, size_t num) const noexcept
+			void storeu(T *ptr, int num) const noexcept
 			{
 				assert(ptr != nullptr);
-				assert(num <= length);
-
+				assert(num >= 0 && num <= length);
 #if SUPPORTS_AVX
 				if (num == length)
 					_mm256_storeu_si256(reinterpret_cast<__m256i*>(ptr), m_data);
@@ -195,7 +198,7 @@ namespace SIMD_NAMESPACE
 				ptr[0] = m_data;
 #endif
 			}
-			void insert(T value, size_t index) noexcept
+			void insert(T value, int index) noexcept
 			{
 				assert(index >= 0 && index < length);
 				T tmp[length];
@@ -203,14 +206,14 @@ namespace SIMD_NAMESPACE
 				tmp[index] = value;
 				loadu(tmp);
 			}
-			T extract(size_t index) const noexcept
+			T extract(int index) const noexcept
 			{
 				assert(index >= 0 && index < length);
 				T tmp[length];
 				storeu(tmp);
 				return tmp[index];
 			}
-			T operator[](size_t index) const noexcept
+			T operator[](int index) const noexcept
 			{
 				return extract(index);
 			}
@@ -240,7 +243,7 @@ namespace SIMD_NAMESPACE
 #elif SUPPORTS_SSE2
 		return _mm_and_si128(lhs, rhs);
 #else
-		return SIMD<int32_t>(bitwise_cast<uint64_t>(lhs) & bitwise_cast<uint64_t>(rhs));
+		return SIMD<int32_t>(bitwise_cast<uint32_t>(lhs) & bitwise_cast<uint32_t>(rhs));
 #endif
 	}
 	static inline SIMD<int32_t> operator|(SIMD<int32_t> lhs, SIMD<int32_t> rhs) noexcept
@@ -250,7 +253,7 @@ namespace SIMD_NAMESPACE
 #elif SUPPORTS_SSE2
 		return _mm_or_si128(lhs, rhs);
 #else
-		return SIMD<int32_t>(bitwise_cast<uint64_t>(lhs) | bitwise_cast<uint64_t>(rhs));
+		return SIMD<int32_t>(bitwise_cast<uint32_t>(lhs) | bitwise_cast<uint32_t>(rhs));
 #endif
 	}
 	static inline SIMD<int32_t> operator^(SIMD<int32_t> lhs, SIMD<int32_t> rhs) noexcept
@@ -260,17 +263,17 @@ namespace SIMD_NAMESPACE
 #elif SUPPORTS_SSE2
 		return _mm_xor_si128(lhs, rhs);
 #else
-		return SIMD<int32_t>(bitwise_cast<uint64_t>(lhs) ^ bitwise_cast<uint64_t>(rhs));
+		return SIMD<int32_t>(bitwise_cast<uint32_t>(lhs) ^ bitwise_cast<uint32_t>(rhs));
 #endif
 	}
 	static inline SIMD<int32_t> operator~(SIMD<int32_t> x) noexcept
 	{
 #if SUPPORTS_AVX
-		return _mm256_xor_si256(x, _mm256_set1_epi32(-1));
+		return _mm256_xor_si256(x, constant<0xFFFFFFFFu>());
 #elif SUPPORTS_SSE2
-		return _mm_xor_si128(x, _mm_set1_epi32(-1));
+		return _mm_xor_si128(x, constant<0xFFFFFFFFu>());
 #else
-		return SIMD<int32_t>(~static_cast<int32_t>(x));
+		return SIMD<int32_t>(~static_cast<uint32_t>(x));
 #endif
 	}
 	static inline SIMD<int32_t> operator!(SIMD<int32_t> x) noexcept
@@ -333,7 +336,7 @@ namespace SIMD_NAMESPACE
 	}
 	static inline SIMD<int32_t> operator-(SIMD<int32_t> x) noexcept
 	{
-		return SIMD<int32_t>(static_cast<int32_t>(0)) - x;
+		return SIMD<int32_t>::zero() - x;
 	}
 	static inline SIMD<int32_t> operator*(SIMD<int32_t> lhs, SIMD<int32_t> rhs) noexcept
 	{
@@ -355,6 +358,11 @@ namespace SIMD_NAMESPACE
 		return static_cast<int32_t>(lhs) * static_cast<int32_t>(rhs);
 #endif
 	}
+	static inline SIMD<int32_t> operator/(SIMD<int32_t> lhs, SIMD<int32_t> rhs) noexcept
+	{
+		exit(-1); // integer division is not supported right now
+	}
+
 	/* Bit shifts */
 	static inline SIMD<int32_t> operator>>(SIMD<int32_t> lhs, int32_t rhs) noexcept
 	{
@@ -381,6 +389,21 @@ namespace SIMD_NAMESPACE
 #endif
 	}
 
+	/**
+	 * result = (mask == 0xFFFFFFFF) ? x : y
+	 */
+	static inline SIMD<int32_t> select(SIMD<int32_t> mask, SIMD<int32_t> x, SIMD<int32_t> y)
+	{
+#if SUPPORTS_AVX
+		return _mm256_blendv_epi8(y, x, mask);
+#elif SUPPORTS_SSE41
+		return _mm_blendv_epi8(y, x, mask);
+#elif SUPPORTS_SSE2
+		return _mm_or_ps(_mm_and_ps(mask, x), _mm_andnot_ps(mask, y));
+#else
+		return bitwise_cast<uint32_t>(static_cast<float>(mask) == 0xFFFFFFFFu ? x : y);
+#endif
+	}
 	static inline SIMD<int32_t> max(SIMD<int32_t> lhs, SIMD<int32_t> rhs) noexcept
 	{
 #if SUPPORTS_AVX2
@@ -473,6 +496,21 @@ namespace SIMD_NAMESPACE
 		return SIMD<int8_t>(static_cast<int8_t>(0)) - x;
 	}
 
+	/**
+	 * result = (mask == 0xFF) ? x : y
+	 */
+	static inline SIMD<int8_t> select(SIMD<int8_t> mask, SIMD<int8_t> x, SIMD<int8_t> y)
+	{
+#if SUPPORTS_AVX
+		return _mm256_blendv_epi8(y, x, mask);
+#elif SUPPORTS_SSE41
+		return _mm_blendv_epi8(y, x, mask);
+#elif SUPPORTS_SSE2
+		return _mm_or_ps(_mm_and_ps(mask, x), _mm_andnot_ps(mask, y));
+#else
+		return bitwise_cast<uint8_t>(static_cast<float>(mask) == 0xFFu ? x : y);
+#endif
+	}
 	static inline SIMD<int8_t> max(SIMD<int8_t> lhs, SIMD<int8_t> rhs) noexcept
 	{
 #if SUPPORTS_AVX2

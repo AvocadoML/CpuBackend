@@ -22,50 +22,50 @@ namespace SIMD_NAMESPACE
 	class SIMD;
 
 #if SUPPORTS_AVX
-		static inline __m128 get_low(__m256 reg) noexcept
-		{
-			return _mm256_castps256_ps128(reg);
-		}
-		static inline __m128 get_high(__m256 reg) noexcept
-		{
-			return _mm256_extractf128_ps(reg, 1);
-		}
+	static inline __m128 get_low(__m256 reg) noexcept
+	{
+		return _mm256_castps256_ps128(reg);
+	}
+	static inline __m128 get_high(__m256 reg) noexcept
+	{
+		return _mm256_extractf128_ps(reg, 1);
+	}
 
-		static inline __m128d get_low(__m256d reg) noexcept
-		{
-			return _mm256_castpd256_pd128(reg);
-		}
-		static inline __m128d get_high(__m256d reg) noexcept
-		{
-			return _mm256_extractf128_pd(reg, 1);
-		}
+	static inline __m128d get_low(__m256d reg) noexcept
+	{
+		return _mm256_castpd256_pd128(reg);
+	}
+	static inline __m128d get_high(__m256d reg) noexcept
+	{
+		return _mm256_extractf128_pd(reg, 1);
+	}
 
-		static inline __m128i get_low(__m256i reg) noexcept
-		{
-			return _mm256_castsi256_si128(reg);
-		}
-		static inline __m128i get_high(__m256i reg) noexcept
-		{
-			return _mm256_extractf128_si256(reg, 1);
-		}
+	static inline __m128i get_low(__m256i reg) noexcept
+	{
+		return _mm256_castsi256_si128(reg);
+	}
+	static inline __m128i get_high(__m256i reg) noexcept
+	{
+		return _mm256_extractf128_si256(reg, 1);
+	}
 #endif
 
 #if SUPPORTS_AVX
-		template<uint32_t i0, uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, uint32_t i6, uint32_t i7>
-		inline __m256i constant() noexcept
-		{
-			return _mm256_setr_epi32(i0, i1, i2, i3, i4, i5, i6, i7);
-		}
-		template<uint32_t i0, uint32_t i1>
-		inline __m256i constant() noexcept
-		{
-			return constant<i0, i1, i0, i1, i0, i1, i0, i1>();
-		}
-		template<uint32_t i>
-		inline __m256i constant() noexcept
-		{
-			return constant<i, i, i, i, i, i, i, i>();
-		}
+	template<uint32_t i0, uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, uint32_t i6, uint32_t i7>
+	inline __m256i constant() noexcept
+	{
+		return _mm256_setr_epi32(i0, i1, i2, i3, i4, i5, i6, i7);
+	}
+	template<uint32_t i0, uint32_t i1>
+	inline __m256i constant() noexcept
+	{
+		return constant<i0, i1, i0, i1, i0, i1, i0, i1>();
+	}
+	template<uint32_t i>
+	inline __m256i constant() noexcept
+	{
+		return constant<i, i, i, i, i, i, i, i>();
+	}
 #elif SUPPORTS_SSE2
 	template<uint32_t i0, uint32_t i1, uint32_t i2, uint32_t i3>
 	inline __m128i constant() noexcept
@@ -232,7 +232,63 @@ namespace SIMD_NAMESPACE
 	}
 #endif
 
-	/* Bitwise operations */
+	/*
+	 * Bitwise operations.
+	 */
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator&(SIMD<T> lhs, U rhs) noexcept
+	{
+		return lhs & SIMD<U>(rhs);
+	}
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator&(U lhs, SIMD<T> rhs) noexcept
+	{
+		return SIMD<U>(lhs) & rhs;
+	}
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator&=(SIMD<T> &lhs, U rhs) noexcept
+	{
+		lhs = (lhs & rhs);
+		return lhs;
+	}
+
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator|(SIMD<T> lhs, U rhs) noexcept
+	{
+		return lhs | SIMD<U>(rhs);
+	}
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator|(U lhs, SIMD<T> rhs) noexcept
+	{
+		return SIMD<U>(lhs) | rhs;
+	}
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator|=(SIMD<T> &lhs, U rhs) noexcept
+	{
+		lhs = (lhs | rhs);
+		return lhs;
+	}
+
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator^(SIMD<T> lhs, U rhs) noexcept
+	{
+		return lhs ^ SIMD<U>(rhs);
+	}
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator^(U lhs, SIMD<T> rhs) noexcept
+	{
+		return SIMD<U>(lhs) ^ rhs;
+	}
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator^=(SIMD<T> &lhs, U rhs) noexcept
+	{
+		lhs = (lhs ^ rhs);
+		return lhs;
+	}
+
+	/*
+	 * Bitwise shifts.
+	 */
 	template<typename T>
 	static inline SIMD<T>& operator>>=(SIMD<T> &lhs, T rhs) noexcept
 	{
@@ -245,125 +301,158 @@ namespace SIMD_NAMESPACE
 		lhs = (lhs << rhs);
 		return lhs;
 	}
-	template<typename T>
-	static inline SIMD<T>& operator&=(SIMD<T> &lhs, T rhs) noexcept
+
+	/*
+	 * Compare operations.
+	 */
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator<(SIMD<T> lhs, U rhs) noexcept
 	{
-		lhs = (lhs & rhs);
-		return lhs;
+		return lhs < SIMD<U>(rhs);
 	}
-	template<typename T>
-	static inline SIMD<T>& operator|=(SIMD<T> &lhs, T rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator<(U lhs, SIMD<T> rhs) noexcept
 	{
-		lhs = (lhs | rhs);
-		return lhs;
+		return SIMD<U>(lhs) < rhs;
 	}
-	template<typename T>
-	static inline SIMD<T>& operator^=(SIMD<T> &lhs, T rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator<=(SIMD<T> lhs, U rhs) noexcept
 	{
-		lhs = (lhs ^ rhs);
-		return lhs;
+		return lhs <= SIMD<U>(rhs);
+	}
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator<=(U lhs, SIMD<T> rhs) noexcept
+	{
+		return SIMD<U>(lhs) <= rhs;
 	}
 
-	/* Logical operations */
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator>(SIMD<T> lhs, U rhs) noexcept
+	{
+		return lhs <= rhs;
+	}
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator>(U lhs, SIMD<T> rhs) noexcept
+	{
+		return lhs <= rhs;
+	}
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator>=(SIMD<T> lhs, U rhs) noexcept
+	{
+		return lhs < rhs;
+	}
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator>=(U lhs, SIMD<T> rhs) noexcept
+	{
+		return lhs < rhs;
+	}
+
 	template<typename T>
 	static inline SIMD<T> operator>(SIMD<T> lhs, SIMD<T> rhs) noexcept
 	{
-		return rhs < lhs;
+		return lhs <= rhs;
 	}
 	template<typename T>
 	static inline SIMD<T> operator>=(SIMD<T> lhs, SIMD<T> rhs) noexcept
 	{
-		return rhs <= lhs;
+		return lhs < rhs;
 	}
 
-	/* Arithmetic operations */
-	template<typename T>
-	static inline SIMD<T> operator+(SIMD<T> lhs, T rhs) noexcept
+	/*
+	 * Arithmetic operations
+	 */
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator+(SIMD<T> lhs, U rhs) noexcept
 	{
-		return lhs + SIMD<T>(rhs);
+		return lhs + SIMD<U>(rhs);
 	}
-	template<typename T>
-	static inline SIMD<T> operator+(T lhs, SIMD<T> rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator+(U lhs, SIMD<T> rhs) noexcept
 	{
-		return SIMD<T>(lhs) + rhs;
+		return SIMD<U>(lhs) + rhs;
 	}
-	template<typename T>
-	static inline SIMD<T>& operator+=(SIMD<T> &lhs, SIMD<T> rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator+=(SIMD<T> &lhs, SIMD<U> rhs) noexcept
+	{
+		lhs = lhs + rhs;
+		return lhs;
+	}
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator+=(SIMD<T> &lhs, U rhs) noexcept
 	{
 		lhs = lhs + rhs;
 		return lhs;
 	}
 	template<typename T>
-	static inline SIMD<T>& operator+=(SIMD<T> &lhs, T rhs) noexcept
+	static inline SIMD<T> operator+(SIMD<T> x) noexcept
 	{
-		lhs = lhs + rhs;
-		return lhs;
+		return x;
 	}
 
-	template<typename T>
-	static inline SIMD<T> operator-(SIMD<T> lhs, T rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator-(SIMD<T> lhs, U rhs) noexcept
 	{
-		return lhs - SIMD<T>(rhs);
+		return lhs - SIMD<U>(rhs);
 	}
-	template<typename T>
-	static inline SIMD<T> operator-(T lhs, SIMD<T> rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator-(U lhs, SIMD<T> rhs) noexcept
 	{
-		return SIMD<T>(lhs) - rhs;
+		return SIMD<U>(lhs) - rhs;
 	}
-	template<typename T>
-	static inline SIMD<T>& operator-=(SIMD<T> &lhs, SIMD<T> rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator-=(SIMD<T> &lhs, SIMD<U> rhs) noexcept
 	{
 		lhs = lhs - rhs;
 		return lhs;
 	}
-	template<typename T>
-	static inline SIMD<T>& operator-=(SIMD<T> &lhs, T rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator-=(SIMD<T> &lhs, U rhs) noexcept
 	{
 		lhs = lhs - rhs;
 		return lhs;
 	}
 
-	template<typename T>
-	static inline SIMD<T> operator*(SIMD<T> lhs, T rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator*(SIMD<T> lhs, U rhs) noexcept
 	{
-		return lhs * SIMD<T>(rhs);
+		return lhs * SIMD<U>(rhs);
 	}
-	template<typename T>
-	static inline SIMD<T> operator*(T lhs, SIMD<T> rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T> operator*(U lhs, SIMD<T> rhs) noexcept
 	{
-		return SIMD<T>(lhs) * rhs;
+		return SIMD<U>(lhs) * rhs;
 	}
-	template<typename T>
-	static inline SIMD<T>& operator*=(SIMD<T> &lhs, SIMD<T> rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator*=(SIMD<T> &lhs, SIMD<U> rhs) noexcept
 	{
 		lhs = lhs * rhs;
 		return lhs;
 	}
-	template<typename T>
-	static inline SIMD<T>& operator*=(SIMD<T> &lhs, T rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator*=(SIMD<T> &lhs, U rhs) noexcept
 	{
 		lhs = lhs * rhs;
 		return lhs;
 	}
 
-	template<typename T>
-	static inline SIMD<T> operator/(SIMD<T> lhs, T rhs) noexcept
+	template<typename T, typename U>
+	static inline SIMD<T> operator/(SIMD<U> lhs, T rhs) noexcept
 	{
-		return lhs / SIMD<T>(rhs);
+		return lhs / SIMD<U>(rhs);
 	}
-	template<typename T>
-	static inline SIMD<T> operator/(T lhs, SIMD<T> rhs) noexcept
+	template<typename T, typename U>
+	static inline SIMD<T> operator/(T lhs, SIMD<U> rhs) noexcept
 	{
-		return SIMD<T>(lhs) / rhs;
+		return SIMD<U>(lhs) / rhs;
 	}
-	template<typename T>
-	static inline SIMD<T>& operator/=(SIMD<T> &lhs, SIMD<T> rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator/=(SIMD<T> &lhs, SIMD<U> rhs) noexcept
 	{
 		lhs = lhs / rhs;
 		return lhs;
 	}
-	template<typename T>
-	static inline SIMD<T>& operator/=(SIMD<T> &lhs, T rhs) noexcept
+	template<typename T, typename U = T>
+	static inline SIMD<T>& operator/=(SIMD<T> &lhs, U rhs) noexcept
 	{
 		lhs = lhs / rhs;
 		return lhs;

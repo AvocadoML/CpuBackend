@@ -31,11 +31,11 @@ namespace SIMD_NAMESPACE
 		public:
 
 #if SUPPORTS_AVX
-			static constexpr int64_t length = 4;
+			static constexpr int length = 4;
 #elif SUPPORTS_SSE2
-			static constexpr int64_t length = 2;
+			static constexpr int length = 2;
 #else
-			static constexpr int64_t length = 1;
+			static constexpr int length = 1;
 #endif
 
 			SIMD() noexcept // @suppress("Class members should be properly initialized")
@@ -45,7 +45,7 @@ namespace SIMD_NAMESPACE
 			{
 				loadu(ptr);
 			}
-			SIMD(const double *ptr, size_t num) noexcept
+			SIMD(const double *ptr, int num) noexcept
 			{
 				loadu(ptr, num);
 			}
@@ -59,14 +59,22 @@ namespace SIMD_NAMESPACE
 				m_data = x;
 #endif
 			}
-#if SUPPORTS_AVX
-			SIMD(__m256d x) noexcept
+			SIMD(float x) noexcept : // @suppress("Class members should be properly initialized")
+					SIMD(static_cast<double>(x))
 			{
-				m_data = x;
 			}
-			SIMD(__m128d low, __m128d high) noexcept
+#if SUPPORTS_AVX
+			SIMD(__m256d x) noexcept :
+					m_data(x)
 			{
-				m_data = _mm256_setr_m128d(low, high);
+			}
+			SIMD(__m128d low) noexcept :
+					m_data(_mm256_setr_m128d(low, _mm_setzero_pd()))
+			{
+			}
+			SIMD(__m128d low, __m128d high) noexcept :
+					m_data(_mm256_setr_m128d(low, high))
+			{
 			}
 			SIMD<double>& operator=(__m256d x) noexcept
 			{
@@ -78,9 +86,9 @@ namespace SIMD_NAMESPACE
 				return m_data;
 			}
 #elif SUPPORTS_SSE2
-			SIMD(__m128d x) noexcept
+			SIMD(__m128d x) noexcept:
+					m_data(x)
 			{
-				m_data = x;
 			}
 			SIMD<double>& operator=(__m128d x) noexcept
 			{
@@ -108,19 +116,19 @@ namespace SIMD_NAMESPACE
 				m_data = ptr[0];
 #endif
 			}
-			void loadu(const double *ptr, size_t num) noexcept
+			void loadu(const double *ptr, int num) noexcept
 			{
 				assert(ptr != nullptr);
-				assert(num <= length);
+				assert(mun >= 0 && num <= length);
 #if SUPPORTS_AVX
 				if (num == length)
 					m_data = _mm256_loadu_pd(ptr);
 				else
 				{
 					if (num > length / 2)
-						*this = SIMD<double>(_mm_loadu_pd(ptr), partial_load(ptr + length / 2, num - length / 2));
+						*this = SIMD<double>(_mm_loadu_pd(ptr), partial_load(ptr + (length / 2), num - length / 2));
 					else
-						*this = SIMD<double>(partial_load(ptr, num), _mm_setzero_pd());
+						*this = SIMD<double>(partial_load(ptr, num));
 				}
 #elif SUPPORTS_SSE2
 				m_data = partial_load(ptr, num);
@@ -139,11 +147,10 @@ namespace SIMD_NAMESPACE
 				ptr[0] = m_data;
 #endif
 			}
-			void storeu(double *ptr, size_t num) const noexcept
+			void storeu(double *ptr, int num) const noexcept
 			{
 				assert(ptr != nullptr);
-				assert(num <= length);
-
+				assert(mun >= 0 && num <= length);
 #if SUPPORTS_AVX
 				if (num == length)
 					_mm256_storeu_pd(ptr, m_data);
@@ -163,9 +170,9 @@ namespace SIMD_NAMESPACE
 				ptr[0] = m_data;
 #endif
 			}
-			void insert(double value, size_t index) noexcept
+			void insert(double value, int index) noexcept
 			{
-				assert(index < length);
+				assert(index >= 0 && index < length);
 #if SUPPORTS_AVX
 				__m256d tmp = _mm256_broadcast_sd(&value);
 				switch (index)
@@ -192,14 +199,14 @@ namespace SIMD_NAMESPACE
 				m_data = value;
 #endif
 			}
-			double extract(size_t index) const noexcept
+			double extract(int index) const noexcept
 			{
-				assert(index < length);
+				assert(index >= 0 && index < length);
 				double tmp[length];
 				storeu(tmp);
 				return tmp[index];
 			}
-			double operator[](size_t index) const noexcept
+			double operator[](int index) const noexcept
 			{
 				return extract(index);
 			}
@@ -462,16 +469,62 @@ namespace SIMD_NAMESPACE
 	}
 
 	/* Horizontal functions */
-	static inline double horizontal_add(SIMD<double> x) noexcept
+
+	static inline float horizontal_add(SIMD<double> x) noexcept
 	{
-#if SUPPORTS_AVX
-		__m128d t1 = get_low(x) + get_high(x);
-		__m128d t2 = _mm_unpackhi_pd(t1, t1);
-		__m128d t3 = _mm_add_pd(t1, t2);
-		return _mm_cvtsd_f64(t3);
-#elif SUPPORTS_SSE2
-		__m128d t1 = _mm_unpackhi_pd(x, x);
-		__m128d t2 = _mm_add_pd(x, t1);
+#if SUPPORTS_SSE2
+#  if SUPPORTS_AVX
+		__m128d y = _mm_add_pd(get_low(x), get_high(x));
+#  else
+		__m128d y = x;
+#  endif
+		__m128d t1 = _mm_unpackhi_pd(y, y);
+		__m128d t2 = _mm_add_pd(y, t1);
+		return _mm_cvtsd_f64(t2);
+#else
+		return static_cast<double>(x);
+#endif
+	}
+	static inline float horizontal_mul(SIMD<double> x) noexcept
+	{
+#if SUPPORTS_SSE2
+#  if SUPPORTS_AVX
+		__m128d y = _mm_mul_pd(get_low(x), get_high(x));
+#  else
+		__m128d y = x;
+#  endif
+		__m128d t1 = _mm_unpackhi_pd(y, y);
+		__m128d t2 = _mm_mul_pd(y, t1);
+		return _mm_cvtsd_f64(t2);
+#else
+		return static_cast<double>(x);
+#endif
+	}
+	static inline float horizontal_min(SIMD<double> x) noexcept
+	{
+#if SUPPORTS_SSE2
+#  if SUPPORTS_AVX
+		__m128d y = _mm_min_pd(get_low(x), get_high(x));
+#  else
+		__m128d y = x;
+#  endif
+		__m128d t1 = _mm_unpackhi_pd(y, y);
+		__m128d t2 = _mm_min_pd(y, t1);
+		return _mm_cvtsd_f64(t2);
+#else
+		return static_cast<double>(x);
+#endif
+	}
+	static inline float horizontal_max(SIMD<double> x) noexcept
+	{
+#if SUPPORTS_SSE2
+#  if SUPPORTS_AVX
+		__m128d y = _mm_max_pd(get_low(x), get_high(x));
+#  else
+		__m128d y = x;
+#  endif
+		__m128d t1 = _mm_unpackhi_pd(y, y);
+		__m128d t2 = _mm_max_pd(y, t1);
 		return _mm_cvtsd_f64(t2);
 #else
 		return static_cast<double>(x);
