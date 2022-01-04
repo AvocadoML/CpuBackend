@@ -168,7 +168,7 @@ namespace
 		if (dimensions.first == 1) // both src1 and src2 have the same shape
 		{
 #pragma omp parallel for
-			for (int64_t i = 0; i < dimensions.last; i++)
+			for (int i = 0; i < dimensions.last; i++)
 			{
 				const int elements_left = std::min(dimensions.last - i, SIMD<T>::length);
 				SIMD<T> lhs(src1 + i, elements_left);
@@ -179,7 +179,9 @@ namespace
 					result = operation(lhs, rhs);
 				else
 				{
-					result = operation(alpha1 * lhs, alpha2 * rhs);
+					lhs *= alpha1;
+					rhs *= alpha2;
+					result = operation(lhs, rhs);
 					if (not ZeroBeta)
 					{
 						SIMD<T> loaded_dst(dst + i, elements_left);
@@ -197,7 +199,7 @@ namespace
 				if (not LogicalOp)
 					rhs = alpha2 * rhs;
 #pragma omp parallel for
-				for (int64_t i = 0; i < dimensions.first; i++)
+				for (int i = 0; i < dimensions.first; i++)
 				{
 					const int elements_left = std::min(dimensions.first - i, SIMD<T>::length);
 					SIMD<T> lhs(src1 + i, elements_left);
@@ -220,8 +222,8 @@ namespace
 			else
 			{
 #pragma omp parallel for
-				for (int64_t i = 0; i < dimensions.first; i++)
-					for (int64_t j = 0; j < dimensions.last; j++)
+				for (int i = 0; i < dimensions.first; i++)
+					for (int j = 0; j < dimensions.last; j++)
 					{
 						const int elements_left = std::min(dimensions.last - j, SIMD<T>::length);
 						SIMD<T> lhs(src1 + (i * dimensions.last + j), elements_left);
@@ -328,14 +330,14 @@ namespace avocado
 			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(aDesc), getTensor(bDesc));
 			switch (getTensor(cDesc).dtype())
 			{
-//				case AVOCADO_DTYPE_FLOAT16:
-//					kernel_binary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getPointer<float16>(bMem), getAlphaValue(alpha1),
-//							getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
-//					break;
-//				case AVOCADO_DTYPE_BFLOAT16:
-//					kernel_binary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getPointer<bfloat16>(bMem), getAlphaValue(alpha1),
-//							getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
-//					break;
+				case AVOCADO_DTYPE_FLOAT16:
+					helper_binary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getPointer<float16>(bMem), getAlphaValue(alpha1),
+							getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
+					break;
+				case AVOCADO_DTYPE_BFLOAT16:
+					helper_binary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getPointer<bfloat16>(bMem), getAlphaValue(alpha1),
+							getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
+					break;
 				case AVOCADO_DTYPE_FLOAT32:
 					helper_binary_op(getPointer<float>(cMem), getPointer<float>(aMem), getPointer<float>(bMem), getAlphaValue(alpha1),
 							getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);

@@ -135,11 +135,11 @@ namespace
 	 * \brief
 	 */
 	template<class Op, typename T, typename U, bool ZeroBeta, bool LogicalOp = false>
-	void kernel_unary_op(T *dst, const T *src, U alpha, U beta, int64_t elements) noexcept
+	void kernel_unary_op(T *dst, const T *src, U alpha, U beta, int elements) noexcept
 	{
 		Op operation;
 #pragma omp parallel for
-		for (int64_t i = 0; i < elements; i += SIMD<T>::length)
+		for (int i = 0; i < elements; i += SIMD<T>::length)
 		{
 			const int elements_left = std::min(elements - i, SIMD<T>::length);
 			SIMD<T> value(src + i, elements_left);
@@ -226,14 +226,14 @@ namespace avocado
 			const avSize_t elements = getTensor(aDesc).volume();
 			switch (getTensor(cDesc).dtype())
 			{
-//				case AVOCADO_DTYPE_FLOAT16:
-//					helper_unary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
-//							operation);
-//					break;
-//				case AVOCADO_DTYPE_BFLOAT16:
-//					helper_unary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
-//							operation);
-//					break;
+				case AVOCADO_DTYPE_FLOAT16:
+					helper_unary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
+							operation);
+					break;
+				case AVOCADO_DTYPE_BFLOAT16:
+					helper_unary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
+							operation);
+					break;
 				case AVOCADO_DTYPE_FLOAT32:
 					helper_unary_op(getPointer<float>(cMem), getPointer<float>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements, operation);
 					break;
