@@ -143,6 +143,7 @@ namespace SIMD_NAMESPACE
 	{
 		switch (activation)
 		{
+			default:
 			case avocado::backend::AVOCADO_ACTIVATION_LINEAR:
 				break;
 			case avocado::backend::AVOCADO_ACTIVATION_SIGMOID:
@@ -169,6 +170,58 @@ namespace SIMD_NAMESPACE
 			case avocado::backend::AVOCADO_ACTIVATION_SOFTSIGN:
 				internal::kernel_forward<ActivationSoftsign<T>, T>(input, elements);
 				break;
+		}
+	}
+	template<typename T>
+	SIMD<T> activation_forward(avocado::backend::avActivationType_t activation, SIMD<T> input)
+	{
+		switch (activation)
+		{
+			default:
+			case avocado::backend::AVOCADO_ACTIVATION_LINEAR:
+				return input;
+			case avocado::backend::AVOCADO_ACTIVATION_SIGMOID:
+				return ActivationSigmoid<T>().forward(input);
+			case avocado::backend::AVOCADO_ACTIVATION_TANH:
+				return ActivationTanh<T>().forward(input);
+			case avocado::backend::AVOCADO_ACTIVATION_RELU:
+				return ActivationRelu<T>().forward(input);
+			case avocado::backend::AVOCADO_ACTIVATION_SELU:
+				return ActivationSelu<T>().forward(input);
+			case avocado::backend::AVOCADO_ACTIVATION_ELU:
+				return ActivationElu<T>().forward(input);
+			case avocado::backend::AVOCADO_ACTIVATION_EXPONENTIAL:
+				return ActivationExponential<T>().forward(input);
+			case avocado::backend::AVOCADO_ACTIVATION_SOFTPLUS:
+				return ActivationSoftplus<T>().forward(input);
+			case avocado::backend::AVOCADO_ACTIVATION_SOFTSIGN:
+				return ActivationSoftsign<T>().forward(input);
+		}
+	}
+	template<typename T>
+	SIMD<T> activation_backward(avocado::backend::avActivationType_t activation, SIMD<T> gradient, SIMD<T> output)
+	{
+		switch (activation)
+		{
+			default:
+			case avocado::backend::AVOCADO_ACTIVATION_LINEAR:
+				return gradient;
+			case avocado::backend::AVOCADO_ACTIVATION_SIGMOID:
+				return ActivationSigmoid<T>().backward(gradient, output);
+			case avocado::backend::AVOCADO_ACTIVATION_TANH:
+				return ActivationTanh<T>().backward(gradient, output);
+			case avocado::backend::AVOCADO_ACTIVATION_RELU:
+				return ActivationRelu<T>().backward(gradient, output);
+			case avocado::backend::AVOCADO_ACTIVATION_SELU:
+				return ActivationSelu<T>().backward(gradient, output);
+			case avocado::backend::AVOCADO_ACTIVATION_ELU:
+				return ActivationElu<T>().backward(gradient, output);
+			case avocado::backend::AVOCADO_ACTIVATION_EXPONENTIAL:
+				return ActivationExponential<T>().backward(gradient, output);
+			case avocado::backend::AVOCADO_ACTIVATION_SOFTPLUS:
+				return ActivationSoftplus<T>().backward(gradient, output);
+			case avocado::backend::AVOCADO_ACTIVATION_SOFTSIGN:
+				return ActivationSoftsign<T>().backward(gradient, output);
 		}
 	}
 }

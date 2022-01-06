@@ -70,7 +70,8 @@ avStatus_t batchNormBackward(avContextDescriptor_t context, avActivationType_t a
 		const avMemoryDescriptor_t xMem, const avTensorDescriptor_t yDesc, const avMemoryDescriptor_t yMem, const void *beta,
 		const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avTensorDescriptor_t dyDesc, avMemoryDescriptor_t dyMem,
 		const avTensorDescriptor_t scaleMeanVarDesc, const avMemoryDescriptor_t scaleMem, const avMemoryDescriptor_t meanMem,
-		const avMemoryDescriptor_t varianceMem, double epsilon);
+		const avMemoryDescriptor_t varianceMem, const void *alpha2, const void *beta2, avMemoryDescriptor_t scaleUpdateMem,
+		avMemoryDescriptor_t biasUpdateMem, double epsilon);
 
 avStatus_t batchNormUpdate(avContextDescriptor_t context, const void *alpha, const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem,
 		const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t scaleBiasDesc,
