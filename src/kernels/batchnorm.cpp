@@ -40,7 +40,7 @@ namespace
 					input += beta * output;
 				}
 
-				input.storeu(yMem + i * dims.last + j, elements_left);
+				input.store(yMem + i * dims.last + j, elements_left);
 			}
 	}
 
@@ -58,8 +58,8 @@ namespace
 			scale = scale * rsqrt(epsilon + variance);
 			shift = shift - mean * scale;
 
-			scale.storeu(workspace + j, elements_left);
-			shift.storeu(workspace + j + last_dim, elements_left);
+			scale.store(workspace + j, elements_left);
+			shift.store(workspace + j + last_dim, elements_left);
 		}
 	}
 
@@ -85,7 +85,7 @@ namespace
 					input += beta * output;
 				}
 
-				input.storeu(yMem + i * dims.last + j, elements_left);
+				input.store(yMem + i * dims.last + j, elements_left);
 			}
 	}
 	template<typename T>
@@ -128,7 +128,7 @@ namespace
 					SIMD<T> variance(thread_workspace + i * dims.last + j, elements_left);
 
 					variance += square(input - mean);
-					variance.storeu(thread_workspace + i, elements_left);
+					variance.store(thread_workspace + i, elements_left);
 				}
 #pragma omp critical
 			{
@@ -160,7 +160,7 @@ namespace
 						input += beta * output;
 					}
 
-					input.storeu(yMem + i * dims.last + j, elements_left);
+					input.store(yMem + i * dims.last + j, elements_left);
 				}
 		}
 	}
@@ -188,7 +188,7 @@ namespace
 					SIMD<T> gradient_next(dyMem + i * dims.last + j, elements_left);
 					SIMD<T> output(yMem + i * dims.last + j, elements_left);
 					gradient_next = activation_backward(activation, gradient_next, output);
-					gradient_next.storeu(dyMem + i * dims.last + j, elements_left);
+					gradient_next.store(dyMem + i * dims.last + j, elements_left);
 
 					SIMD<T> mean(meanMem + j, elements_left);
 					SIMD<T> variance(varianceMem + j, elements_left);
@@ -200,8 +200,8 @@ namespace
 					SIMD<T> tmp_d_mu(thread_d_mu + j, elements_left);
 					tmp_d_sigma += gradient_next * input;
 					tmp_d_mu += gradient_next;
-					tmp_d_sigma.storeu(thread_d_sigma, elements_left);
-					tmp_d_mu.storeu(thread_d_mu, elements_left);
+					tmp_d_sigma.store(thread_d_sigma, elements_left);
+					tmp_d_mu.store(thread_d_mu, elements_left);
 				}
 
 #pragma omp critical
@@ -226,8 +226,8 @@ namespace
 					tmp_d_sigma *= -scale * rsqrt(epsilon + variance);
 					tmp_d_mu *= -scale * rsqrt(epsilon + variance);
 
-					tmp_d_sigma.storeu(d_sigma, elements_left);
-					tmp_d_mu.storeu(d_sigma, elements_left);
+					tmp_d_sigma.store(d_sigma, elements_left);
+					tmp_d_mu.store(d_sigma, elements_left);
 				}
 			} // here is implicit synchronization
 
@@ -261,7 +261,7 @@ namespace
 						tmp1 += beta1 * gradient_prev;
 					}
 
-					tmp1.storeu(dxMem + i * dims.last + j, elements_left);
+					tmp1.store(dxMem + i * dims.last + j, elements_left);
 				}
 		}
 	}

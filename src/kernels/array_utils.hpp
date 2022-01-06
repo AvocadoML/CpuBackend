@@ -32,7 +32,7 @@ namespace SIMD_NAMESPACE
 		for (int i = 0; i < elements; i += value.length)
 		{
 			const int elements_left = std::min(elements - i, value.length);
-			value.storeu(ptr + i, elements_left);
+			value.store(ptr + i, elements_left);
 		}
 	}
 
@@ -49,7 +49,7 @@ namespace SIMD_NAMESPACE
 			SIMD<T> loaded_rhs(src + i, elements_left);
 
 			loaded_lhs += loaded_rhs;
-			loaded_lhs.storeu(dst + i, elements_left);
+			loaded_lhs.store(dst + i, elements_left);
 		}
 	}
 	/*
@@ -65,7 +65,7 @@ namespace SIMD_NAMESPACE
 				const int elements_left = std::min(elements - i, SIMD<T>::length);
 				SIMD<T> loaded(src + i, elements_left);
 				loaded *= alpha;
-				loaded.storeu(dst + i, elements_left);
+				loaded.store(dst + i, elements_left);
 			}
 		}
 		else
@@ -76,7 +76,7 @@ namespace SIMD_NAMESPACE
 				SIMD<T> loaded_src(src + i, elements_left);
 				SIMD<T> loaded_dst(dst + i, elements_left);
 				loaded_src = alpha * loaded_src + beta * loaded_dst;
-				loaded_src.storeu(dst + i, elements_left);
+				loaded_src.store(dst + i, elements_left);
 			}
 		}
 	}
@@ -100,7 +100,7 @@ namespace SIMD_NAMESPACE
 			const int elements_left = std::min(elements - i, value.length);
 			SIMD<T> loaded(ptr + i, elements_left);
 			loaded *= value;
-			loaded.storeu(ptr + i, elements_left);
+			loaded.store(ptr + i, elements_left);
 		}
 	}
 }

@@ -4,7 +4,7 @@
 //============================================================================
 
 #include <avocado/backend/backend_defs.h>
-#include <avocado/backend/tensor_helpers.hpp>
+#include <avocado/backend/backend_descriptors.hpp>
 
 #include <type_traits>
 #include <iostream>
@@ -236,51 +236,51 @@ void sse_transform_input_4x4(const float **ptr_in, float **ptr_out, float *stora
 }
 #endif
 
-int cpu_winograd3x3_4x4_transform_input(const TensorDescriptor *input, TensorDescriptor *matrices)
+int cpu_winograd3x3_4x4_transform_input(const TensorDescriptor &inputDesc, const float *inputMem, TensorDescriptor &matricesDesc, float *matricesMem)
 {
-	const int batch_size = dimension(input, 0);
-	const int height = dimension(input, 1);
-	const int width = dimension(input, 2);
-	const int filters = dimension(input, 3);
-
-	const int tile_h = (height + 3) / 4;
-	const int tile_w = (width + 3) / 4;
-	const int number_of_tiles = tile_h * tile_w;
-	const int nb_of_tiles = batch_size * number_of_tiles;
-
-	float zero_line[filters];
-	std::memset(zero_line, 0, filters * sizeof(float));
-
-#pragma omp parallel
-	{
-		float tmp_storage[288];
-		const float *ptr_in[36];
-		float *ptr_out[36];
-#pragma omp for
-		for (int tile_idx = 0; tile_idx < nb_of_tiles; tile_idx++)
-		{
-			int b = tile_idx / number_of_tiles;
-			int x = 4 * ((tile_idx % number_of_tiles) / tile_w);
-			int y = 4 * ((tile_idx % number_of_tiles) % tile_w);
-			int tmp_idx = 0;
-			for (int j = -1; j < 4 + 1; j++)
-				for (int k = -1; k < 4 + 1; k++, tmp_idx++)
-				{
-					ptr_out[tmp_idx] = data<float>(matrices) + (tmp_idx * dimension(matrices, 1) + tile_idx) * filters; //(tmp_idx, tile_idx, 0);
-					if ((x + j) >= 0 && (x + j) < height && (y + k) >= 0 && (y + k) < width)
-						ptr_in[tmp_idx] = data<float>(input) + ((b * height + x + j) * width + y + k) * filters; //(b, x + j, y + k, 0);
-					else
-						ptr_in[tmp_idx] = zero_line;
-				}
-#if defined(__AVX__)
-			avx_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
-#elif defined(__SSE__)
-			sse_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
-#else
-			def_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
-#endif
-		}
-	}
+//	const int batch_size = dimension(input, 0);
+//	const int height = dimension(input, 1);
+//	const int width = dimension(input, 2);
+//	const int filters = dimension(input, 3);
+//
+//	const int tile_h = (height + 3) / 4;
+//	const int tile_w = (width + 3) / 4;
+//	const int number_of_tiles = tile_h * tile_w;
+//	const int nb_of_tiles = batch_size * number_of_tiles;
+//
+//	float zero_line[filters];
+//	std::memset(zero_line, 0, filters * sizeof(float));
+//
+//#pragma omp parallel
+//	{
+//		float tmp_storage[288];
+//		const float *ptr_in[36];
+//		float *ptr_out[36];
+//#pragma omp for
+//		for (int tile_idx = 0; tile_idx < nb_of_tiles; tile_idx++)
+//		{
+//			int b = tile_idx / number_of_tiles;
+//			int x = 4 * ((tile_idx % number_of_tiles) / tile_w);
+//			int y = 4 * ((tile_idx % number_of_tiles) % tile_w);
+//			int tmp_idx = 0;
+//			for (int j = -1; j < 4 + 1; j++)
+//				for (int k = -1; k < 4 + 1; k++, tmp_idx++)
+//				{
+//					ptr_out[tmp_idx] = data<float>(matrices) + (tmp_idx * dimension(matrices, 1) + tile_idx) * filters; //(tmp_idx, tile_idx, 0);
+//					if ((x + j) >= 0 && (x + j) < height && (y + k) >= 0 && (y + k) < width)
+//						ptr_in[tmp_idx] = data<float>(input) + ((b * height + x + j) * width + y + k) * filters; //(b, x + j, y + k, 0);
+//					else
+//						ptr_in[tmp_idx] = zero_line;
+//				}
+//#if defined(__AVX__)
+//			avx_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
+//#elif defined(__SSE__)
+//			sse_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
+//#else
+//			def_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
+//#endif
+//		}
+//	}
 	return 0;
 }
 //template<typename T>
@@ -371,67 +371,67 @@ int cpu_winograd3x3_4x4_transform_input(const TensorDescriptor *input, TensorDes
 //	return 0;
 //}
 
-template<typename T>
-TensorDescriptor createTensor(std::initializer_list<int> shape)
-{
-	TensorDescriptor result;
-	result.shape = createShapeDescriptor(shape);
-	result.dtype = typeOf<T>();
-	result.data = new int8_t[volume(result.shape) * dataTypeSize(result.dtype)];
-	return result;
-}
-template<typename T>
-void initTensor(TensorDescriptor &tensor)
-{
-	for (int i = 0; i < volume(tensor.shape); i++)
-		reinterpret_cast<T*>(tensor.data)[i] = std::sin(i / static_cast<T>(1234));
-}
-template<typename T>
-void setTensor(TensorDescriptor &tensor, T value)
-{
-	for (int i = 0; i < volume(tensor.shape); i++)
-		reinterpret_cast<T*>(tensor.data)[i] = value;
-}
-template<typename T>
-double diff(const TensorDescriptor &lhs, const TensorDescriptor &rhs)
-{
-	assert(volume(lhs.shape) == volume(rhs.shape));
-	double result = 0.0;
-	for (int i = 0; i < volume(lhs.shape); i++)
-		result += std::abs(reinterpret_cast<T*>(lhs.data)[i] - reinterpret_cast<T*>(rhs.data)[i]);
-	return result / volume(lhs.shape);
-}
-void destroyTensor(TensorDescriptor &tensor)
-{
-	delete[] reinterpret_cast<int8_t*>(tensor.data);
-}
+//template<typename T>
+//TensorDescriptor createTensor(std::initializer_list<int> shape)
+//{
+//	TensorDescriptor result;
+//	result.shape = createShapeDescriptor(shape);
+//	result.dtype = typeOf<T>();
+//	result.data = new int8_t[volume(result.shape) * dataTypeSize(result.dtype)];
+//	return result;
+//}
+//template<typename T>
+//void initTensor(TensorDescriptor &tensor)
+//{
+//	for (int i = 0; i < volume(tensor.shape); i++)
+//		reinterpret_cast<T*>(tensor.data)[i] = std::sin(i / static_cast<T>(1234));
+//}
+//template<typename T>
+//void setTensor(TensorDescriptor &tensor, T value)
+//{
+//	for (int i = 0; i < volume(tensor.shape); i++)
+//		reinterpret_cast<T*>(tensor.data)[i] = value;
+//}
+//template<typename T>
+//double diff(const TensorDescriptor &lhs, const TensorDescriptor &rhs)
+//{
+//	assert(volume(lhs.shape) == volume(rhs.shape));
+//	double result = 0.0;
+//	for (int i = 0; i < volume(lhs.shape); i++)
+//		result += std::abs(reinterpret_cast<T*>(lhs.data)[i] - reinterpret_cast<T*>(rhs.data)[i]);
+//	return result / volume(lhs.shape);
+//}
+//void destroyTensor(TensorDescriptor &tensor)
+//{
+//	delete[] reinterpret_cast<int8_t*>(tensor.data);
+//}
 
 void measure_time(int batch, int filters)
 {
-	TensorDescriptor input = createTensor<float>( { batch, 20, 20, filters });
-	initTensor<float>(input);
-
-	TensorDescriptor matrix = createTensor<float>( { 36, batch * 5 * 5, filters });
-	int repeats = 10000 / filters;
-	double start = omp_get_wtime();
-	for (int i = 0; i < repeats; i++)
-		cpu_winograd3x3_4x4_transform_input(&input, &matrix);
-	double stop = omp_get_wtime();
-	std::cout << filters << " " << (1000.0 / repeats) * (stop - start) << " ";
-
-	TensorDescriptor matrix2 = createTensor<float>( { 36, batch * 5 * 5, filters });
-//	repeats = 50000 / filters;
-	start = omp_get_wtime();
+//	TensorDescriptor input = createTensor<float>( { batch, 20, 20, filters });
+//	initTensor<float>(input);
+//
+//	TensorDescriptor matrix = createTensor<float>( { 36, batch * 5 * 5, filters });
+//	int repeats = 10000 / filters;
+//	double start = omp_get_wtime();
 //	for (int i = 0; i < repeats; i++)
-//		vec_winograd3x3_4x4_transform_input<float>(&input, &matrix2);
-	stop = omp_get_wtime();
-	std::cout << (1000.0 / repeats) * (stop - start) << "\n";
-
-//	std::cout << diff<float>(matrix, matrix2) << '\n';
-
-	destroyTensor(input);
-	destroyTensor(matrix);
-	destroyTensor(matrix2);
+//		cpu_winograd3x3_4x4_transform_input(&input, &matrix);
+//	double stop = omp_get_wtime();
+//	std::cout << filters << " " << (1000.0 / repeats) * (stop - start) << " ";
+//
+//	TensorDescriptor matrix2 = createTensor<float>( { 36, batch * 5 * 5, filters });
+////	repeats = 50000 / filters;
+//	start = omp_get_wtime();
+////	for (int i = 0; i < repeats; i++)
+////		vec_winograd3x3_4x4_transform_input<float>(&input, &matrix2);
+//	stop = omp_get_wtime();
+//	std::cout << (1000.0 / repeats) * (stop - start) << "\n";
+//
+////	std::cout << diff<float>(matrix, matrix2) << '\n';
+//
+//	destroyTensor(input);
+//	destroyTensor(matrix);
+//	destroyTensor(matrix2);
 }
 
 int main()
@@ -439,10 +439,34 @@ int main()
 	omp_set_num_threads(1);
 	print_defined_flags();
 
-
 //	float tmp[8] = { -65, 0, 23, 5, 0, 1, -255, 256 };
-//	float tmp2[8] = { -0.65f, 0.10f, 0.0223f, 0.5f, 0.0f, 0.11f, -0.0255f, 0.1256f };
-//	SIMD_NAMESPACE::SIMD<float> lhs(tmp2);
+	float tmp2[8] = { -0.65f, 0.10f, 0.0223f, 0.5f, 0.0f, 0.11f, -0.0255f, 0.1256f };
+
+	int integer[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+	SIMD_NAMESPACE::SIMD<int32_t> asdf;
+	std::cout << SIMD_NAMESPACE::SIMD<int32_t>::length << '\n';
+	asdf.load(integer, 8);
+
+	std::unique_ptr<float[]> data = std::make_unique<float[]>(1000000);
+	SIMD_NAMESPACE::SIMD<float> lhs(tmp2);
+
+	int repeats = 10000;
+
+	SIMD_NAMESPACE::SIMD<float> sum;
+
+	double start = omp_get_wtime();
+	for (int i = 0; i < repeats; i++)
+	{
+		for (int j = 0; j < 1000000; j += 8)
+		{
+			lhs.load(data.get() + j, 8);
+			sum += lhs;
+		}
+	}
+	double stop = omp_get_wtime();
+	std::cout << (stop - start) << "s \n\n";
+	std::cout << sum[0] << '\n';
+
 //	SIMD<float> rhs(tmp2);
 //	SIMD<float> sign = sgn(lhs);
 //	SIMD<float> asdf(0.0);

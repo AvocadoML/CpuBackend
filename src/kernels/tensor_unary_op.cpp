@@ -79,7 +79,7 @@ namespace
 	{
 			SIMD<T> operator()(SIMD<T> x) const noexcept
 			{
-				return approx_recipr(x);
+				return rcp(x);
 			}
 	};
 	template<typename T>
@@ -87,7 +87,7 @@ namespace
 	{
 			SIMD<T> operator()(SIMD<T> x) const noexcept
 			{
-				return approx_rsqrt(x);
+				return rsqrt(x);
 			}
 	};
 	template<typename T>
@@ -154,7 +154,7 @@ namespace
 					value = value + beta * loaded_dst;
 				}
 			}
-			value.storeu(dst + i, elements_left);
+			value.store(dst + i, elements_left);
 		}
 	}
 	template<typename T, typename U, bool ZeroBeta>

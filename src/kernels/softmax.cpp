@@ -43,7 +43,7 @@ namespace
 					SIMD<T> loaded(input + i * last_dim + j, elements_left);
 					loaded = exp(loaded - max_value);
 					sum_value += loaded;
-					loaded.storeu(thread_workspace + j, elements_left);
+					loaded.store(thread_workspace + j, elements_left);
 				}
 				T tmp = horizontal_add(sum_value);
 
@@ -55,7 +55,7 @@ namespace
 						for (int j = 0; j < last_dim; j += SIMD<T>::length)
 						{
 							const int elements_left = std::min(last_dim - j, SIMD<T>::length);
-							sum_value.storeu(output + i * last_dim + j, elements_left);
+							sum_value.store(output + i * last_dim + j, elements_left);
 						}
 					}
 					else
@@ -65,7 +65,7 @@ namespace
 							const int elements_left = std::min(last_dim - j, SIMD<T>::length);
 							SIMD<T> loaded_output(output + i * last_dim + j, elements_left);
 							loaded_output = sum_value + beta * loaded_output;
-							loaded_output.storeu(output + i * last_dim + j, elements_left);
+							loaded_output.store(output + i * last_dim + j, elements_left);
 						}
 					}
 				}
@@ -80,7 +80,7 @@ namespace
 							SIMD<T> loaded_workspace(thread_workspace + j, elements_left);
 
 							loaded_workspace = sum_value * loaded_workspace;
-							loaded_workspace.storeu(output + i * last_dim + j, elements_left);
+							loaded_workspace.store(output + i * last_dim + j, elements_left);
 						}
 					}
 					else
@@ -92,7 +92,7 @@ namespace
 							SIMD<T> loaded_output(output + i * last_dim + j, elements_left);
 
 							loaded_workspace = sum_value * loaded_workspace + beta * loaded_output;
-							loaded_workspace.storeu(output + i * last_dim + j, elements_left);
+							loaded_workspace.store(output + i * last_dim + j, elements_left);
 						}
 					}
 				}

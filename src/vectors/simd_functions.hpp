@@ -29,8 +29,8 @@ namespace SIMD_NAMESPACE
 	{
 		T tmp_x[SIMD<T>::length];
 		T tmp_y[SIMD<T>::length];
-		x.storeu(tmp_x);
-		y.storeu(tmp_y);
+		x.store(tmp_x);
+		y.store(tmp_y);
 		for (int i = 0; i < SIMD<T>::length; i++)
 			tmp_x[i] = std::pow(tmp_x[i], tmp_y[i]);
 		return SIMD<T>(tmp_x);
@@ -40,8 +40,8 @@ namespace SIMD_NAMESPACE
 	{
 		T tmp_x[SIMD<T>::length];
 		T tmp_y[SIMD<T>::length];
-		x.storeu(tmp_x);
-		y.storeu(tmp_y);
+		x.store(tmp_x);
+		y.store(tmp_y);
 		for (int i = 0; i < SIMD<T>::length; i++)
 			tmp_x[i] = std::fmod(tmp_x[i], tmp_y[i]);
 		return SIMD<T>(tmp_x);
@@ -50,7 +50,7 @@ namespace SIMD_NAMESPACE
 	static inline SIMD<T> exp(SIMD<T> x) noexcept
 	{
 		T tmp[SIMD<T>::length];
-		x.storeu(tmp);
+		x.store(tmp);
 		for (int i = 0; i < SIMD<T>::length; i++)
 			tmp[i] = std::exp(tmp[i]);
 		return SIMD<T>(tmp);
@@ -59,7 +59,7 @@ namespace SIMD_NAMESPACE
 	static inline SIMD<T> log(SIMD<T> x) noexcept
 	{
 		T tmp[SIMD<T>::length];
-		x.storeu(tmp);
+		x.store(tmp);
 		for (int i = 0; i < SIMD<T>::length; i++)
 			tmp[i] = std::log(tmp[i]);
 		return SIMD<T>(tmp);
@@ -68,7 +68,7 @@ namespace SIMD_NAMESPACE
 	static inline SIMD<T> tanh(SIMD<T> x) noexcept
 	{
 		T tmp[SIMD<T>::length];
-		x.storeu(tmp);
+		x.store(tmp);
 		for (int i = 0; i < SIMD<T>::length; i++)
 			tmp[i] = std::tanh(tmp[i]);
 		return SIMD<T>(tmp);
@@ -77,7 +77,7 @@ namespace SIMD_NAMESPACE
 	static inline SIMD<T> expm1(SIMD<T> x) noexcept
 	{
 		T tmp[SIMD<T>::length];
-		x.storeu(tmp);
+		x.store(tmp);
 		for (int i = 0; i < SIMD<T>::length; i++)
 			tmp[i] = std::expm1(tmp[i]);
 		return SIMD<T>(tmp);
@@ -86,7 +86,7 @@ namespace SIMD_NAMESPACE
 	static inline SIMD<T> log1p(SIMD<T> x) noexcept
 	{
 		T tmp[SIMD<T>::length];
-		x.storeu(tmp);
+		x.store(tmp);
 		for (int i = 0; i < SIMD<T>::length; i++)
 			tmp[i] = std::log1p(tmp[i]);
 		return SIMD<T>(tmp);
@@ -96,7 +96,7 @@ namespace SIMD_NAMESPACE
 	static inline SIMD<T> sin(SIMD<T> x) noexcept
 	{
 		T tmp[SIMD<T>::length];
-		x.storeu(tmp);
+		x.store(tmp);
 		for (int i = 0; i < SIMD<T>::length; i++)
 			tmp[i] = std::sin(tmp[i]);
 		return SIMD<T>(tmp);
@@ -105,7 +105,7 @@ namespace SIMD_NAMESPACE
 	static inline SIMD<T> cos(SIMD<T> x) noexcept
 	{
 		T tmp[SIMD<T>::length];
-		x.storeu(tmp);
+		x.store(tmp);
 		for (int i = 0; i < SIMD<T>::length; i++)
 			tmp[i] = std::cos(tmp[i]);
 		return SIMD<T>(tmp);
@@ -114,7 +114,7 @@ namespace SIMD_NAMESPACE
 	static inline SIMD<T> tan(SIMD<T> x) noexcept
 	{
 		T tmp[SIMD<T>::length];
-		x.storeu(tmp);
+		x.store(tmp);
 		for (int i = 0; i < SIMD<T>::length; i++)
 			tmp[i] = std::tan(tmp[i]);
 		return SIMD<T>(tmp);

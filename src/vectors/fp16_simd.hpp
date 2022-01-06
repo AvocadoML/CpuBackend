@@ -10,30 +10,14 @@
 
 #include "generic_simd.hpp"
 #include "fp32_simd.hpp"
-
-namespace avocado
-{
-	namespace backend
-	{
-		struct float16
-		{
-				uint16_t m_data;
-
-				friend bool operator==(float16 lhs, float16 rhs) noexcept
-				{
-					return lhs.m_data == rhs.m_data;
-				}
-				friend bool operator!=(float16 lhs, float16 rhs) noexcept
-				{
-					return lhs.m_data != rhs.m_data;
-				}
-		};
-	}
-}
+#include "simd_length.hpp"
+#include "simd_utils.hpp"
+#include "simd_load_store.hpp"
 
 namespace scalar
 {
-	static inline float float16_to_float(avocado::backend::float16 x) noexcept
+	using avocado::backend::float16;
+	static inline float float16_to_float(float16 x) noexcept
 	{
 #if SUPPORTS_FP16
 		return _cvtsh_ss(x.m_data);
@@ -41,12 +25,12 @@ namespace scalar
 		return 0.0f;
 #endif
 	}
-	static inline avocado::backend::float16 float_to_float16(float x) noexcept
+	static inline float16 float_to_float16(float x) noexcept
 	{
 #if SUPPORTS_FP16
-		return avocado::backend::float16 { _cvtss_sh(x, (_MM_FROUND_TO_NEAREST_INT |_MM_FROUND_NO_EXC)) };
+		return float16 { _cvtss_sh(x, (_MM_FROUND_TO_NEAREST_INT |_MM_FROUND_NO_EXC)) };
 #else
-		return avocado::backend::float16 { 0u };
+		return float16 { 0u };
 #endif
 	}
 }
@@ -111,137 +95,88 @@ namespace SIMD_NAMESPACE
 	class SIMD<float16>
 	{
 		private:
-			SIMD<float> m_data;
+#if SUPPORTS_AVX
+			__m256 m_data;
+#elif SUPPORTS_SSE2
+			__m128 m_data;
+#else
+			float m_data;
+#endif
 		public:
-			static constexpr int length = SIMD<float>::length;
+			static constexpr int length = simd_length<float16>();
 
-			SIMD() noexcept
+			SIMD() noexcept // @suppress("Class members should be properly initialized")
 			{
 			}
-			SIMD(const float *ptr) noexcept
+			SIMD(const float *ptr, int num = length) noexcept :
+					m_data(simd_load(ptr, num))
 			{
-				loadu(ptr);
 			}
-			SIMD(const float16 *ptr) noexcept
+			SIMD(const float16 *ptr, int num = length) noexcept :
+					m_data(float16_to_float(simd_load(ptr, num)))
 			{
-				loadu(ptr);
-			}
-			SIMD(const float *ptr, int num) noexcept
-			{
-				loadu(ptr, num);
-			}
-			SIMD(const float16 *ptr, int num) noexcept
-			{
-				loadu(ptr, num);
 			}
 			SIMD(SIMD<float> x) noexcept :
 					m_data(x)
 			{
 			}
-			SIMD(float x) noexcept :
-					m_data(x)
+			SIMD(float x) noexcept
 			{
+#if SUPPORTS_AVX
+				m_data = _mm256_set1_ps(x);
+#elif SUPPORTS_SSE2
+				m_data = _mm_set1_ps(x);
+#else
+				m_data = x;
+#endif
 			}
 			SIMD(float16 x) noexcept :
-					m_data(scalar::float16_to_float(x))
+					SIMD(scalar::float16_to_float(x))
 			{
 			}
 			operator SIMD<float>() const noexcept
 			{
-				return m_data;
+				return SIMD<float>(m_data);
 			}
-			void loadu(const float *ptr) noexcept
+			void load(const float *ptr, int num = length) noexcept
 			{
-				m_data.loadu(ptr);
+				m_data = simd_load(ptr, num);
 			}
-			void loadu(const float16 *ptr) noexcept
+			void load(const float16 *ptr, int num = length) noexcept
 			{
-				assert(ptr != nullptr);
-#if SUPPORTS_AVX and SUPPORTS_FP16
-				__m128i tmp = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr));
-				m_data = _mm256_cvtph_ps(tmp);
-#elif SUPPORTS_SSE2 and SUPPORTS_FP16
-				__m128i tmp = _mm_loadu_si64(reinterpret_cast<const __m128i*>(ptr));
-				m_data = _mm_cvtph_ps(tmp);
-#else
-				m_data = float16_to_float(ptr[0]);
-#endif
+				m_data = float16_to_float(simd_load(ptr, num));
 			}
-			void loadu(const float *ptr, int num) noexcept
+			void store(float *ptr, int num = length) const noexcept
 			{
-				m_data.loadu(ptr, num);
+				simd_store(m_data, ptr, num);
 			}
-			void loadu(const float16 *ptr, int num) noexcept
+			void store(float16 *ptr, int num = length) const noexcept
 			{
-				assert(ptr != nullptr);
-				assert(num >= 0 && num <= length);
-#if SUPPORTS_AVX and SUPPORTS_FP16
-				__m128i tmp = partial_load(ptr, sizeof(float16) * num);
-				m_data = SIMD<float>(_mm256_cvtph_ps(tmp));
-#elif SUPPORTS_SSE2 and SUPPORTS_FP16
-				__m128i tmp = partial_load(ptr, sizeof(float16) * num);
-				m_data = _mm_cvtph_ps(tmp);
-#else
-				m_data = float16_to_float(ptr[0]);
-#endif
-			}
-			void storeu(float *ptr) const noexcept
-			{
-				m_data.storeu(ptr);
-			}
-			void storeu(float16 *ptr) const noexcept
-			{
-				assert(ptr != nullptr);
-#if SUPPORTS_AVX and SUPPORTS_FP16
-				__m128i tmp = _mm256_cvtps_ph(m_data, _MM_FROUND_NO_EXC);
-				_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), tmp);
-#elif SUPPORTS_SSE2 and SUPPORTS_FP16
-				__m128i tmp = _mm_cvtps_ph(m_data, _MM_FROUND_NO_EXC);
-				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), tmp);
-#else
-				ptr[0] = float_to_float16(m_data);
-#endif
-			}
-			void storeu(float *ptr, int num) const noexcept
-			{
-				m_data.storeu(ptr, num);
-			}
-			void storeu(float16 *ptr, int num) const noexcept
-			{
-				assert(ptr != nullptr);
-				assert(num >= 0 && num <= length);
-#if SUPPORTS_AVX and SUPPORTS_FP16
-				__m128i tmp = _mm256_cvtps_ph(m_data, _MM_FROUND_NO_EXC);
-				partial_store(tmp, ptr, num * sizeof(float16));
-#elif SUPPORTS_SSE2 and SUPPORTS_FP16
-				__m128i tmp = _mm_cvtps_ph(m_data, _MM_FROUND_NO_EXC);
-				partial_store(tmp, ptr, num * sizeof(float16));
-#else
-				ptr[0] = float_to_float16(m_data);
-#endif
+				simd_store(float_to_float16(m_data), ptr, num);
 			}
 			void insert(float value, int index) noexcept
 			{
-				m_data.insert(value, index);
+//				m_data.insert(value, index);  // FIXME
 			}
 			float extract(int index) const noexcept
 			{
-				return m_data.extract(index);
+				return 0.0f; // FIXME
+//				return m_data.extract(index);
 			}
 			float operator[](int index) const noexcept
 			{
 				return extract(index);
 			}
 
-			static float16 scalar_zero() noexcept
+			static constexpr float16 scalar_zero() noexcept
 			{
 				return float16 { 0x0000u };
 			}
-			static float16 scalar_one() noexcept
+			static constexpr float16 scalar_one() noexcept
 			{
 				return float16 { 0x3c00u };
 			}
-			static float16 scalar_epsilon() noexcept
+			static constexpr float16 scalar_epsilon() noexcept
 			{
 				return float16 { 0x0400u };
 			}
@@ -388,13 +323,13 @@ namespace SIMD_NAMESPACE
 	{
 		return sqrt(static_cast<SIMD<float>>(x));
 	}
-	static inline SIMD<float16> approx_recipr(SIMD<float16> x) noexcept
+	static inline SIMD<float16> rsqrt(SIMD<float16> x) noexcept
 	{
-		return approx_recipr(static_cast<SIMD<float>>(x));
+		return rsqrt(static_cast<SIMD<float>>(x));
 	}
-	static inline SIMD<float16> approx_rsqrt(SIMD<float16> x) noexcept
+	static inline SIMD<float16> rcp(SIMD<float16> x) noexcept
 	{
-		return approx_rsqrt(static_cast<SIMD<float>>(x));
+		return rcp(static_cast<SIMD<float>>(x));
 	}
 	static inline SIMD<float16> sgn(SIMD<float16> x) noexcept
 	{

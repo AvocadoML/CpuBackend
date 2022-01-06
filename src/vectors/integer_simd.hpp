@@ -9,6 +9,9 @@
 #define VECTORS_INTEGER_SIMD_HPP_
 
 #include "generic_simd.hpp"
+#include "simd_length.hpp"
+#include "simd_utils.hpp"
+#include "simd_load_store.hpp"
 
 #include <cassert>
 #include <algorithm>
@@ -73,7 +76,7 @@ namespace SIMD_NAMESPACE
 			T m_data;
 #endif
 		public:
-			static constexpr int length = sizeof(m_data) / sizeof(T);
+			static constexpr int length = simd_length<T>();
 
 			SIMD() noexcept // @suppress("Class members should be properly initialized")
 			{
@@ -82,13 +85,9 @@ namespace SIMD_NAMESPACE
 					m_data(set1(x))
 			{
 			}
-			SIMD(const T *ptr) noexcept // @suppress("Class members should be properly initialized")
+			SIMD(const T *ptr, int num = length) noexcept :
+					m_data(simd_load(ptr, num))
 			{
-				loadu(ptr);
-			}
-			SIMD(const T *ptr, int num) noexcept // @suppress("Class members should be properly initialized")
-			{
-				loadu(ptr, num);
 			}
 #if SUPPORTS_AVX
 			SIMD(__m256i x) noexcept :
@@ -132,71 +131,13 @@ namespace SIMD_NAMESPACE
 				return m_data;
 			}
 #endif
-			void loadu(const T *ptr) noexcept
+			void load(const T *ptr, int num = length) noexcept
 			{
-				assert(ptr != nullptr);
-#if SUPPORTS_AVX
-				m_data = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr));
-#elif SUPPORTS_SSE2
-				m_data = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr));
-#else
-				m_data = ptr[0];
-#endif
+				m_data = simd_load(ptr, num);
 			}
-			void loadu(const T *ptr, int num) noexcept
+			void store(T *ptr, int num = length) const noexcept
 			{
-				assert(ptr != nullptr);
-				assert(num >= 0 && num <= length);
-#if SUPPORTS_AVX
-				if (num == length)
-					m_data = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(ptr));
-				else
-				{
-					if (num > length / 2)
-						*this = SIMD<T>(_mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr)),
-								partial_load(ptr + (length / 2), sizeof(T) * (num - length / 2)));
-					else
-						*this = SIMD<T>(partial_load(ptr, sizeof(T) * num));
-				}
-#elif SUPPORTS_SSE2
-				m_data = partial_load(ptr, sizeof(T) * num);
-#else
-				m_data = ptr[0];
-#endif
-			}
-			void storeu(T *ptr) const noexcept
-			{
-				assert(ptr != nullptr);
-#if SUPPORTS_AVX
-				_mm256_storeu_si256(reinterpret_cast<__m256i*>(ptr), m_data);
-#elif SUPPORTS_SSE2
-				_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), m_data);
-#else
-				ptr[0] = m_data;
-#endif
-			}
-			void storeu(T *ptr, int num) const noexcept
-			{
-				assert(ptr != nullptr);
-				assert(num >= 0 && num <= length);
-#if SUPPORTS_AVX
-				if (num == length)
-					_mm256_storeu_si256(reinterpret_cast<__m256i*>(ptr), m_data);
-				else
-				{
-					if (num > length / 2)
-					{
-						_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), get_low(m_data));
-						partial_store(get_high(m_data), ptr + length / 2, sizeof(T) * (num - length / 2));
-					}
-					else
-						partial_store(get_low(m_data), ptr, sizeof(T) * num);
-				}
-#elif SUPPORTS_SSE2
-				partial_store(m_data, ptr, sizeof(T) * num);
-#else
-				ptr[0] = m_data;
-#endif
+				simd_store(m_data, ptr, num);
 			}
 			void insert(T value, int index) noexcept
 			{
@@ -218,15 +159,28 @@ namespace SIMD_NAMESPACE
 				return extract(index);
 			}
 
-			static SIMD<T> zero() noexcept
+			static constexpr T scalar_zero() noexcept
 			{
-				return SIMD<T>(0);
+				return 0;
 			}
-			static SIMD<T> one() noexcept
+			static constexpr T scalar_one() noexcept
 			{
-				return SIMD<T>(1);
+				return 1;
 			}
-			static SIMD<T> epsilon() noexcept
+			static constexpr T scalar_epsilon() noexcept
+			{
+				return zero();
+			}
+
+			static constexpr SIMD<T> zero() noexcept
+			{
+				return SIMD<T>(scalar_zero());
+			}
+			static constexpr SIMD<T> one() noexcept
+			{
+				return SIMD<T>(scalar_one());
+			}
+			static constexpr SIMD<T> epsilon() noexcept
 			{
 				return zero();
 			}

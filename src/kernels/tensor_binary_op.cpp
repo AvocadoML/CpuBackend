@@ -188,7 +188,7 @@ namespace
 						result = result + beta * loaded_dst;
 					}
 				}
-				result.storeu(dst + i, elements_left);
+				result.store(dst + i, elements_left);
 			}
 		}
 		else
@@ -216,7 +216,7 @@ namespace
 							result = result + beta * loaded_dst;
 						}
 					}
-					result.storeu(dst + i, elements_left);
+					result.store(dst + i, elements_left);
 				}
 			}
 			else
@@ -241,7 +241,7 @@ namespace
 								result = result + beta * loaded_dst;
 							}
 						}
-						result.storeu(dst + (i * dimensions.last + j), elements_left);
+						result.store(dst + (i * dimensions.last + j), elements_left);
 					}
 			}
 		}

@@ -93,7 +93,7 @@ namespace
 			SIMD<T> output(outputMem + i, elements_left);
 			SIMD<T> target(targetMem + i, elements_left);
 			SIMD<T> gradient = inv_batch_size * loss_function.gradient(output, target);
-			gradient.storeu(gradientMem + i, elements_left);
+			gradient.store(gradientMem + i, elements_left);
 		}
 	}
 

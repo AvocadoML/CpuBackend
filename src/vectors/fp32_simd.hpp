@@ -9,6 +9,9 @@
 #define VECTORS_FP32_SIMD_HPP_
 
 #include "generic_simd.hpp"
+#include "simd_length.hpp"
+#include "simd_utils.hpp"
+#include "simd_load_store.hpp"
 
 #include <cassert>
 #include <algorithm>
@@ -29,25 +32,14 @@ namespace SIMD_NAMESPACE
 			float m_data;
 #endif
 		public:
-
-#if SUPPORTS_AVX
-			static constexpr int length = 8;
-#elif SUPPORTS_SSE2
-			static constexpr int length = 4;
-#else
-			static constexpr int length = 1;
-#endif
+			static constexpr int length = simd_length<float>();
 
 			SIMD() noexcept // @suppress("Class members should be properly initialized")
 			{
 			}
-			SIMD(const float *ptr) noexcept
+			SIMD(const float *ptr, int num = length) noexcept :
+					m_data(simd_load(ptr, num))
 			{
-				loadu(ptr);
-			}
-			SIMD(const float *ptr, int num) noexcept
-			{
-				loadu(ptr, num);
 			}
 			SIMD(float x) noexcept
 			{
@@ -69,11 +61,11 @@ namespace SIMD_NAMESPACE
 			{
 			}
 			SIMD(__m128 low) noexcept :
-					m_data(_mm256_setr_m128(low, _mm_setzero_ps()))
+					m_data(combine(low, _mm_setzero_ps()))
 			{
 			}
 			SIMD(__m128 low, __m128 high) noexcept :
-					m_data(_mm256_setr_m128(low, high))
+					m_data(combine(low, high))
 			{
 			}
 			SIMD<float>& operator=(__m256 x) noexcept
@@ -105,71 +97,13 @@ namespace SIMD_NAMESPACE
 				return m_data;
 			}
 #endif
-			void loadu(const float *ptr) noexcept
+			void load(const float *ptr, int num = length) noexcept
 			{
-				assert(ptr != nullptr);
-#if SUPPORTS_AVX
-				m_data = _mm256_loadu_ps(ptr);
-#elif SUPPORTS_SSE2
-				m_data = _mm_loadu_ps(ptr);
-#else
-				m_data = ptr[0];
-#endif
+				m_data = simd_load(ptr, num);
 			}
-			void loadu(const float *ptr, int num) noexcept
+			void store(float *ptr, int num = length) const noexcept
 			{
-				assert(ptr != nullptr);
-				assert(mun >= 0 && num <= length);
-#if SUPPORTS_AVX
-				if (num == length)
-					m_data = _mm256_loadu_ps(ptr);
-				else
-				{
-					if (num > length / 2)
-						*this = SIMD<float>(_mm_loadu_ps(ptr), partial_load(ptr + (length / 2), num - length / 2));
-					else
-						*this = SIMD<float>(partial_load(ptr, num));
-				}
-#elif SUPPORTS_SSE2
-				m_data = partial_load(ptr, num);
-#else
-				m_data = ptr[0];
-#endif
-			}
-			void storeu(float *ptr) const noexcept
-			{
-				assert(ptr != nullptr);
-#if SUPPORTS_AVX
-				_mm256_storeu_ps(ptr, m_data);
-#elif SUPPORTS_SSE2
-				_mm_storeu_ps(ptr, m_data);
-#else
-				ptr[0] = m_data;
-#endif
-			}
-			void storeu(float *ptr, int num) const noexcept
-			{
-				assert(ptr != nullptr);
-				assert(mun >= 0 && num <= length);
-
-#if SUPPORTS_AVX
-				if (num == length)
-					_mm256_storeu_ps(ptr, m_data);
-				else
-				{
-					if (num > length / 2)
-					{
-						_mm_storeu_ps(ptr, get_low(m_data));
-						partial_store(get_high(m_data), ptr + length / 2, num - length / 2);
-					}
-					else
-						partial_store(get_low(m_data), ptr, num);
-				}
-#elif SUPPORTS_SSE2
-				partial_store(m_data, ptr, num);
-#else
-				ptr[0] = m_data;
-#endif
+				simd_store(m_data, ptr, num);
 			}
 			void insert(float value, int index) noexcept
 			{
@@ -205,9 +139,9 @@ namespace SIMD_NAMESPACE
 				}
 #elif SUPPORTS_SSE2
 				float tmp[4];
-				storeu(tmp);
+				store(tmp);
 				tmp[index] = value;
-				loadu(tmp);
+				load(tmp);
 #else
 				m_data = value;
 #endif
@@ -216,7 +150,7 @@ namespace SIMD_NAMESPACE
 			{
 				assert(index >= 0 && index < length);
 				float tmp[length];
-				storeu(tmp);
+				store(tmp);
 				return tmp[index];
 			}
 			float operator[](int index) const noexcept
@@ -224,15 +158,15 @@ namespace SIMD_NAMESPACE
 				return extract(index);
 			}
 
-			static float scalar_zero() noexcept
+			static constexpr float scalar_zero() noexcept
 			{
 				return 0.0f;
 			}
-			static float scalar_one() noexcept
+			static constexpr float scalar_one() noexcept
 			{
 				return 1.0f;
 			}
-			static float scalar_epsilon() noexcept
+			static constexpr float scalar_epsilon() noexcept
 			{
 				return std::numeric_limits<float>::epsilon();
 			}
@@ -382,12 +316,16 @@ namespace SIMD_NAMESPACE
 
 	static inline SIMD<float> operator/(SIMD<float> lhs, SIMD<float> rhs) noexcept
 	{
-#if SUPPORTS_AVX
-		return _mm256_div_ps(lhs, rhs);
-#elif SUPPORTS_SSE2
-		return _mm_div_ps(lhs, rhs);
+#if ENABLE_FAST_MATH
+		return lhs * rcp(rhs);
 #else
+# if SUPPORTS_AVX
+		return _mm256_div_ps(lhs, rhs);
+# elif SUPPORTS_SSE2
+		return _mm_div_ps(lhs, rhs);
+# else
 		return static_cast<float>(lhs) / static_cast<float>(rhs);
+# endif
 #endif
 	}
 
@@ -448,24 +386,32 @@ namespace SIMD_NAMESPACE
 		return std::sqrt(static_cast<float>(x));
 #endif
 	}
-	static inline SIMD<float> approx_recipr(SIMD<float> x) noexcept
+	static inline SIMD<float> rsqrt(SIMD<float> x) noexcept
 	{
-#if SUPPORTS_AVX
-		return _mm256_rcp_ps(x);
-#elif SUPPORTS_SSE2
-		return _mm_rcp_ps(x);
+#if ENABLE_FAST_MATH
+#  if SUPPORTS_AVX
+		return _mm256_rsqrt_ps(x);
+#  elif SUPPORTS_SSE2
+		return _mm_rsqrt_ps(x);
+#  else
+		return 1.0f / std::sqrt(static_cast<float>(x));
+#  endif
 #else
-		return 1.0f / static_cast<float>(x);
+		return SIMD<float>::one() / sqrt(x);
 #endif
 	}
-	static inline SIMD<float> approx_rsqrt(SIMD<float> x) noexcept
+	static inline SIMD<float> rcp(SIMD<float> x) noexcept
 	{
-#if SUPPORTS_AVX
-		return _mm256_rsqrt_ps(x);
-#elif SUPPORTS_SSE2
-		return _mm_rsqrt_ps(x);
+#if ENABLE_FAST_MATH
+#  if SUPPORTS_AVX
+		return _mm256_rcp_ps(x);
+#  elif SUPPORTS_SSE2
+		return _mm_rcp_ps(x);
+#  else
+		return SIMD<float>::one() / static_cast<float>(x);
+#  endif
 #else
-		return 1.0f / std::sqrt(static_cast<float>(x));
+		return SIMD<float>::one() / x;
 #endif
 	}
 	static inline SIMD<float> sgn(SIMD<float> x) noexcept

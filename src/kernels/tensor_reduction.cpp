@@ -264,7 +264,7 @@ namespace
 				{
 					const int elements_left = std::min(dimensions.last - j, SIMD<T>::length);
 					SIMD<T> tmp = reduction.init();
-					tmp.storeu(thread_workspace + j, elements_left);
+					tmp.store(thread_workspace + j, elements_left);
 				}
 #pragma omp for
 				for (int i = 0; i < dimensions.first; i++)
@@ -274,7 +274,7 @@ namespace
 						SIMD<T> acc(thread_workspace + j, elements_left);
 						SIMD<T> data(src + (i * dimensions.last + j), elements_left);
 						acc = reduction.accumulate(acc, data);
-						acc.storeu(thread_workspace + j, elements_left);
+						acc.store(thread_workspace + j, elements_left);
 					}
 #pragma omp critical
 				{
@@ -285,7 +285,7 @@ namespace
 						SIMD<T> thread_acc(thread_workspace + j, elements_left);
 
 						master_acc = reduction.combine_partial(master_acc, thread_acc);
-						master_acc.storeu(master_workspace + j, elements_left);
+						master_acc.store(master_workspace + j, elements_left);
 					}
 				}
 			}
@@ -300,7 +300,7 @@ namespace
 					SIMD<T> loaded_dst(dst + j, elements_left);
 					result = result + beta * loaded_dst;
 				}
-				result.storeu(dst + j, elements_left);
+				result.store(dst + j, elements_left);
 			}
 		}
 	}

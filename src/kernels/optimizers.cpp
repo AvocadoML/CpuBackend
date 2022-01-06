@@ -48,7 +48,7 @@ namespace
 
 			SIMD<T> weight(wMem + i, elements_left);
 			result = round_small_to_zero(weight + result);
-			result.storeu(wMem + i, elements_left);
+			result.store(wMem + i, elements_left);
 		}
 	}
 	template<typename T>
@@ -68,7 +68,7 @@ namespace
 
 			SIMD<T> weight(wMem + i, elements_left);
 			result = round_small_to_zero(weight + result);
-			result.storeu(wMem + i, elements_left);
+			result.store(wMem + i, elements_left);
 		}
 	}
 

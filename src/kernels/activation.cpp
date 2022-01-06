@@ -31,7 +31,7 @@ namespace
 				SIMD<T> x(xMem + i, elements_left);
 
 				x = alpha * activation.forward(x);
-				x.storeu(yMem + i, elements_left);
+				x.store(yMem + i, elements_left);
 			}
 		}
 		else
@@ -44,7 +44,7 @@ namespace
 				SIMD<T> y(yMem + i, elements_left);
 
 				x = alpha * activation.forward(x) + beta * y;
-				x.storeu(yMem + i, elements_left);
+				x.store(yMem + i, elements_left);
 			}
 		}
 	}
@@ -62,7 +62,7 @@ namespace
 				SIMD<T> y(yMem + i, elements_left);
 
 				dy = alpha * activation.backward(dy, y);
-				dy.storeu(dxMem + i, elements_left);
+				dy.store(dxMem + i, elements_left);
 			}
 		}
 		else
@@ -76,7 +76,7 @@ namespace
 				SIMD<T> dx(dxMem + i, elements_left);
 
 				dy = alpha * activation.backward(dy, y) + beta * dx;
-				dy.storeu(dxMem + i, elements_left);
+				dy.store(dxMem + i, elements_left);
 			}
 		}
 	}

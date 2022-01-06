@@ -10,43 +10,27 @@
 
 #include "fp32_simd.hpp"
 #include "generic_simd.hpp"
+#include "simd_length.hpp"
+#include "simd_utils.hpp"
+#include "simd_load_store.hpp"
 
 #include <cstring>
 
-namespace avocado
-{
-	namespace backend
-	{
-		struct bfloat16
-		{
-				uint16_t m_data;
-
-				friend bool operator==(bfloat16 lhs, bfloat16 rhs) noexcept
-				{
-					return lhs.m_data == rhs.m_data;
-				}
-				friend bool operator!=(bfloat16 lhs, bfloat16 rhs) noexcept
-				{
-					return lhs.m_data != rhs.m_data;
-				}
-		};
-	}
-}
-
 namespace scalar
 {
-	static inline float bfloat16_to_float(avocado::backend::bfloat16 x) noexcept
+	using avocado::backend::bfloat16;
+	static inline float bfloat16_to_float(bfloat16 x) noexcept
 	{
 		uint16_t tmp[2] = { 0u, x.m_data };
 		float result;
 		std::memcpy(&result, tmp, sizeof(float));
 		return result;
 	}
-	static inline avocado::backend::bfloat16 float_to_bfloat16(float x) noexcept
+	static inline bfloat16 float_to_bfloat16(float x) noexcept
 	{
 		uint16_t tmp[2];
 		std::memcpy(&tmp, &x, sizeof(float));
-		return avocado::backend::bfloat16 { tmp[1] };
+		return bfloat16 { tmp[1] };
 	}
 }
 
@@ -116,130 +100,88 @@ namespace SIMD_NAMESPACE
 	class SIMD<bfloat16>
 	{
 		private:
-			SIMD<float> m_data;
+#if SUPPORTS_AVX
+			__m256 m_data;
+#elif SUPPORTS_SSE2
+			__m128 m_data;
+#else
+			float m_data;
+#endif
 		public:
-			static constexpr int length = SIMD<float>::length;
+			static constexpr int length = simd_length<bfloat16>();
 
-			SIMD() noexcept
+			SIMD() noexcept // @suppress("Class members should be properly initialized")
 			{
 			}
-			SIMD(const float *ptr) noexcept
+			SIMD(const float *ptr, int num = length) noexcept :
+					m_data(simd_load(ptr, num))
 			{
-				loadu(ptr);
 			}
-			SIMD(const bfloat16 *ptr) noexcept
+			SIMD(const bfloat16 *ptr, int num = length) noexcept :
+					m_data(bfloat16_to_float(simd_load(ptr, num)))
 			{
-				loadu(ptr);
-			}
-			SIMD(const float *ptr, int num) noexcept
-			{
-				loadu(ptr, num);
-			}
-			SIMD(const bfloat16 *ptr, int num) noexcept
-			{
-				loadu(ptr, num);
 			}
 			SIMD(SIMD<float> x) noexcept :
 					m_data(x)
 			{
 			}
-			SIMD(float x) noexcept :
-					m_data(x)
+			SIMD(float x) noexcept
 			{
+#if SUPPORTS_AVX
+				m_data = _mm256_set1_ps(x);
+#elif SUPPORTS_SSE2
+				m_data = _mm_set1_ps(x);
+#else
+				m_data = x;
+#endif
 			}
 			SIMD(bfloat16 x) noexcept :
-					m_data(scalar::bfloat16_to_float(x))
+					SIMD(scalar::bfloat16_to_float(x))
 			{
 			}
 			operator SIMD<float>() const noexcept
 			{
-				return m_data;
+				return SIMD<float>(m_data);
 			}
-			void loadu(const float *ptr) noexcept
+			void load(const float *ptr, int num) noexcept
 			{
-				m_data.loadu(ptr);
+				m_data = simd_load(ptr, num);
 			}
-			void loadu(const bfloat16 *ptr) noexcept
+			void load(const bfloat16 *ptr, int num = length) noexcept
 			{
-				assert(ptr != nullptr);
-#if SUPPORTS_AVX
-				__m128i tmp = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr));
-				m_data = bfloat16_to_float(tmp);
-#elif SUPPORTS_SSE2
-				__m128i tmp = _mm_loadu_si64(ptr);
-				m_data = bfloat16_to_float(tmp);
-#else
-				m_data = bfloat16_to_float(ptr[0]);
-#endif
+				m_data = bfloat16_to_float(simd_load(ptr, num));
 			}
-			void loadu(const float *ptr, int num) noexcept
+			void store(float *ptr, int num = length) const noexcept
 			{
-				m_data.loadu(ptr, num);
+				simd_store(m_data, ptr, num);
 			}
-			void loadu(const bfloat16 *ptr, int num) noexcept
+			void store(bfloat16 *ptr, int num = length) const noexcept
 			{
-				assert(ptr != nullptr);
-				assert(num >= 0 && num <= length);
-#if SUPPORTS_SSE2
-				__m128i tmp = partial_load(ptr, sizeof(bfloat16) * num);
-				m_data = bfloat16_to_float(tmp);
-#else
-				m_data = bfloat16_to_float(ptr[0]);
-#endif
-			}
-			void storeu(float *ptr) const noexcept
-			{
-				m_data.storeu(ptr);
-			}
-			void storeu(bfloat16 *ptr) const noexcept
-			{
-				assert(ptr != nullptr);
-#if SUPPORTS_AVX
-				_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), float_to_bfloat16(m_data));
-#elif SUPPORTS_SSE2
-				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), float_to_bfloat16(m_data));
-#else
-				ptr[0] = float_to_bfloat16(static_cast<float>(m_data));
-#endif
-			}
-			void storeu(float *ptr, int num) const noexcept
-			{
-				m_data.storeu(ptr, num);
-			}
-			void storeu(bfloat16 *ptr, int num) const noexcept
-			{
-				assert(ptr != nullptr);
-				assert(num >= 0 && num <= length);
-#if SUPPORTS_AVX
-				partial_store(float_to_bfloat16(m_data), ptr, sizeof(bfloat16) * num);
-#elif SUPPORTS_SSE2
-				partial_store(float_to_bfloat16(m_data), ptr, sizeof(bfloat16) * num);
-#else
-				ptr[0] = float_to_bfloat16(static_cast<float>(m_data));
-#endif
+				simd_store(float_to_bfloat16(m_data), ptr, num);
 			}
 			void insert(float value, int index) noexcept
 			{
-				m_data.insert(value, index);
+//				m_data.insert(value, index); // FIXME
 			}
 			float extract(int index) const noexcept
 			{
-				return m_data.extract(index);
+				return 0.0f; //FIXME
+//				return m_data.extract(index);
 			}
 			float operator[](int index) const noexcept
 			{
 				return extract(index);
 			}
 
-			static bfloat16 scalar_zero() noexcept
+			static constexpr bfloat16 scalar_zero() noexcept
 			{
 				return bfloat16 { 0x0000u };
 			}
-			static bfloat16 scalar_one() noexcept
+			static constexpr bfloat16 scalar_one() noexcept
 			{
 				return bfloat16 { 0x3f80u };
 			}
-			static bfloat16 scalar_epsilon() noexcept
+			static constexpr bfloat16 scalar_epsilon() noexcept
 			{
 				return bfloat16 { 0x0800u };
 			}
@@ -386,13 +328,13 @@ namespace SIMD_NAMESPACE
 	{
 		return sqrt(static_cast<SIMD<float>>(x));
 	}
-	static inline SIMD<bfloat16> approx_recipr(SIMD<bfloat16> x) noexcept
+	static inline SIMD<bfloat16> rsqrt(SIMD<bfloat16> x) noexcept
 	{
-		return approx_recipr(static_cast<SIMD<float>>(x));
+		return rsqrt(static_cast<SIMD<float>>(x));
 	}
-	static inline SIMD<bfloat16> approx_rsqrt(SIMD<bfloat16> x) noexcept
+	static inline SIMD<bfloat16> rcp(SIMD<bfloat16> x) noexcept
 	{
-		return approx_rsqrt(static_cast<SIMD<float>>(x));
+		return rcp(static_cast<SIMD<float>>(x));
 	}
 	static inline SIMD<bfloat16> sgn(SIMD<bfloat16> x) noexcept
 	{
