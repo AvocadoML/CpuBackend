@@ -450,6 +450,24 @@ namespace SIMD_NAMESPACE
 		return a * b - c;
 #endif
 	}
+	/* Calculates - a * b + c */
+	static inline SIMD<double> neg_mul_add(SIMD<double> a, SIMD<double> b, SIMD<double> c) noexcept
+	{
+#if SUPPORTS_AVX and defined(__FMA__)
+		return _mm256_fnmadd_pd(a, b, c);
+#else
+		return -a * b + c;
+#endif
+	}
+	/* Calculates - a * b - c */
+	static inline SIMD<double> neg_mul_sub(SIMD<double> a, SIMD<double> b, SIMD<double> c) noexcept
+	{
+#if SUPPORTS_AVX and defined(__FMA__)
+		return _mm256_fnmsub_pd(a, b, c);
+#else
+		return -a * b - c;
+#endif
+	}
 
 	/*
 	 * Horizontal functions

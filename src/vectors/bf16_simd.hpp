@@ -323,20 +323,22 @@ namespace SIMD_NAMESPACE
 	/* Calculates a * b + c */
 	static inline SIMD<bfloat16> mul_add(SIMD<bfloat16> a, SIMD<bfloat16> b, SIMD<bfloat16> c) noexcept
 	{
-#if SUPPORTS_AVX and defined(__FMA__)
-		return SIMD<bfloat16>(_mm256_fmadd_ps(static_cast<SIMD<float>>(a), static_cast<SIMD<float>>(b), static_cast<SIMD<float>>(c)));
-#else
-		return a * b + c;
-#endif
+		return SIMD<bfloat16>(mul_add(static_cast<SIMD<float>>(a), static_cast<SIMD<float>>(b), static_cast<SIMD<float>>(c)));
 	}
 	/* Calculates a * b - c */
 	static inline SIMD<bfloat16> mul_sub(SIMD<bfloat16> a, SIMD<bfloat16> b, SIMD<bfloat16> c) noexcept
 	{
-#if SUPPORTS_AVX and defined(__FMA__)
-		return SIMD<bfloat16>(_mm256_fmsub_ps(static_cast<SIMD<float>>(a), static_cast<SIMD<float>>(b), static_cast<SIMD<float>>(c)));
-#else
-		return a * b - c;
-#endif
+		return SIMD<bfloat16>(mul_sub(static_cast<SIMD<float>>(a), static_cast<SIMD<float>>(b), static_cast<SIMD<float>>(c)));
+	}
+	/* Calculates - a * b + c */
+	static inline SIMD<bfloat16> neg_mul_add(SIMD<bfloat16> a, SIMD<bfloat16> b, SIMD<bfloat16> c) noexcept
+	{
+		return SIMD<bfloat16>(neg_mul_add(static_cast<SIMD<float>>(a), static_cast<SIMD<float>>(b), static_cast<SIMD<float>>(c)));
+	}
+	/* Calculates - a * b - c */
+	static inline SIMD<bfloat16> neg_mul_sub(SIMD<bfloat16> a, SIMD<bfloat16> b, SIMD<bfloat16> c) noexcept
+	{
+		return SIMD<bfloat16>(neg_mul_sub(static_cast<SIMD<float>>(a), static_cast<SIMD<float>>(b), static_cast<SIMD<float>>(c)));
 	}
 
 	/*
