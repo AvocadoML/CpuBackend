@@ -303,8 +303,8 @@ namespace SIMD_NAMESPACE
 #elif SUPPORTS_SSE2
 		int32_t lhs_tmp[lhs.length];
 		int32_t rhs_tmp[rhs.length];
-		lhs.storeu(lhs_tmp);
-		rhs.storeu(rhs_tmp);
+		lhs.store(lhs_tmp);
+		rhs.store(rhs_tmp);
 		for (int i = 0; i < lhs.length; i++)
 			lhs_tmp[i] *= rhs_tmp[i];
 		return SIMD<int32_t>(lhs_tmp);
@@ -353,7 +353,7 @@ namespace SIMD_NAMESPACE
 #elif SUPPORTS_SSE41
 		return _mm_blendv_epi8(y, x, mask);
 #elif SUPPORTS_SSE2
-		return _mm_or_ps(_mm_and_ps(mask, x), _mm_andnot_ps(mask, y));
+		return _mm_or_si128(_mm_and_si128(mask, x), _mm_andnot_si128(mask, y));
 #else
 		return bitwise_cast<uint32_t>(static_cast<float>(mask) == 0xFFFFFFFFu ? x : y);
 #endif
@@ -460,7 +460,7 @@ namespace SIMD_NAMESPACE
 #elif SUPPORTS_SSE41
 		return _mm_blendv_epi8(y, x, mask);
 #elif SUPPORTS_SSE2
-		return _mm_or_ps(_mm_and_ps(mask, x), _mm_andnot_ps(mask, y));
+		return _mm_or_si128(_mm_and_si128(mask, x), _mm_andnot_si128(mask, y));
 #else
 		return bitwise_cast<uint8_t>(static_cast<float>(mask) == 0xFFu ? x : y);
 #endif

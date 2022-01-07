@@ -46,7 +46,7 @@ namespace SIMD_NAMESPACE
 #  if SUPPORTS_FP16
 		return _mm256_cvtph_ps(x);
 #  else
-		return _mm256_setzeros_ps();
+		return _mm256_setzero_ps();
 #  endif
 	}
 	static inline __m128i float_to_float16(__m256 x) noexcept
@@ -54,9 +54,8 @@ namespace SIMD_NAMESPACE
 #  if SUPPORTS_FP16
 		return _mm256_cvtps_ph(x, _MM_FROUND_NO_EXC);
 #  else
-		return _mm256_setzeros_si256();
+		return _mm_setzero_si128();
 #  endif
-
 	}
 
 #elif SUPPORTS_SSE2 /* if __AVX__ is not defined */
@@ -66,7 +65,7 @@ namespace SIMD_NAMESPACE
 #  if SUPPORTS_FP16
 		return _mm_cvtph_ps(x);
 #  else
-		return _mm_setzeros_ps();
+		return _mm_setzero_ps();
 #  endif
 	}
 	static inline __m128i float_to_float16(__m128 x) noexcept
@@ -74,7 +73,7 @@ namespace SIMD_NAMESPACE
 #  if SUPPORTS_FP16
 		return _mm_cvtps_ph(x, _MM_FROUND_NO_EXC);
 #  else
-		return _mm_setzeros_si128();
+		return _mm_setzero_si128();
 #  endif
 	}
 

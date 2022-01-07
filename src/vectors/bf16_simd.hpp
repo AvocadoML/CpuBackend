@@ -49,7 +49,7 @@ namespace SIMD_NAMESPACE
 		__m128i tmp_lo = _mm_unpacklo_epi16(_mm_setzero_si128(), x); // pad lower half with zeros
 		__m128i tmp_hi = _mm_unpackhi_epi16(_mm_setzero_si128(), x); // pad upper half with zeros
 		__m256i tmp = _mm256_setr_m128i(tmp_lo, tmp_hi); // combine two halves
-#  endif /* SUPPORTS_AVX2 */
+#  endif
 		return _mm256_castsi256_ps(tmp);
 	}
 	static inline __m128i float_to_bfloat16(__m256 x) noexcept
@@ -62,10 +62,9 @@ namespace SIMD_NAMESPACE
 		__m128i tmp_hi = _mm_srli_epi32(_mm_castps_si128(get_high(x)), 16); // shift right by 16 bits while shifting in zeros
 		return _mm_packs_epi32(tmp_lo, tmp_hi); // pack 32 bits into 16 bits
 #  endif
-
 	}
 
-#elif SUPPORTS_SSE2 /* if __AVX__ is not defined */
+#elif SUPPORTS_SSE2
 
 	static inline __m128 bfloat16_to_float(__m128i x) noexcept
 	{
@@ -74,7 +73,7 @@ namespace SIMD_NAMESPACE
 		tmp = _mm_slli_epi32(tmp, 16); // shift left by 16 bits while shifting in zeros
 #  else
 		__m128i tmp = _mm_unpacklo_epi16(_mm_setzero_si128(), x); // pad lower half with zeros
-#  endif /* defined(__SSE4_1__) */
+#  endif
 		return _mm_castsi128_ps(tmp);
 	}
 	static inline __m128i float_to_bfloat16(__m128 x) noexcept
@@ -83,7 +82,7 @@ namespace SIMD_NAMESPACE
 		return _mm_packs_epi32(tmp, _mm_setzero_si128()); // pack 32 bits into 16 bits
 	}
 
-#else /* if __SSE2__ is not defined */
+#else
 
 	static inline float bfloat16_to_float(bfloat16 x) noexcept
 	{
@@ -135,9 +134,13 @@ namespace SIMD_NAMESPACE
 				m_data = x;
 #endif
 			}
-			SIMD(bfloat16 x) noexcept :
-					SIMD(scalar::bfloat16_to_float(x))
+			SIMD(bfloat16 x) noexcept
 			{
+#if SUPPORTS_SSE2
+				m_data = bfloat16_to_float(_mm_set1_epi16(x.m_data));
+#else
+				m_data = scalar::bfloat16_to_float(x);
+#endif
 			}
 			SIMD(double x) noexcept :
 					SIMD(static_cast<float>(x))
