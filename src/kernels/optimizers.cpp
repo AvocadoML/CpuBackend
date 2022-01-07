@@ -5,7 +5,7 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/cpu_backend.h>
+#include "../kernel_definitions.hpp"
 #include <avocado/backend/backend_descriptors.hpp>
 #include "array_utils.hpp"
 
@@ -119,26 +119,26 @@ namespace
 
 }
 
-namespace avocado
+namespace SIMD_NAMESPACE
 {
-	namespace backend
+	using namespace avocado::backend;
+
+	avStatus_t optimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const avTensorDescriptor_t wDesc,
+			avMemoryDescriptor_t wMem, const avTensorDescriptor_t dwDesc, const avMemoryDescriptor_t dwMem, avMemoryDescriptor_t workspace)
 	{
-		avStatus_t optimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const avTensorDescriptor_t wDesc,
-				avMemoryDescriptor_t wMem, const avTensorDescriptor_t dwDesc, const avMemoryDescriptor_t dwMem, avMemoryDescriptor_t workspace)
+		switch (getTensor(wDesc).dtype())
 		{
-			switch (getTensor(wDesc).dtype())
-			{
-				case AVOCADO_DTYPE_FLOAT32:
-					return launcher_optimizer(getOptimizer(config), getTensor(wDesc), getPointer<float>(wMem), getPointer<float>(dwMem),
-							getMemory(workspace));
-				case AVOCADO_DTYPE_FLOAT64:
-					return launcher_optimizer(getOptimizer(config), getTensor(wDesc), getPointer<double>(wMem), getPointer<double>(dwMem),
-							getMemory(workspace));
-				default:
-					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-			}
-			return AVOCADO_STATUS_SUCCESS;
+			case AVOCADO_DTYPE_FLOAT32:
+				return launcher_optimizer(getOptimizer(config), getTensor(wDesc), getPointer<float>(wMem), getPointer<float>(dwMem),
+						getMemory(workspace));
+			case AVOCADO_DTYPE_FLOAT64:
+				return launcher_optimizer(getOptimizer(config), getTensor(wDesc), getPointer<double>(wMem), getPointer<double>(dwMem),
+						getMemory(workspace));
+			default:
+				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
-	} /* namespace backend */
-} /* namespace avocado */
+		return AVOCADO_STATUS_SUCCESS;
+	}
+
+} /* namespace SIMD_NAMESPACE */
 

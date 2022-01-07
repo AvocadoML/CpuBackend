@@ -90,6 +90,12 @@ namespace avocado
 		DLL_PUBLIC avStatus_t cpuDestroyContextDescriptor(avContextDescriptor_t desc);
 
 		/**
+		 * \brief Returns default context for given device.
+		 * This method never fails, so it returns the result directly.
+		 */
+		DLL_PUBLIC avContextDescriptor_t cpuGetDefaultContext();
+
+		/**
 		 * \brief Blocks until all operations in a given context are finished.
 		 *
 		 * \param[in] context Context descriptor to synchronize with.
@@ -752,12 +758,12 @@ namespace avocado
 		 * \param[in] filterDesc
 		 * \param[in] srcDesc
 		 * \param[in] srcMem
-		 * \param[in] colDesc
-		 * \param[out] colMem
+		 * \param[in] rowDesc
+		 * \param[out] rowMem
 		 */
-		DLL_PUBLIC avStatus_t cpuIm2Col(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t filterDesc,
-				const avTensorDescriptor_t srcDesc, const avMemoryDescriptor_t srcMem, const avTensorDescriptor_t colDesc,
-				avMemoryDescriptor_t colMem);
+		DLL_PUBLIC avStatus_t cpuIm2Row(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t filterDesc,
+				const avTensorDescriptor_t srcDesc, const avMemoryDescriptor_t srcMem, const avTensorDescriptor_t rowDesc,
+				avMemoryDescriptor_t rowMem);
 
 		/**
 		 * \brief Calculates required workspace size for refConvolutionBiasActivationForward.
@@ -771,21 +777,6 @@ namespace avocado
 		 */
 		DLL_PUBLIC avStatus_t cpuGetConvolutionWorkspaceSize(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
 				const avTensorDescriptor_t xDesc, const avTensorDescriptor_t wDesc, const avTensorDescriptor_t bDesc, avSize_t *result);
-
-		/**
-		 * \brief Precomputes some data for future use in refConvolutionBiasActivationForward method.
-		 *
-		 * \param[in] context Context in which the operation is performed.
-		 * \param[in] config Convolution descriptor.
-		 * \param[in] wDesc
-		 * \param[in] wMem
-		 * \param[in] bDesc
-		 * \param[in] bMem
-		 * \param[out] workspace Memory descriptor for some persistent workspace.
-		 */
-		DLL_PUBLIC avStatus_t cpuPrecomputeConvolutionWorkspace(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
-				const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
-				avMemoryDescriptor_t workspace);
 
 		/**
 		 * \brief Calculates convolution, adds bias and optionally some external data and applies activation function.
@@ -833,6 +824,26 @@ namespace avocado
 		DLL_PUBLIC avStatus_t cpuConvolutionForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
 				const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem);
+
+		/**
+		 * \brief Simplified version of the above method.
+		 * y = alpha * conv(x, w) + beta * y
+		 *
+		 * \param[in] context Context in which the operation is performed.
+		 * \param[in] config
+		 * \param[in] alpha
+		 * \param[in] dxDesc
+		 * \param[out] dxMem
+		 * \param[in] wDesc
+		 * \param[in] wMem
+		 * \param[in] beta
+		 * \param[in] dyDesc
+		 * \param[in] dyMem
+		 * \param[in] workspaceMem Memory descriptor.
+		 */
+		DLL_PUBLIC avStatus_t cpuConvolutionBackward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
+				const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
+				const void *beta, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, avMemoryDescriptor_t workspaceMem);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.

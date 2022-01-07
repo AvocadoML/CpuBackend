@@ -5,7 +5,7 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/cpu_backend.h>
+#include "../kernel_definitions.hpp"
 #include <avocado/backend/backend_descriptors.hpp>
 
 #include "../vectors/simd_vectors.hpp"
@@ -237,7 +237,7 @@ namespace
 #pragma omp parallel
 			{
 				SIMD<T> acc = reduction.init();
-#pragma omp for
+#pragma omp for nowait
 				for (int i = 0; i < dimensions.first; i += SIMD<T>::length)
 				{
 					const int elements_left = std::min(dimensions.first - i, SIMD<T>::length);
@@ -266,7 +266,7 @@ namespace
 					SIMD<T> tmp = reduction.init();
 					tmp.store(thread_workspace + j, elements_left);
 				}
-#pragma omp for
+#pragma omp for nowait
 				for (int i = 0; i < dimensions.first; i++)
 					for (int j = 0; j < dimensions.last; j += SIMD<T>::length)
 					{
@@ -340,42 +340,42 @@ namespace
 	}
 }
 
-namespace avocado
+namespace SIMD_NAMESPACE
 {
-	namespace backend
+	using namespace avocado::backend;
+
+	avStatus_t reduceTensor(avContextDescriptor_t context, avReduceOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
+			const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 	{
-		avStatus_t reduceTensor(avContextDescriptor_t context, avReduceOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
-				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+		BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(aDesc), getTensor(cDesc));
+
+		const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * dimensions.last * dataTypeSize(getTensor(aDesc).dtype());
+		if (getContext(context).getWorkspace().size() < required_workspace_size)
+			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
+
+		switch (getTensor(aDesc).dtype())
 		{
-			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(aDesc), getTensor(cDesc));
-
-			const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * dimensions.last * dataTypeSize(getTensor(aDesc).dtype());
-			if (getContext(context).getWorkspace().size() < required_workspace_size)
-				return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
-
-			switch (getTensor(aDesc).dtype())
-			{
-//				case AVOCADO_DTYPE_FLOAT16:
-//					launcher_tensor_reduction(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta),
-//							dimensions, operation, getContext(context).getWorkspace().data<float16>());
-//					break;
-//				case AVOCADO_DTYPE_BFLOAT16:
-//					launcher_tensor_reduction(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta),
-//							dimensions, operation, getContext(context).getWorkspace().data<bfloat16>());
-//					break;
-				case AVOCADO_DTYPE_FLOAT32:
-					launcher_tensor_reduction(getPointer<float>(cMem), getPointer<float>(aMem), getAlphaValue(alpha), getBetaValue(beta), dimensions,
-							operation, getContext(context).getWorkspace().data<float>());
-					break;
-				case AVOCADO_DTYPE_FLOAT64:
-					launcher_tensor_reduction(getPointer<double>(cMem), getPointer<double>(aMem), getAlphaValue<double>(alpha),
-							getBetaValue<double>(beta), dimensions, operation, getContext(context).getWorkspace().data<double>());
-					break;
-				default:
-					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-			}
-			return AVOCADO_STATUS_SUCCESS;
+//			case AVOCADO_DTYPE_FLOAT16:
+//				launcher_tensor_reduction(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta), dimensions,
+//						operation, getContext(context).getWorkspace().data<float16>());
+//				break;
+//			case AVOCADO_DTYPE_BFLOAT16:
+//				launcher_tensor_reduction(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta),
+//						dimensions, operation, getContext(context).getWorkspace().data<bfloat16>());
+//				break;
+			case AVOCADO_DTYPE_FLOAT32:
+				launcher_tensor_reduction(getPointer<float>(cMem), getPointer<float>(aMem), getAlphaValue(alpha), getBetaValue(beta), dimensions,
+						operation, getContext(context).getWorkspace().data<float>());
+				break;
+			case AVOCADO_DTYPE_FLOAT64:
+				launcher_tensor_reduction(getPointer<double>(cMem), getPointer<double>(aMem), getAlphaValue<double>(alpha),
+						getBetaValue<double>(beta), dimensions, operation, getContext(context).getWorkspace().data<double>());
+				break;
+			default:
+				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
-	} /* namespace backend */
-} /* namespace avocado */
+		return AVOCADO_STATUS_SUCCESS;
+	}
+
+} /* namespace SIMD_NAMESPACE */
 

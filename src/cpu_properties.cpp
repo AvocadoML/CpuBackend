@@ -11,6 +11,7 @@
 #include <string>
 #include <cstring>
 #include <algorithm>
+#include <iostream>
 #include <cassert>
 
 #ifdef _WIN32
@@ -153,195 +154,287 @@ namespace
 
 		return name;
 	}
-}
 
-struct cpu_x86
-{
-		std::string vendor_name = "";
+	void print_feature(const char *name, bool value)
+	{
+		if (value == true)
+			std::cout << name << " : YES\n";
+		else
+			std::cout << name << " : NO\n";
+	}
+	template<typename T>
+	void print_feature(const char *name, T value)
+	{
+		std::cout << name << " : " << value << "\n";
+	}
 
-		int64_t memory = 0; //RAM [bytes]
+	struct cpu_x86
+	{
+			std::string vendor_name = "";
 
-		int cores = 0;
-		bool HYPER_THREADING = false;
+			int64_t memory = 0; //RAM [bytes]
 
-		bool OS_x64 = false;
-		bool OS_AVX = false;
-		bool OS_AVX512 = false;
+			int cores = 0;
+			bool HYPER_THREADING = false;
 
-		bool HW_MMX = false;
-		bool HW_x64 = false;
-		bool HW_ABM = false;
-		bool HW_RDRAND = false;
-		bool HW_RDSEED = false;
-		bool HW_BMI1 = false;
-		bool HW_BMI2 = false;
-		bool HW_ADX = false;
-		bool HW_MPX = false;
-		bool HW_PREFETCHW = false;
-		bool HW_PREFETCHWT1 = false;
-		bool HW_RDPID = false;
-		bool HW_F16C = false;
-		bool HW_POPCOUNT = false;
+			bool OS_x64 = false;
+			bool OS_AVX = false;
+			bool OS_AVX512 = false;
 
-		//  SIMD: 128-bit
-		bool HW_SSE = false;
-		bool HW_SSE2 = false;
-		bool HW_SSE3 = false;
-		bool HW_SSSE3 = false;
-		bool HW_SSE41 = false;
-		bool HW_SSE42 = false;
-		bool HW_SSE4a = false;
-		bool HW_AES = false;
-		bool HW_SHA = false;
+			bool HW_MMX = false;
+			bool HW_x64 = false;
+			bool HW_ABM = false;
+			bool HW_RDRAND = false;
+			bool HW_RDSEED = false;
+			bool HW_BMI1 = false;
+			bool HW_BMI2 = false;
+			bool HW_ADX = false;
+			bool HW_MPX = false;
+			bool HW_PREFETCHW = false;
+			bool HW_PREFETCHWT1 = false;
+			bool HW_RDPID = false;
+			bool HW_F16C = false;
+			bool HW_POPCOUNT = false;
 
-		//  SIMD: 256-bit
-		bool HW_AVX = false;
-		bool HW_XOP = false;
-		bool HW_FMA3 = false;
-		bool HW_FMA4 = false;
-		bool HW_AVX2 = false;
+			//  SIMD: 128-bit
+			bool HW_SSE = false;
+			bool HW_SSE2 = false;
+			bool HW_SSE3 = false;
+			bool HW_SSSE3 = false;
+			bool HW_SSE41 = false;
+			bool HW_SSE42 = false;
+			bool HW_SSE4a = false;
+			bool HW_AES = false;
+			bool HW_SHA = false;
 
-		// SIMD: 512-bit
-		bool HW_AVX512_F = false;
-		bool HW_AVX512_CD = false;
+			//  SIMD: 256-bit
+			bool HW_AVX = false;
+			bool HW_XOP = false;
+			bool HW_FMA3 = false;
+			bool HW_FMA4 = false;
+			bool HW_AVX2 = false;
 
-		//  Knights Landing
-		bool HW_AVX512_PF = false;
-		bool HW_AVX512_ER = false;
+			// SIMD: 512-bit
+			bool HW_AVX512_F = false;
+			bool HW_AVX512_CD = false;
 
-		//  Skylake Purley
-		bool HW_AVX512_VL = false;
-		bool HW_AVX512_BW = false;
-		bool HW_AVX512_DQ = false;
+			//  Knights Landing
+			bool HW_AVX512_PF = false;
+			bool HW_AVX512_ER = false;
 
-		//  Cannon Lake
-		bool HW_AVX512_IFMA = false;
-		bool HW_AVX512_VBMI = false;
+			//  Skylake Purley
+			bool HW_AVX512_VL = false;
+			bool HW_AVX512_BW = false;
+			bool HW_AVX512_DQ = false;
 
-		//  Knights Mill
-		bool HW_AVX512_VPOPCNTDQ = false;
-		bool HW_AVX512_4FMAPS = false;
-		bool HW_AVX512_4VNNIW = false;
+			//  Cannon Lake
+			bool HW_AVX512_IFMA = false;
+			bool HW_AVX512_VBMI = false;
 
-		//  Cascade Lake
-		bool HW_AVX512_VNNI = false;
+			//  Knights Mill
+			bool HW_AVX512_VPOPCNTDQ = false;
+			bool HW_AVX512_4FMAPS = false;
+			bool HW_AVX512_4VNNIW = false;
 
-		//  Cooper Lake
-		bool HW_AVX512_BF16 = false;
+			//  Cascade Lake
+			bool HW_AVX512_VNNI = false;
 
-		//  Ice Lake
-		bool HW_AVX512_VBMI2 = false;
-		bool HW_GFNI = false;
-		bool HW_VAES = false;
-		bool HW_AVX512_VPCLMUL = false;
-		bool HW_AVX512_BITALG = false;
+			//  Cooper Lake
+			bool HW_AVX512_BF16 = false;
 
-	public:
-		cpu_x86()
-		{
-			//  OS Features
-			OS_x64 = detect_OS_x64();
-			OS_AVX = detect_OS_AVX();
-			OS_AVX512 = detect_OS_AVX512();
+			//  Ice Lake
+			bool HW_AVX512_VBMI2 = false;
+			bool HW_GFNI = false;
+			bool HW_VAES = false;
+			bool HW_AVX512_VPCLMUL = false;
+			bool HW_AVX512_BITALG = false;
 
-			// RAM
-			memory = get_total_system_memory();
-
-			//  Vendor
-			vendor_name = get_vendor_string();
-
-			uint32_t info[4];
-			cpuid(info, 0, 0);
-			int32_t nIds = info[0];
-
-			cpuid(info, 0x80000000, 0);
-			uint32_t nExIds = info[0];
-
-			//  Detect Features
-			if (nIds >= 0x00000001)
+		public:
+			cpu_x86()
 			{
-				cpuid(info, 0x00000001, 0);
-				HW_MMX = (info[3] & (1 << 23)) != 0;
-				HW_SSE = (info[3] & (1 << 25)) != 0;
-				HW_SSE2 = (info[3] & (1 << 26)) != 0;
-				HW_SSE3 = (info[2] & (1 << 0)) != 0;
+				//  OS Features
+				OS_x64 = detect_OS_x64();
+				OS_AVX = detect_OS_AVX();
+				OS_AVX512 = detect_OS_AVX512();
 
-				HW_SSSE3 = (info[2] & (1 << 9)) != 0;
-				HW_SSE41 = (info[2] & (1 << 19)) != 0;
-				HW_SSE42 = (info[2] & (1 << 20)) != 0;
-				HW_AES = (info[2] & (1 << 25)) != 0;
+				// RAM
+				memory = get_total_system_memory();
 
-				HW_F16C = (info[2] & (1 << 29)) != 0;
-				HW_POPCOUNT = (info[2] & (1 << 23)) != 0;
-				HW_AVX = (info[2] & (1 << 28)) != 0;
-				HW_FMA3 = (info[2] & (1 << 12)) != 0;
+				//  Vendor
+				vendor_name = get_vendor_string();
 
-				HW_RDRAND = (info[2] & (1 << 30)) != 0;
+				uint32_t info[4];
+				cpuid(info, 0, 0);
+				int32_t nIds = info[0];
 
-				HYPER_THREADING = (info[3] & (1 << 28)) != 0;
+				cpuid(info, 0x80000000, 0);
+				uint32_t nExIds = info[0];
+
+				//  Detect Features
+				if (nIds >= 0x00000001)
+				{
+					cpuid(info, 0x00000001, 0);
+					HW_MMX = (info[3] & (1 << 23)) != 0;
+					HW_SSE = (info[3] & (1 << 25)) != 0;
+					HW_SSE2 = (info[3] & (1 << 26)) != 0;
+					HW_SSE3 = (info[2] & (1 << 0)) != 0;
+
+					HW_SSSE3 = (info[2] & (1 << 9)) != 0;
+					HW_SSE41 = (info[2] & (1 << 19)) != 0;
+					HW_SSE42 = (info[2] & (1 << 20)) != 0;
+					HW_AES = (info[2] & (1 << 25)) != 0;
+
+					HW_F16C = (info[2] & (1 << 29)) != 0;
+					HW_POPCOUNT = (info[2] & (1 << 23)) != 0;
+					HW_AVX = (info[2] & (1 << 28)) != 0;
+					HW_FMA3 = (info[2] & (1 << 12)) != 0;
+
+					HW_RDRAND = (info[2] & (1 << 30)) != 0;
+
+					HYPER_THREADING = (info[3] & (1 << 28)) != 0;
 #if defined(_WIN32)
 				SYSTEM_INFO systeminfo;
 				GetSystemInfo(&systeminfo);
 				cores = systeminfo.dwNumberOfProcessors;
 #else
-				cores = sysconf( _SC_NPROCESSORS_ONLN);
+					cores = sysconf( _SC_NPROCESSORS_ONLN);
 #endif // defined(_WIN32)
 
 //			unsigned int ncores = 0, nthreads = 0;
 //			asm volatile("cpuid": "=a" (ncores), "=b" (nthreads) : "a" (0xb), "c" (0x1) : );
+				}
+				if (nIds >= 0x00000007)
+				{
+					cpuid(info, 0x00000007, 0);
+					HW_AVX2 = (info[1] & (1 << 5)) != 0;
+
+					HW_BMI1 = (info[1] & (1 << 3)) != 0;
+					HW_BMI2 = (info[1] & (1 << 8)) != 0;
+					HW_ADX = (info[1] & (1 << 19)) != 0;
+					HW_MPX = (info[1] & (1 << 14)) != 0;
+					HW_SHA = (info[1] & (1 << 29)) != 0;
+					HW_RDSEED = (info[1] & (1 << 18)) != 0;
+					HW_PREFETCHWT1 = (info[2] & (1 << 0)) != 0;
+					HW_RDPID = (info[2] & (1 << 22)) != 0;
+
+					HW_AVX512_F = (info[1] & (1 << 16)) != 0;
+					HW_AVX512_CD = (info[1] & (1 << 28)) != 0;
+					HW_AVX512_PF = (info[1] & (1 << 26)) != 0;
+					HW_AVX512_ER = (info[1] & (1 << 27)) != 0;
+
+					HW_AVX512_VL = (info[1] & (1u << 31)) != 0;
+					HW_AVX512_BW = (info[1] & (1 << 30)) != 0;
+					HW_AVX512_DQ = (info[1] & (1 << 17)) != 0;
+
+					HW_AVX512_IFMA = (info[1] & (1 << 21)) != 0;
+					HW_AVX512_VBMI = (info[2] & (1 << 1)) != 0;
+
+					HW_AVX512_VPOPCNTDQ = (info[2] & (1 << 14)) != 0;
+					HW_AVX512_4FMAPS = (info[3] & (1 << 2)) != 0;
+					HW_AVX512_4VNNIW = (info[3] & (1 << 3)) != 0;
+
+					HW_AVX512_VNNI = (info[2] & (1 << 11)) != 0;
+
+					HW_AVX512_VBMI2 = (info[2] & (1 << 6)) != 0;
+					HW_GFNI = (info[2] & (1 << 8)) != 0;
+					HW_VAES = (info[2] & (1 << 9)) != 0;
+					HW_AVX512_VPCLMUL = (info[2] & (1 << 10)) != 0;
+					HW_AVX512_BITALG = (info[2] & (1 << 12)) != 0;
+
+					cpuid(info, 0x00000007, 1);
+					HW_AVX512_BF16 = (info[0] & (1 << 5)) != 0;
+				}
+				if (nExIds >= 0x80000001)
+				{
+					cpuid(info, 0x80000001, 0);
+					HW_x64 = (info[3] & (1 << 29)) != 0;
+					HW_ABM = (info[2] & (1 << 5)) != 0;
+					HW_SSE4a = (info[2] & (1 << 6)) != 0;
+					HW_FMA4 = (info[2] & (1 << 16)) != 0;
+					HW_XOP = (info[2] & (1 << 11)) != 0;
+				}
 			}
-			if (nIds >= 0x00000007)
+			void print()
 			{
-				cpuid(info, 0x00000007, 0);
-				HW_AVX2 = (info[1] & (1 << 5)) != 0;
+				print_feature("memory", memory);
 
-				HW_BMI1 = (info[1] & (1 << 3)) != 0;
-				HW_BMI2 = (info[1] & (1 << 8)) != 0;
-				HW_ADX = (info[1] & (1 << 19)) != 0;
-				HW_MPX = (info[1] & (1 << 14)) != 0;
-				HW_SHA = (info[1] & (1 << 29)) != 0;
-				HW_RDSEED = (info[1] & (1 << 18)) != 0;
-				HW_PREFETCHWT1 = (info[2] & (1 << 0)) != 0;
-				HW_RDPID = (info[2] & (1 << 22)) != 0;
+				print_feature("cores", cores);
+				print_feature("HYPER_THREADING", HYPER_THREADING);
 
-				HW_AVX512_F = (info[1] & (1 << 16)) != 0;
-				HW_AVX512_CD = (info[1] & (1 << 28)) != 0;
-				HW_AVX512_PF = (info[1] & (1 << 26)) != 0;
-				HW_AVX512_ER = (info[1] & (1 << 27)) != 0;
+				print_feature("OS_x64", OS_x64);
+				print_feature("OS_AVX", OS_AVX);
+				print_feature("OS_AVX512", OS_AVX512);
 
-				HW_AVX512_VL = (info[1] & (1u << 31)) != 0;
-				HW_AVX512_BW = (info[1] & (1 << 30)) != 0;
-				HW_AVX512_DQ = (info[1] & (1 << 17)) != 0;
+				print_feature("HW_MMX", HW_MMX);
+				print_feature("HW_x64", HW_x64);
+				print_feature("HW_ABM", HW_ABM);
+				print_feature("HW_RDRAND", HW_RDRAND);
+				print_feature("HW_RDSEED", HW_RDSEED);
+				print_feature("HW_BMI1", HW_BMI1);
+				print_feature("HW_BMI2", HW_BMI1);
+				print_feature("HW_ADX", HW_ADX);
+				print_feature("HW_MPX", HW_MPX);
+				print_feature("HW_PREFETCHW", HW_PREFETCHW);
+				print_feature("HW_PREFETCHWT1", HW_PREFETCHWT1);
+				print_feature("HW_RDPID", HW_RDPID);
+				print_feature("HW_F16C", HW_F16C);
+				print_feature("HW_POPCOUNT", HW_POPCOUNT);
 
-				HW_AVX512_IFMA = (info[1] & (1 << 21)) != 0;
-				HW_AVX512_VBMI = (info[2] & (1 << 1)) != 0;
+				//  SIMD: 128-bit
+				print_feature("HW_SSE", HW_SSE);
+				print_feature("HW_SSE2", HW_SSE2);
+				print_feature("HW_SSE3", HW_SSE3);
+				print_feature("HW_SSSE3", HW_SSSE3);
+				print_feature("HW_SSE41", HW_SSE41);
+				print_feature("HW_SSE42", HW_SSE42);
+				print_feature("HW_SSE4a", HW_SSE4a);
+				print_feature("HW_AES", HW_AES);
+				print_feature("HW_SHA", HW_SHA);
 
-				HW_AVX512_VPOPCNTDQ = (info[2] & (1 << 14)) != 0;
-				HW_AVX512_4FMAPS = (info[3] & (1 << 2)) != 0;
-				HW_AVX512_4VNNIW = (info[3] & (1 << 3)) != 0;
+				//  SIMD: 256-bit
+				print_feature("HW_AVX", HW_AVX);
+				print_feature("HW_XOP", HW_XOP);
+				print_feature("HW_FMA3", HW_FMA3);
+				print_feature("HW_FMA4", HW_FMA4);
+				print_feature("HW_AVX2", HW_AVX2);
 
-				HW_AVX512_VNNI = (info[2] & (1 << 11)) != 0;
+				// SIMD: 512-bit
+				print_feature("HW_AVX512_F", HW_AVX512_F);
+				print_feature("HW_AVX512_CD", HW_AVX512_CD);
 
-				HW_AVX512_VBMI2 = (info[2] & (1 << 6)) != 0;
-				HW_GFNI = (info[2] & (1 << 8)) != 0;
-				HW_VAES = (info[2] & (1 << 9)) != 0;
-				HW_AVX512_VPCLMUL = (info[2] & (1 << 10)) != 0;
-				HW_AVX512_BITALG = (info[2] & (1 << 12)) != 0;
+				//  Knights Landing
+				print_feature("HW_AVX512_PF", HW_AVX512_PF);
+				print_feature("HW_AVX512_ER", HW_AVX512_ER);
 
-				cpuid(info, 0x00000007, 1);
-				HW_AVX512_BF16 = (info[0] & (1 << 5)) != 0;
+				//  Skylake Purley
+				print_feature("HW_AVX512_VL", HW_AVX512_VL);
+				print_feature("HW_AVX512_BW", HW_AVX512_BW);
+				print_feature("HW_AVX512_DQ", HW_AVX512_DQ);
+
+				//  Cannon Lake
+				print_feature("HW_AVX512_IFMA", HW_AVX512_IFMA);
+				print_feature("HW_AVX512_VBMI", HW_AVX512_VBMI);
+
+				//  Knights Mill
+				print_feature("HW_AVX512_VPOPCNTDQ", HW_AVX512_VPOPCNTDQ);
+				print_feature("HW_AVX512_4FMAPS", HW_AVX512_4FMAPS);
+				print_feature("HW_AVX512_4VNNIW", HW_AVX512_4VNNIW);
+
+				//  Cascade Lake
+				print_feature("HW_AVX512_VNNI", HW_AVX512_VNNI);
+
+				//  Cooper Lake
+				print_feature("HW_AVX512_BF16", HW_AVX512_BF16);
+
+				//  Ice Lake
+				print_feature("HW_AVX512_VBMI2", HW_AVX512_VBMI2);
+				print_feature("HW_GFNI", HW_GFNI);
+				print_feature("HW_VAES", HW_VAES);
+				print_feature("HW_AVX512_VPCLMUL", HW_AVX512_VPCLMUL);
+				print_feature("HW_AVX512_BITALG", HW_AVX512_BITALG);
 			}
-			if (nExIds >= 0x80000001)
-			{
-				cpuid(info, 0x80000001, 0);
-				HW_x64 = (info[3] & (1 << 29)) != 0;
-				HW_ABM = (info[2] & (1 << 5)) != 0;
-				HW_SSE4a = (info[2] & (1 << 6)) != 0;
-				HW_FMA4 = (info[2] & (1 << 16)) != 0;
-				HW_XOP = (info[2] & (1 << 11)) != 0;
-			}
-		}
-};
+	};
+}
 
 namespace avocado
 {

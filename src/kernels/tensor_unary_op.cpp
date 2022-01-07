@@ -5,7 +5,7 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/cpu_backend.h>
+#include "../kernel_definitions.hpp"
 #include <avocado/backend/backend_descriptors.hpp>
 
 #include "../vectors/simd_vectors.hpp"
@@ -216,36 +216,35 @@ namespace
 	}
 }
 
-namespace avocado
+namespace SIMD_NAMESPACE
 {
-	namespace backend
+	using namespace avocado::backend;
+
+	avStatus_t unaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
+			const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 	{
-		avStatus_t unaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
-				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+		const avSize_t elements = getTensor(aDesc).volume();
+		switch (getTensor(cDesc).dtype())
 		{
-			const avSize_t elements = getTensor(aDesc).volume();
-			switch (getTensor(cDesc).dtype())
-			{
-				case AVOCADO_DTYPE_FLOAT16:
-					helper_unary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
-							operation);
-					break;
-				case AVOCADO_DTYPE_BFLOAT16:
-					helper_unary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
-							operation);
-					break;
-				case AVOCADO_DTYPE_FLOAT32:
-					helper_unary_op(getPointer<float>(cMem), getPointer<float>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements, operation);
-					break;
-				case AVOCADO_DTYPE_FLOAT64:
-					helper_unary_op(getPointer<double>(cMem), getPointer<double>(aMem), getAlphaValue<double>(alpha), getBetaValue<double>(beta),
-							elements, operation);
-					break;
-				default:
-					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-			}
-			return AVOCADO_STATUS_SUCCESS;
+			case AVOCADO_DTYPE_FLOAT16:
+				helper_unary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements, operation);
+				break;
+			case AVOCADO_DTYPE_BFLOAT16:
+				helper_unary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
+						operation);
+				break;
+			case AVOCADO_DTYPE_FLOAT32:
+				helper_unary_op(getPointer<float>(cMem), getPointer<float>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements, operation);
+				break;
+			case AVOCADO_DTYPE_FLOAT64:
+				helper_unary_op(getPointer<double>(cMem), getPointer<double>(aMem), getAlphaValue<double>(alpha), getBetaValue<double>(beta),
+						elements, operation);
+				break;
+			default:
+				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
-	} /* namespace backend */
-} /* namespace avocado */
+		return AVOCADO_STATUS_SUCCESS;
+	}
+
+} /* namespace SIMD_NAMESPACE */
 

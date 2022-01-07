@@ -5,9 +5,10 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/cpu_backend.h>
+#include "../kernel_definitions.hpp"
+#include <avocado/backend/backend_descriptors.hpp>
 
-#include <vector_types.h>
+#include "../vectors/simd_macros.hpp"
 
 namespace
 {
@@ -15,12 +16,15 @@ namespace
 
 }
 
-namespace avocado
+namespace SIMD_NAMESPACE
 {
-	namespace backend
+	using namespace avocado::backend;
+
+	avStatus_t metricFunction(avContextDescriptor_t context, avMetricType_t metricType, const avTensorDescriptor_t outputDesc,
+			const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, void *result)
 	{
+		return AVOCADO_STATUS_NOT_SUPPORTED;
+	}
 
-	} /* namespace backend */
-} /* namespace avocado */
-
+} /* namespace SIMD_NAMESPACE */
 

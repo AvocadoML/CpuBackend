@@ -451,7 +451,32 @@ namespace SIMD_NAMESPACE
 #endif
 	}
 
-	/* Horizontal functions */
+	/*
+	 * Fused multiply accumulate
+	 */
+
+	/* Calculates a * b + c */
+	static inline SIMD<float> mul_add(SIMD<float> a, SIMD<float> b, SIMD<float> c) noexcept
+	{
+#if SUPPORTS_AVX and defined(__FMA__)
+		return _mm256_fmadd_ps(a, b, c);
+#else
+		return a * b + c;
+#endif
+	}
+	/* Calculates a * b - c */
+	static inline SIMD<float> mul_sub(SIMD<float> a, SIMD<float> b, SIMD<float> c) noexcept
+	{
+#if SUPPORTS_AVX and defined(__FMA__)
+		return _mm256_fmsub_ps(a, b, c);
+#else
+		return a * b - c;
+#endif
+	}
+
+	/*
+	 * Horizontal functions
+	 */
 
 	static inline float horizontal_add(SIMD<float> x) noexcept
 	{

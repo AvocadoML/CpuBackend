@@ -134,6 +134,10 @@ namespace SIMD_NAMESPACE
 					SIMD(scalar::float16_to_float(x))
 			{
 			}
+			SIMD(double x) noexcept :
+					SIMD(static_cast<float>(x))
+			{
+			}
 			operator SIMD<float>() const noexcept
 			{
 				return SIMD<float>(m_data);
@@ -342,6 +346,29 @@ namespace SIMD_NAMESPACE
 	static inline SIMD<float16> ceil(SIMD<float16> x) noexcept
 	{
 		return ceil(static_cast<SIMD<float>>(x));
+	}
+
+	/*
+	 * Fused multiply accumulate
+	 */
+
+	/* Calculates a * b + c */
+	static inline SIMD<float16> mul_add(SIMD<float16> a, SIMD<float16> b, SIMD<float16> c) noexcept
+	{
+#if SUPPORTS_AVX and defined(__FMA__)
+		return SIMD<float16>(_mm256_fmadd_ps(static_cast<SIMD<float>>(a), static_cast<SIMD<float>>(b), static_cast<SIMD<float>>(c)));
+#else
+		return a * b + c;
+#endif
+	}
+	/* Calculates a * b - c */
+	static inline SIMD<float16> mul_sub(SIMD<float16> a, SIMD<float16> b, SIMD<float16> c) noexcept
+	{
+#if SUPPORTS_AVX and defined(__FMA__)
+		return SIMD<float16>(_mm256_fmsub_ps(static_cast<SIMD<float>>(a), static_cast<SIMD<float>>(b), static_cast<SIMD<float>>(c)));
+#else
+		return a * b - c;
+#endif
 	}
 
 	/*

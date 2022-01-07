@@ -116,6 +116,11 @@ namespace avocado
 		{
 			return internal::destroy<ContextDescriptor>(desc);
 		}
+		avContextDescriptor_t cpuGetDefaultContext()
+		{
+			return 0;
+		}
+
 		avStatus_t cpuSynchronizeWithContext(avContextDescriptor_t context)
 		{
 			return AVOCADO_STATUS_SUCCESS;

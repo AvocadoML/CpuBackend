@@ -3,6 +3,7 @@
 // Author      : Maciej Kozarzewski
 //============================================================================
 
+#include <avocado/cpu_backend.h>
 #include <avocado/backend/backend_defs.h>
 #include <avocado/backend/backend_descriptors.hpp>
 
@@ -36,8 +37,108 @@ void print_defined_flags()
 #if SUPPORTS_AVX2
 	std::cout << " avx2";
 #endif
+#if __FMA__
+	std::cout << " fma";
+#endif
 	std::cout << '\n';
 }
+class TensorWrapper
+{
+	private:
+		avTensorDescriptor_t desc;
+		avMemoryDescriptor_t mem;
+	public:
+		TensorWrapper(std::initializer_list<int> dimensions, avDataType_t dtype)
+		{
+			cpuCreateTensorDescriptor(&desc);
+			cpuSetTensorDescriptor(desc, dtype, dimensions.size(), dimensions.begin());
+
+			avSize_t size_in_bytes = getTensor(desc).sizeInBytes();
+			cpuCreateMemoryDescriptor(&mem, size_in_bytes);
+			cpuSetMemory(cpuGetDefaultContext(), mem, size_in_bytes, nullptr, 0);
+		}
+		~TensorWrapper()
+		{
+			cpuDestroyTensorDescriptor(desc);
+			cpuDestroyMemoryDescriptor(mem);
+		}
+		int dimension(int idx) const noexcept
+		{
+			return getTensor(desc).dimension(idx);
+		}
+		template<typename T>
+		void fill(T value)
+		{
+			assert(typeOf<T>() == getTensor(desc).dtype());
+			for (int i = 0; i < getTensor(desc).volume(); i++)
+				getPointer<T>(mem)[i] = value;
+		}
+		template<typename T>
+		void set(T value, std::initializer_list<int> idx)
+		{
+			assert(typeOf<T>() == getTensor(desc).dtype());
+			getPointer<T>(mem)[getTensor(desc).getIndex(idx)] = value;
+		}
+		template<typename T>
+		T get(std::initializer_list<int> idx) const
+		{
+			assert(typeOf<T>() == getTensor(desc).dtype());
+			return getPointer<T>(mem)[getTensor(desc).getIndex(idx)];
+		}
+		const TensorDescriptor& tensor() const noexcept
+		{
+			return getTensor(desc);
+		}
+		avTensorDescriptor_t getDesc() const noexcept
+		{
+			return desc;
+		}
+		avMemoryDescriptor_t getMem() const noexcept
+		{
+			return mem;
+		}
+		template<typename T = void>
+		T* data() noexcept
+		{
+			return getPointer<T>(mem);
+		}
+		template<typename T = void>
+		const T* data() const noexcept
+		{
+			return getPointer<T>(mem);
+		}
+		int volume() const noexcept
+		{
+			return getTensor(desc).volume();
+		}
+		int sizeIntBytes() const noexcept
+		{
+			return volume() * dataTypeSize(getTensor(desc).dtype());
+		}
+		avDataType_t dtype() const noexcept
+		{
+			return getTensor(desc).dtype();
+		}
+};
+
+class ContextWrapper
+{
+	private:
+		avContextDescriptor_t desc;
+	public:
+		ContextWrapper()
+		{
+			cpuCreateContextDescriptor(&desc);
+		}
+		~ContextWrapper()
+		{
+			cpuDestroyContextDescriptor(desc);
+		}
+		operator avContextDescriptor_t() noexcept
+		{
+			return desc;
+		}
+};
 
 void def_transform_input_4x4(const float **ptr_in, float **ptr_out, float *storage, const int filters)
 {
@@ -236,236 +337,437 @@ void sse_transform_input_4x4(const float **ptr_in, float **ptr_out, float *stora
 }
 #endif
 
-int cpu_winograd3x3_4x4_transform_input(const TensorDescriptor &inputDesc, const float *inputMem, TensorDescriptor &matricesDesc, float *matricesMem)
+int cpu_winograd3x3_4x4_transform_input(const TensorWrapper &input, TensorWrapper &matrices)
 {
-//	const int batch_size = dimension(input, 0);
-//	const int height = dimension(input, 1);
-//	const int width = dimension(input, 2);
-//	const int filters = dimension(input, 3);
-//
-//	const int tile_h = (height + 3) / 4;
-//	const int tile_w = (width + 3) / 4;
-//	const int number_of_tiles = tile_h * tile_w;
-//	const int nb_of_tiles = batch_size * number_of_tiles;
-//
-//	float zero_line[filters];
-//	std::memset(zero_line, 0, filters * sizeof(float));
-//
+	const int batch_size = input.dimension(0);
+	const int height = input.dimension(1);
+	const int width = input.dimension(2);
+	const int filters = input.dimension(3);
+
+	const int tiles = matrices.dimension(1);
+
+	const int tile_h = (height + 3) / 4;
+	const int tile_w = (width + 3) / 4;
+	const int number_of_tiles = tile_h * tile_w;
+	const int nb_of_tiles = batch_size * number_of_tiles;
+
+	float zero_line[filters];
+	std::memset(zero_line, 0, filters * sizeof(float));
+
 //#pragma omp parallel
-//	{
-//		float tmp_storage[288];
-//		const float *ptr_in[36];
-//		float *ptr_out[36];
+	{
+		float tmp_storage[288];
+		const float *ptr_in[36];
+		float *ptr_out[36];
 //#pragma omp for
-//		for (int tile_idx = 0; tile_idx < nb_of_tiles; tile_idx++)
-//		{
-//			int b = tile_idx / number_of_tiles;
-//			int x = 4 * ((tile_idx % number_of_tiles) / tile_w);
-//			int y = 4 * ((tile_idx % number_of_tiles) % tile_w);
-//			int tmp_idx = 0;
-//			for (int j = -1; j < 4 + 1; j++)
-//				for (int k = -1; k < 4 + 1; k++, tmp_idx++)
-//				{
-//					ptr_out[tmp_idx] = data<float>(matrices) + (tmp_idx * dimension(matrices, 1) + tile_idx) * filters; //(tmp_idx, tile_idx, 0);
-//					if ((x + j) >= 0 && (x + j) < height && (y + k) >= 0 && (y + k) < width)
-//						ptr_in[tmp_idx] = data<float>(input) + ((b * height + x + j) * width + y + k) * filters; //(b, x + j, y + k, 0);
-//					else
-//						ptr_in[tmp_idx] = zero_line;
-//				}
-//#if defined(__AVX__)
-//			avx_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
-//#elif defined(__SSE__)
-//			sse_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
-//#else
-//			def_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
-//#endif
-//		}
-//	}
+		for (int tile_idx = 0; tile_idx < nb_of_tiles; tile_idx++)
+		{
+			int b = tile_idx / number_of_tiles;
+			int x = 4 * ((tile_idx % number_of_tiles) / tile_w);
+			int y = 4 * ((tile_idx % number_of_tiles) % tile_w);
+			int tmp_idx = 0;
+			for (int j = -1; j < 4 + 1; j++)
+				for (int k = -1; k < 4 + 1; k++, tmp_idx++)
+				{
+					ptr_out[tmp_idx] = matrices.data<float>() + (tmp_idx * tiles + tile_idx) * filters; //(tmp_idx, tile_idx, 0);
+					if ((x + j) >= 0 && (x + j) < height && (y + k) >= 0 && (y + k) < width)
+						ptr_in[tmp_idx] = input.data<float>() + ((b * height + x + j) * width + y + k) * filters; //(b, x + j, y + k, 0);
+					else
+						ptr_in[tmp_idx] = zero_line;
+				}
+#if defined(__AVX__)
+			avx_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
+#elif defined(__SSE__)
+			sse_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
+#else
+			def_transform_input_4x4(ptr_in, ptr_out, tmp_storage, filters);
+#endif
+		}
+	}
 	return 0;
 }
-//template<typename T>
-//int vec_winograd3x3_4x4_transform_input(const TensorDescriptor *input, TensorDescriptor *matrices)
-//{
-//	const int batch_size = dimension(input, 0);
-//	const int height = dimension(input, 1);
-//	const int width = dimension(input, 2);
-//	const size_t filters = dimension(input, 3);
-//
-//	const int tile_h = (height + 3) / 4;
-//	const int tile_w = (width + 3) / 4;
-//	const int number_of_tiles = tile_h * tile_w;
-//	const int nb_of_tiles = batch_size * number_of_tiles;
-//
-//	T zero_line[filters];
-//	std::memset(zero_line, 0, filters * sizeof(T));
-//
-//#pragma omp parallel
-//	{
-//		SIMD<T> storage[36];
-////		float tmp_storage[288];
-//		const T *ptr_in[36];
-//		T *ptr_out[36];
-//#pragma omp for
-//		for (int tile_idx = 0; tile_idx < nb_of_tiles; tile_idx++)
-//		{
-//			int b = tile_idx / number_of_tiles;
-//			int x = 4 * ((tile_idx % number_of_tiles) / tile_w);
-//			int y = 4 * ((tile_idx % number_of_tiles) % tile_w);
-//			int tmp_idx = 0;
-//			for (int j = -1; j < 4 + 1; j++)
-//				for (int k = -1; k < 4 + 1; k++, tmp_idx++)
-//				{
-//					ptr_out[tmp_idx] = data<T>(matrices) + (tmp_idx * dimension(matrices, 1) + tile_idx) * filters; //(tmp_idx, tile_idx, 0);
-//					if ((x + j) >= 0 && (x + j) < height && (y + k) >= 0 && (y + k) < width)
-//						ptr_in[tmp_idx] = data<T>(input) + ((b * height + x + j) * width + y + k) * filters; //(b, x + j, y + k, 0);
-//					else
-//						ptr_in[tmp_idx] = zero_line;
-//				}
-//
-//			const SIMD<T> c025(0.25);
-//			const SIMD<T> c05(0.5);
-//			for (size_t f = 0; f < filters; f += SIMD<T>::length)
-//			{
-//				const size_t elements = std::min(SIMD<T>::length, filters - f);
-//				for (int l = 0; l < 36; l += 6)
-//				{
-//					SIMD<T> load0(ptr_in[l + 0] + f, elements);
-//					SIMD<T> load1(ptr_in[l + 1] + f, elements);
-//					SIMD<T> load2(ptr_in[l + 2] + f, elements);
-//					SIMD<T> load3(ptr_in[l + 3] + f, elements);
-//					SIMD<T> load4(ptr_in[l + 4] + f, elements);
-//					SIMD<T> load5(ptr_in[l + 5] + f, elements);
-//					storage[l + 0] = load0 - load2 + c025 * (load4 - load2);
-//					storage[l + 1] = load1 + load2 - c025 * (load3 + load4);
-//					storage[l + 2] = load2 - load1 + c025 * (load3 - load4);
-//					storage[l + 3] = load3 - load1 + c05 * (load4 - load2);
-//					storage[l + 4] = load1 - load3 + c05 * (load4 - load2);
-//					storage[l + 5] = load1 - load3 + c025 * (load5 - load3);
-//				}
-//				for (int l = 0; l < 6; l++)
-//				{
-//					SIMD<T> load0 = storage[0 * 6 + l];
-//					SIMD<T> load1 = storage[1 * 6 + l];
-//					SIMD<T> load2 = storage[2 * 6 + l];
-//					SIMD<T> load3 = storage[3 * 6 + l];
-//					SIMD<T> load4 = storage[4 * 6 + l];
-//					SIMD<T> load5 = storage[5 * 6 + l];
-//
-//					load0 = load0 - load2 + c025 * (load4 - load2);
-//					SIMD<T> tmp1 = load1 + load2 - c025 * (load3 + load4);
-//					SIMD<T> tmp2 = load2 - load1 + c025 * (load3 - load4);
-//					SIMD<T> tmp3 = load3 - load1 + c05 * (load4 - load2);
-//					SIMD<T> tmp4 = load1 - load3 + c05 * (load4 - load2);
-//					load5 = load1 - load3 + c025 * (load5 - load3);
-//
-//					load0.storeu(ptr_out[0 + l] + f, elements);
-//					tmp1.storeu(ptr_out[6 + l] + f, elements);
-//					tmp2.storeu(ptr_out[12 + l] + f, elements);
-//					tmp3.storeu(ptr_out[18 + l] + f, elements);
-//					tmp4.storeu(ptr_out[24 + l] + f, elements);
-//					load5.storeu(ptr_out[30 + l] + f, elements);
-//				}
-//			}
-//		}
-//	}
-//	return 0;
-//}
+template<typename T>
+int vec_winograd3x3_4x4_transform_input(const TensorWrapper &input, TensorWrapper &matrices)
+{
+	const int batch_size = input.dimension(0);
+	const int height = input.dimension(1);
+	const int width = input.dimension(2);
+	const int filters = input.dimension(3);
 
-//template<typename T>
-//TensorDescriptor createTensor(std::initializer_list<int> shape)
-//{
-//	TensorDescriptor result;
-//	result.shape = createShapeDescriptor(shape);
-//	result.dtype = typeOf<T>();
-//	result.data = new int8_t[volume(result.shape) * dataTypeSize(result.dtype)];
-//	return result;
-//}
-//template<typename T>
-//void initTensor(TensorDescriptor &tensor)
-//{
-//	for (int i = 0; i < volume(tensor.shape); i++)
-//		reinterpret_cast<T*>(tensor.data)[i] = std::sin(i / static_cast<T>(1234));
-//}
-//template<typename T>
-//void setTensor(TensorDescriptor &tensor, T value)
-//{
-//	for (int i = 0; i < volume(tensor.shape); i++)
-//		reinterpret_cast<T*>(tensor.data)[i] = value;
-//}
-//template<typename T>
-//double diff(const TensorDescriptor &lhs, const TensorDescriptor &rhs)
-//{
-//	assert(volume(lhs.shape) == volume(rhs.shape));
-//	double result = 0.0;
-//	for (int i = 0; i < volume(lhs.shape); i++)
-//		result += std::abs(reinterpret_cast<T*>(lhs.data)[i] - reinterpret_cast<T*>(rhs.data)[i]);
-//	return result / volume(lhs.shape);
-//}
-//void destroyTensor(TensorDescriptor &tensor)
-//{
-//	delete[] reinterpret_cast<int8_t*>(tensor.data);
-//}
+	const int tiles = matrices.dimension(1);
+
+	const int tile_h = (height + 3) / 4;
+	const int tile_w = (width + 3) / 4;
+	const int number_of_tiles = tile_h * tile_w;
+	const int nb_of_tiles = batch_size * number_of_tiles;
+
+	T zero_line[filters];
+	std::memset(zero_line, 0, filters * sizeof(T));
+
+//#pragma omp parallel
+	{
+		SIMD_NAMESPACE::SIMD<T> storage[36];
+//		float tmp_storage[288];
+		const T *ptr_in[36];
+		T *ptr_out[36];
+//#pragma omp for
+		for (int tile_idx = 0; tile_idx < nb_of_tiles; tile_idx++)
+		{
+			int b = tile_idx / number_of_tiles;
+			int x = 4 * ((tile_idx % number_of_tiles) / tile_w);
+			int y = 4 * ((tile_idx % number_of_tiles) % tile_w);
+			int tmp_idx = 0;
+			for (int j = -1; j < 4 + 1; j++)
+				for (int k = -1; k < 4 + 1; k++, tmp_idx++)
+				{
+					ptr_out[tmp_idx] = matrices.data<T>() + (tmp_idx * tiles + tile_idx) * filters; //(tmp_idx, tile_idx, 0);
+					if ((x + j) >= 0 && (x + j) < height && (y + k) >= 0 && (y + k) < width)
+						ptr_in[tmp_idx] = input.data<T>() + ((b * height + x + j) * width + y + k) * filters; //(b, x + j, y + k, 0);
+					else
+						ptr_in[tmp_idx] = zero_line;
+				}
+			const SIMD_NAMESPACE::SIMD<T> c025(0.25);
+			const SIMD_NAMESPACE::SIMD<T> c05(0.5);
+			for (int f = 0; f < filters; f += SIMD_NAMESPACE::SIMD<T>::length)
+			{
+				const int elements = std::min(SIMD_NAMESPACE::SIMD<T>::length, filters - f);
+				for (int l = 0; l < 36; l += 6)
+				{
+					SIMD_NAMESPACE::SIMD<T> load0(ptr_in[l + 0] + f, elements);
+					SIMD_NAMESPACE::SIMD<T> load1(ptr_in[l + 1] + f, elements);
+					SIMD_NAMESPACE::SIMD<T> load2(ptr_in[l + 2] + f, elements);
+					SIMD_NAMESPACE::SIMD<T> load3(ptr_in[l + 3] + f, elements);
+					SIMD_NAMESPACE::SIMD<T> load4(ptr_in[l + 4] + f, elements);
+					SIMD_NAMESPACE::SIMD<T> load5(ptr_in[l + 5] + f, elements);
+					storage[l + 0] = load0 - load2 + c025 * (load4 - load2);
+					storage[l + 1] = load1 + load2 - c025 * (load3 + load4);
+					storage[l + 2] = load2 - load1 + c025 * (load3 - load4);
+					storage[l + 3] = load3 - load1 + c05 * (load4 - load2);
+					storage[l + 4] = load1 - load3 + c05 * (load4 - load2);
+					storage[l + 5] = load1 - load3 + c025 * (load5 - load3);
+				}
+				for (int l = 0; l < 6; l++)
+				{
+					SIMD_NAMESPACE::SIMD<T> load0 = storage[0 * 6 + l];
+					SIMD_NAMESPACE::SIMD<T> load1 = storage[1 * 6 + l];
+					SIMD_NAMESPACE::SIMD<T> load2 = storage[2 * 6 + l];
+					SIMD_NAMESPACE::SIMD<T> load3 = storage[3 * 6 + l];
+					SIMD_NAMESPACE::SIMD<T> load4 = storage[4 * 6 + l];
+					SIMD_NAMESPACE::SIMD<T> load5 = storage[5 * 6 + l];
+
+					load0 = load0 - load2 + c025 * (load4 - load2);
+					SIMD_NAMESPACE::SIMD<T> tmp1 = load1 + load2 - c025 * (load3 + load4);
+					SIMD_NAMESPACE::SIMD<T> tmp2 = load2 - load1 + c025 * (load3 - load4);
+					SIMD_NAMESPACE::SIMD<T> tmp3 = load3 - load1 + c05 * (load4 - load2);
+					SIMD_NAMESPACE::SIMD<T> tmp4 = load1 - load3 + c05 * (load4 - load2);
+					load5 = load1 - load3 + c025 * (load5 - load3);
+
+					load0.store(ptr_out[0 + l] + f, elements);
+					tmp1.store(ptr_out[6 + l] + f, elements);
+					tmp2.store(ptr_out[12 + l] + f, elements);
+					tmp3.store(ptr_out[18 + l] + f, elements);
+					tmp4.store(ptr_out[24 + l] + f, elements);
+					load5.store(ptr_out[30 + l] + f, elements);
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+struct int2
+{
+		int x, y;
+};
+
+template<typename T, int Length>
+struct Line
+{
+	private:
+		SIMD_NAMESPACE::SIMD<T> data[Length];
+	public:
+		inline void load_column(const T **ptr, const int col, const int offset, const int num, const int columns) noexcept
+		{
+			for (int i = 0; i < Length; i++)
+				data[i].load(ptr[i * columns + col] + offset, num);
+		}
+		inline void load_row(const SIMD_NAMESPACE::SIMD<T> *ptr, const int row, const int columns) noexcept
+		{
+			for (int i = 0; i < Length; i++)
+				data[i] = ptr[row * columns + i];
+		}
+
+		inline void store_row(T **ptr, const int row, const int offset, const int num, const int columns) const noexcept
+		{
+			for (int i = 0; i < Length; i++)
+				data[i].store(ptr[row * columns + i] + offset, num);
+		}
+		inline void store_column(SIMD_NAMESPACE::SIMD<T> *ptr, const int col, const int columns) const noexcept
+		{
+			for (int i = 0; i < Length; i++)
+				ptr[i * columns + col] = data[i];
+		}
+
+		inline SIMD_NAMESPACE::SIMD<T>& operator[](int index) noexcept
+		{
+			assert(index >= 0 && index < Length);
+			return data[index];
+		}
+		inline SIMD_NAMESPACE::SIMD<T> operator[](int index) const noexcept
+		{
+			assert(index >= 0 && index < Length);
+			return data[index];
+		}
+};
+
+template<typename T, int TransformSize, int KernelSize>
+struct InputTransform
+{
+};
+template<typename T>
+struct InputTransform<T, 4, 3>
+{
+		inline Line<T, 6> operator()(Line<T, 6> line) const noexcept
+		{
+			const SIMD_NAMESPACE::SIMD<T> c025(0.25);
+			const SIMD_NAMESPACE::SIMD<T> c05(0.5);
+
+			Line<T, 6> result;
+			result[0] = line[0] - line[2] + c025 * (line[4] - line[2]);
+			result[1] = line[1] + line[2] - c025 * (line[3] + line[4]);
+			result[2] = line[2] - line[1] + c025 * (line[3] - line[4]);
+			result[3] = line[3] - line[1] + c05 * (line[4] - line[2]);
+			result[4] = line[1] - line[3] + c05 * (line[4] - line[2]);
+			result[5] = line[1] - line[3] + c025 * (line[5] - line[3]);
+			return result;
+		}
+};
+
+template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
+void winograd_input_transform(const TensorDescriptor &xDesc, const T *xMem, const TensorDescriptor &mDesc, T *mMem, int2 padding, T *workspace)
+{
+	const int batch_size = xDesc.dimension(0);
+	const int height = xDesc.dimension(1);
+	const int width = xDesc.dimension(2);
+	const int filters = xDesc.dimension(3);
+
+	const int tile_h = (height + TransformSize - 1) / TransformSize;
+	const int tile_w = (width + TransformSize - 1) / TransformSize;
+	const int number_of_tiles = tile_h * tile_w;
+	const int nb_of_tiles = batch_size * number_of_tiles;
+
+	T *zero_line = workspace;
+	std::memset(zero_line, 0, filters * sizeof(T));
+
+//#pragma omp parallel
+	{
+		const T *ptr_in[TileSize * TileSize];
+		T *ptr_out[TileSize * TileSize];
+		SIMD_NAMESPACE::SIMD<T> storage[TileSize * TileSize];
+//#pragma omp for
+		for (int tile_idx = 0; tile_idx < nb_of_tiles; tile_idx++)
+		{
+			int batch = tile_idx / number_of_tiles;
+			int tile_x = ((tile_idx % number_of_tiles) / tile_w);
+			int tile_y = ((tile_idx % number_of_tiles) % tile_w);
+
+			int matrix_idx = 0;
+			for (int i = 0; i < TileSize; i++)
+				for (int j = 0; j < TileSize; j++, matrix_idx++)
+				{
+					int x = padding.x + TransformSize * tile_x + i;
+					int y = padding.y + TransformSize * tile_y + j;
+					ptr_out[matrix_idx] = mMem + mDesc.getIndex( { matrix_idx, tile_idx, 0 });
+					if (x >= 0 and x < height and y >= 0 and y < width)
+						ptr_in[matrix_idx] = xMem + xDesc.getIndex( { batch, x, y, 0 });
+					else
+						ptr_in[matrix_idx] = zero_line;
+				}
+
+			InputTransform<T, TransformSize, KernelSize> transform;
+			for (int in = 0; in < filters; in += SIMD_NAMESPACE::SIMD<T>::length)
+			{
+				const int elements_left = std::min(filters - in, SIMD_NAMESPACE::SIMD<T>::length);
+				for (int col = 0; col < TileSize; col++)
+				{
+					Line<T, TileSize> column;
+					column.load_column(ptr_in, col, in, elements_left, TileSize);
+					Line<T, TileSize> transformed = transform(column);
+					transformed.store_column(storage, col, TileSize);
+				}
+
+				for (int col = 0; col < TileSize; col++)
+				{
+					Line<T, TileSize> column;
+					column.load_row(storage, col, TileSize);
+					Line<T, TileSize> transformed = transform(column);
+					transformed.store_row(ptr_out, col, in, elements_left, TileSize);
+				}
+			}
+		}
+	}
+}
+
+template<typename T>
+void initTensor(TensorWrapper &tensor)
+{
+	if (typeOf<T>() != tensor.dtype())
+		throw std::logic_error("initTensor() : data type mismatch");
+
+	for (int i = 0; i < tensor.volume(); i++)
+		tensor.data<T>()[i] = std::sin(i / static_cast<T>(1234));
+}
+template<typename T>
+void setTensor(TensorWrapper &tensor, T value)
+{
+	if (typeOf<T>() != tensor.dtype())
+		throw std::logic_error("setTensor() : data type mismatch");
+
+	for (int i = 0; i < tensor.volume(); i++)
+		tensor.data<T>()[i] = value;
+}
+template<typename T>
+double diff(const TensorWrapper &lhs, const TensorWrapper &rhs)
+{
+	if (typeOf<T>() != lhs.dtype() or lhs.dtype() != rhs.dtype())
+		throw std::logic_error("diff() : data type mismatch");
+
+	assert(volume(lhs.shape) == volume(rhs.shape));
+	double result = 0.0;
+	for (int i = 0; i < lhs.volume(); i++)
+		result += std::abs(lhs.data<T>()[i] - rhs.data<T>()[i]);
+	return result / lhs.volume();
+}
 
 void measure_time(int batch, int filters)
 {
-//	TensorDescriptor input = createTensor<float>( { batch, 20, 20, filters });
+	avDataType_t dtype = AVOCADO_DTYPE_BFLOAT16;
+	TensorWrapper workspace( { 1000000 }, dtype);
+
+	TensorWrapper input( { batch, 20, 20, filters }, dtype);
 //	initTensor<float>(input);
-//
-//	TensorDescriptor matrix = createTensor<float>( { 36, batch * 5 * 5, filters });
-//	int repeats = 10000 / filters;
-//	double start = omp_get_wtime();
-//	for (int i = 0; i < repeats; i++)
-//		cpu_winograd3x3_4x4_transform_input(&input, &matrix);
-//	double stop = omp_get_wtime();
-//	std::cout << filters << " " << (1000.0 / repeats) * (stop - start) << " ";
-//
-//	TensorDescriptor matrix2 = createTensor<float>( { 36, batch * 5 * 5, filters });
-////	repeats = 50000 / filters;
+
+	TensorWrapper matrix( { 36, batch * 5 * 5, filters }, dtype);
+	TensorWrapper matrix2( { 36, batch * 5 * 5, filters }, dtype);
+	TensorWrapper matrix3( { 36, batch * 5 * 5, filters }, dtype);
+	int repeats = 10000 / filters;
+	double start, stop;
+
+	std::cout << filters << " ";
+
+	start = omp_get_wtime();
+	for (int i = 0; i < repeats; i++)
+		winograd_input_transform<bfloat16, 4, 3>(input.tensor(), input.data<bfloat16>(), matrix3.tensor(), matrix3.data<bfloat16>(), { -1, -1 },
+				workspace.data<bfloat16>());
+	stop = omp_get_wtime();
+//	std::cout << (1000.0 / repeats) * (stop - start) << " ";
+
 //	start = omp_get_wtime();
-////	for (int i = 0; i < repeats; i++)
-////		vec_winograd3x3_4x4_transform_input<float>(&input, &matrix2);
+//	for (int i = 0; i < repeats; i++)
+//		cpu_winograd3x3_4x4_transform_input(input, matrix);
+//	stop = omp_get_wtime();
+//	std::cout << (1000.0 / repeats) * (stop - start) << " ";
+//
+//	start = omp_get_wtime();
+//	for (int i = 0; i < repeats; i++)
+//		vec_winograd3x3_4x4_transform_input<float>(input, matrix2);
+//	stop = omp_get_wtime();
+	std::cout << (1000.0 / repeats) * (stop - start) << "\n";
+
+//	start = omp_get_wtime();
+//	for (int i = 0; i < repeats; i++)
+//		winograd_input_transform<float, 4, 3>(input.tensor(), input.data<float>(), matrix3.tensor(), matrix3.data<float>(), { -1, -1 },
+//				workspace.data<float>());
 //	stop = omp_get_wtime();
 //	std::cout << (1000.0 / repeats) * (stop - start) << "\n";
-//
-////	std::cout << diff<float>(matrix, matrix2) << '\n';
-//
-//	destroyTensor(input);
-//	destroyTensor(matrix);
-//	destroyTensor(matrix2);
+
+//	std::cout << diff<float>(matrix, matrix2) << '\n';
+//	std::cout << diff<float>(matrix, matrix3) << '\n';
 }
 
 int main()
 {
-	omp_set_num_threads(1);
+//	float float_data[8] = { 1.0f / 3.0f, 0.65f, -0.34f, -1.23f, 45.0f, 10.1f, 3.34f, 0.1f };
+//	float16 float16_data[8];
+//	SIMD_NAMESPACE::SIMD<float16> asdf(float_data);
+//	std::cout << "loaded\n";
+//	asdf.store(float16_data);
+//	std::cout << "stored\n";
+//
+//	SIMD_NAMESPACE::SIMD<float16> asdf2(float16_data);
+//
+//	float dst[8];
+//	asdf2.store(dst);
+//	for (int i = 0; i < 8; i++)
+//		std::cout << float_data[i] << " " << dst[i] << '\n';
+	std::cout << "filters v3 old v2\n";
+	for (int i = 1; i <= 256; i += 1)
+		measure_time(128, i);
+	return 0;
+
+	char result[256];
+	std::memset(result, 0, sizeof(result));
+	cpuGetDeviceProperty(AVOCADO_DEVICE_NAME, result);
+	std::cout << result << '\n';
 	print_defined_flags();
 
-//	float tmp[8] = { -65, 0, 23, 5, 0, 1, -255, 256 };
-	float tmp2[8] = { -0.65f, 0.10f, 0.0223f, 0.5f, 0.0f, 0.11f, -0.0255f, 0.1256f };
+	ContextWrapper context;
 
-	int integer[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
-	SIMD_NAMESPACE::SIMD<int32_t> asdf;
-	std::cout << SIMD_NAMESPACE::SIMD<int32_t>::length << '\n';
-	asdf.load(integer, 8);
+	TensorWrapper tensor1( { 1000000, 100 }, AVOCADO_DTYPE_FLOAT32);
+	TensorWrapper tensor2( { 100 }, AVOCADO_DTYPE_FLOAT32);
+	TensorWrapper tensor3( { 1000000, 100 }, AVOCADO_DTYPE_FLOAT32);
 
-	std::unique_ptr<float[]> data = std::make_unique<float[]>(1000000);
-	SIMD_NAMESPACE::SIMD<float> lhs(tmp2);
+	SIMD_NAMESPACE::SIMD<float> res1, res2, res3, res4, res5, res6, res7, res8, res9, res10;
+	SIMD_NAMESPACE::SIMD<float> data1(1.0f);
+	SIMD_NAMESPACE::SIMD<float> data2(1.0f);
 
-	int repeats = 10000;
+	int repeats = 3000;
 
-	SIMD_NAMESPACE::SIMD<float> sum;
-
-	double start = omp_get_wtime();
+	float alpha = 2.0f;
+	float alpha2 = 1.0f;
+	float beta = 0.0f;
+	cpuSetNumberOfThreads(1);
+	double total_time = 0.0;
 	for (int i = 0; i < repeats; i++)
 	{
-		for (int j = 0; j < 1000000; j += 8)
+		double start = omp_get_wtime();
+//		avStatus_t status = cpuReduceTensor(context, AVOCADO_REDUCE_MAX, &alpha, tensor1.getDesc(), tensor1.getMem(), &beta, tensor2.getDesc(),
+//				tensor2.getMem());
+
+		for (int j = 0; j < 1000000; j++)
 		{
-			lhs.load(data.get() + j, 8);
-			sum += lhs;
+			res1 = SIMD_NAMESPACE::mul_add(data1, data2, res1);
+			res2 = SIMD_NAMESPACE::mul_add(data2, data2, res2);
+			res3 = SIMD_NAMESPACE::mul_add(data2, data2, res3);
+			res4 = SIMD_NAMESPACE::mul_add(data1, data1, res4);
+			res5 = SIMD_NAMESPACE::mul_add(data1, data2, res5);
+			res6 = SIMD_NAMESPACE::mul_add(data1, data1, res6);
+			res7 = SIMD_NAMESPACE::mul_add(data2, data2, res7);
+			res8 = SIMD_NAMESPACE::mul_add(data2, data1, res8);
+			res9 = SIMD_NAMESPACE::mul_add(data2, data1, res9);
+			res10 = SIMD_NAMESPACE::mul_add(data1, data2, res10);
 		}
+//		avStatus_t status = cpuBinaryOp(context, AVOCADO_BINARY_OP_ADD_SQUARE, &alpha, tensor1.getDesc(), tensor1.getMem(), &alpha2,
+//				tensor2.getDesc(), tensor2.getMem(), &beta, tensor3.getDesc(), tensor3.getMem());
+
+//		avStatus_t status = cpuScaleTensor(context, tensor1.getDesc(), tensor1.getMem(), &alpha);
+//		std::memcpy(tensor1.data(), tensor2.data(), tensor1.sizeIntBytes());
+		double stop = omp_get_wtime();
+		total_time += (stop - start);
+
+//		if (status != AVOCADO_STATUS_SUCCESS)
+//		{
+//			std::cout << "error : " << status << "\n";
+//			break;
+//		}
 	}
-	double stop = omp_get_wtime();
-	std::cout << (stop - start) << "s \n\n";
-	std::cout << sum[0] << '\n';
+	std::cout << (res1 + res2 + res3 + res4 + res5 + res6 + res7 + res8 + res9 + res10)[0] << '\n';
+
+	double bandwidth = 0.0; //static_cast<double>(repeats) * (tensor1.sizeIntBytes() + tensor2.sizeIntBytes() + tensor3.sizeIntBytes()) / total_time;
+	double flops = repeats * (1000000.0 * res1.length * 10) / total_time;
+	std::cout << 1000.0 * total_time / repeats << "ms \n\n";
+	std::cout << bandwidth * 1.0e-9 << " GB/s\n";
+	std::cout << flops * 1.0e-9 << " GFLOPS\n";
 
 //	SIMD<float> rhs(tmp2);
 //	SIMD<float> sign = sgn(lhs);

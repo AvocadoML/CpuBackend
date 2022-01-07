@@ -5,7 +5,7 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/cpu_backend.h>
+#include "../kernel_definitions.hpp"
 #include <avocado/backend/backend_descriptors.hpp>
 
 #include "../vectors/simd_vectors.hpp"
@@ -319,39 +319,39 @@ namespace
 	}
 }
 
-namespace avocado
+namespace SIMD_NAMESPACE
 {
-	namespace backend
-	{
-		avStatus_t binaryOp(avContextDescriptor_t context, avBinaryOp_t operation, const void *alpha1, const avTensorDescriptor_t aDesc,
-				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
-				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
-		{
-			BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(aDesc), getTensor(bDesc));
-			switch (getTensor(cDesc).dtype())
-			{
-				case AVOCADO_DTYPE_FLOAT16:
-					helper_binary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getPointer<float16>(bMem), getAlphaValue(alpha1),
-							getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
-					break;
-				case AVOCADO_DTYPE_BFLOAT16:
-					helper_binary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getPointer<bfloat16>(bMem), getAlphaValue(alpha1),
-							getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
-					break;
-				case AVOCADO_DTYPE_FLOAT32:
-					helper_binary_op(getPointer<float>(cMem), getPointer<float>(aMem), getPointer<float>(bMem), getAlphaValue(alpha1),
-							getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
-					break;
-				case AVOCADO_DTYPE_FLOAT64:
-					helper_binary_op(getPointer<double>(cMem), getPointer<double>(aMem), getPointer<double>(bMem), getAlphaValue<double>(alpha1),
-							getAlphaValue<double>(alpha2), getBetaValue<double>(beta), dimensions, operation);
-					break;
-				default:
-					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-			}
+	using namespace avocado::backend;
 
-			return AVOCADO_STATUS_SUCCESS;
+	avStatus_t binaryOp(avContextDescriptor_t context, avBinaryOp_t operation, const void *alpha1, const avTensorDescriptor_t aDesc,
+			const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *beta,
+			const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+	{
+		BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(aDesc), getTensor(bDesc));
+		switch (getTensor(cDesc).dtype())
+		{
+			case AVOCADO_DTYPE_FLOAT16:
+				helper_binary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getPointer<float16>(bMem), getAlphaValue(alpha1),
+						getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
+				break;
+			case AVOCADO_DTYPE_BFLOAT16:
+				helper_binary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getPointer<bfloat16>(bMem), getAlphaValue(alpha1),
+						getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
+				break;
+			case AVOCADO_DTYPE_FLOAT32:
+				helper_binary_op(getPointer<float>(cMem), getPointer<float>(aMem), getPointer<float>(bMem), getAlphaValue(alpha1),
+						getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
+				break;
+			case AVOCADO_DTYPE_FLOAT64:
+				helper_binary_op(getPointer<double>(cMem), getPointer<double>(aMem), getPointer<double>(bMem), getAlphaValue<double>(alpha1),
+						getAlphaValue<double>(alpha2), getBetaValue<double>(beta), dimensions, operation);
+				break;
+			default:
+				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
-	} /* namespace backend */
-} /* namespace avocado */
+
+		return AVOCADO_STATUS_SUCCESS;
+	}
+
+} /* namespace SIMD_NAMESPACE */
 

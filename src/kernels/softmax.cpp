@@ -5,7 +5,7 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/cpu_backend.h>
+#include "../kernel_definitions.hpp"
 #include <avocado/backend/backend_descriptors.hpp>
 
 #include "../vectors/simd_vectors.hpp"
@@ -101,60 +101,59 @@ namespace
 	}
 }
 
-namespace avocado
+namespace SIMD_NAMESPACE
 {
-	namespace backend
+	using namespace avocado::backend;
+
+	avStatus_t softmaxForward(avContextDescriptor_t context, avSoftmaxMode_t mode, const void *alpha, const avTensorDescriptor_t xDesc,
+			const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem)
 	{
-		avStatus_t softmaxForward(avContextDescriptor_t context, avSoftmaxMode_t mode, const void *alpha, const avTensorDescriptor_t xDesc,
-				const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem)
+		int first_dim, last_dim;
+		if (mode == AVOCADO_SOFTMAX_MODE_CHANNEL)
 		{
-			int first_dim, last_dim;
-			if (mode == AVOCADO_SOFTMAX_MODE_CHANNEL)
-			{
-				first_dim = getTensor(xDesc).volumeWithoutLastDim();
-				last_dim = getTensor(xDesc).lastDim();
-			}
-			else
-			{
-				first_dim = getTensor(xDesc).firstDim();
-				last_dim = getTensor(xDesc).volumeWithoutFirstDim();
-			}
-
-			const int required_workspace_size = cpuGetNumberOfThreads() * last_dim * dataTypeSize(getTensor(xDesc).dtype());
-			if (getContext(context).getWorkspace().size() < required_workspace_size)
-				return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
-
-			switch (getTensor(xDesc).dtype())
-			{
-				case AVOCADO_DTYPE_FLOAT16:
-					kernel_softmax_forward<float16, float>(getAlphaValue(alpha), getPointer<float16>(xDesc), getBetaValue(beta),
-							getPointer<float16>(yDesc), first_dim, last_dim, getContext(context).getWorkspace().data<float16>());
-					break;
-				case AVOCADO_DTYPE_BFLOAT16:
-					kernel_softmax_forward<bfloat16, float>(getAlphaValue(alpha), getPointer<bfloat16>(xDesc), getBetaValue(beta),
-							getPointer<bfloat16>(yDesc), first_dim, last_dim, getContext(context).getWorkspace().data<bfloat16>());
-					break;
-				case AVOCADO_DTYPE_FLOAT32:
-					kernel_softmax_forward<float>(getAlphaValue(alpha), getPointer<float>(xDesc), getBetaValue(beta), getPointer<float>(yDesc),
-							first_dim, last_dim, getContext(context).getWorkspace().data<float>());
-					break;
-				case AVOCADO_DTYPE_FLOAT64:
-					kernel_softmax_forward<double>(getAlphaValue<double>(alpha), getPointer<double>(xDesc), getBetaValue<double>(beta),
-							getPointer<double>(yDesc), first_dim, last_dim, getContext(context).getWorkspace().data<double>());
-					break;
-				default:
-					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-			}
-			return AVOCADO_STATUS_SUCCESS;
+			first_dim = getTensor(xDesc).volumeWithoutLastDim();
+			last_dim = getTensor(xDesc).lastDim();
+		}
+		else
+		{
+			first_dim = getTensor(xDesc).firstDim();
+			last_dim = getTensor(xDesc).volumeWithoutFirstDim();
 		}
 
-		avStatus_t softmaxBackward(avContextDescriptor_t context, avSoftmaxMode_t mode, const void *alpha, const avTensorDescriptor_t yDesc,
-				const avMemoryDescriptor_t yMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta,
-				const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
-		{
-			return cpuActivationBackward(context, AVOCADO_ACTIVATION_SIGMOID, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
-		}
+		const int required_workspace_size = cpuGetNumberOfThreads() * last_dim * dataTypeSize(getTensor(xDesc).dtype());
+		if (getContext(context).getWorkspace().size() < required_workspace_size)
+			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
-	} /* namespace backend */
-} /* namespace avocado */
+		switch (getTensor(xDesc).dtype())
+		{
+			case AVOCADO_DTYPE_FLOAT16:
+				kernel_softmax_forward<float16, float>(getAlphaValue(alpha), getPointer<float16>(xDesc), getBetaValue(beta),
+						getPointer<float16>(yDesc), first_dim, last_dim, getContext(context).getWorkspace().data<float16>());
+				break;
+			case AVOCADO_DTYPE_BFLOAT16:
+				kernel_softmax_forward<bfloat16, float>(getAlphaValue(alpha), getPointer<bfloat16>(xDesc), getBetaValue(beta),
+						getPointer<bfloat16>(yDesc), first_dim, last_dim, getContext(context).getWorkspace().data<bfloat16>());
+				break;
+			case AVOCADO_DTYPE_FLOAT32:
+				kernel_softmax_forward<float>(getAlphaValue(alpha), getPointer<float>(xDesc), getBetaValue(beta), getPointer<float>(yDesc), first_dim,
+						last_dim, getContext(context).getWorkspace().data<float>());
+				break;
+			case AVOCADO_DTYPE_FLOAT64:
+				kernel_softmax_forward<double>(getAlphaValue<double>(alpha), getPointer<double>(xDesc), getBetaValue<double>(beta),
+						getPointer<double>(yDesc), first_dim, last_dim, getContext(context).getWorkspace().data<double>());
+				break;
+			default:
+				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+		}
+		return AVOCADO_STATUS_SUCCESS;
+	}
+
+	avStatus_t softmaxBackward(avContextDescriptor_t context, avSoftmaxMode_t mode, const void *alpha, const avTensorDescriptor_t yDesc,
+			const avMemoryDescriptor_t yMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta,
+			const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
+	{
+		return activationBackward(context, AVOCADO_ACTIVATION_SIGMOID, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+	}
+
+} /* namespace SIMD_NAMESPACE */
 

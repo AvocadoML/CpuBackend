@@ -5,9 +5,10 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/cpu_backend.h>
+#include "../kernel_definitions.hpp"
+#include <avocado/backend/backend_descriptors.hpp>
 
-#include <vector_types.h>
+#include "../vectors/simd_macros.hpp"
 
 namespace
 {
@@ -15,23 +16,22 @@ namespace
 
 }
 
-namespace avocado
+namespace SIMD_NAMESPACE
 {
-	namespace backend
+	using namespace avocado::backend;
+
+	avStatus_t poolingForward(avContextDescriptor_t context, const avPoolingDescriptor_t config, const void *alpha, const avTensorDescriptor_t xDesc,
+			const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem)
 	{
+		return AVOCADO_STATUS_NOT_SUPPORTED;
+	}
 
-		avStatus_t poolingForward(avContextDescriptor_t context, const avPoolingDescriptor_t config, const void *alpha,
-				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
-				avMemoryDescriptor_t yMem)
-		{
-		}
+	avStatus_t poolingBackward(avContextDescriptor_t context, const avPoolingDescriptor_t config, const void *alpha, const avTensorDescriptor_t xDesc,
+			const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta,
+			const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
+	{
+		return AVOCADO_STATUS_NOT_SUPPORTED;
+	}
 
-		avStatus_t poolingBackward(avContextDescriptor_t context, const avPoolingDescriptor_t config, const void *alpha,
-				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc,
-				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
-		{
-		}
-
-	} /* namespace backend */
-} /* namespace avocado */
+} /* namespace SIMD_NAMESPACE */
 
