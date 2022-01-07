@@ -78,7 +78,7 @@ namespace SIMD_NAMESPACE
 				return m_data;
 			}
 #elif SUPPORTS_SSE2
-			SIMD(__m128 x) noexcept:
+			SIMD(__m128 x) noexcept :
 					m_data(x)
 			{
 			}
@@ -434,20 +434,32 @@ namespace SIMD_NAMESPACE
 	{
 #if SUPPORTS_AVX
 		return _mm256_floor_ps(x);
-#elif SUPPORTS_SSE2
+#elif SUPPORTS_SSE41
 		return _mm_floor_ps(x);
+#elif SUPPORTS_SSE2
+		float tmp[4];
+		x.store(tmp);
+		for (int i = 0; i < 4; i++)
+			tmp[i] = std::floor(tmp[i]);
+		return SIMD<float>(tmp);
 #else
-		return std::floorf(static_cast<float>(x));
+		return std::floor(static_cast<float>(x));
 #endif
 	}
 	static inline SIMD<float> ceil(SIMD<float> x) noexcept
 	{
 #if SUPPORTS_AVX
 		return _mm256_ceil_ps(x);
-#elif SUPPORTS_SSE2
+#elif SUPPORTS_SSE41
 		return _mm_ceil_ps(x);
+#elif SUPPORTS_SSE2
+		float tmp[4];
+		x.store(tmp);
+		for (int i = 0; i < 4; i++)
+			tmp[i] = std::ceil(tmp[i]);
+		return SIMD<float>(tmp);
 #else
-		return std::ceilf(static_cast<float>(x));
+		return std::ceil(static_cast<float>(x));
 #endif
 	}
 
