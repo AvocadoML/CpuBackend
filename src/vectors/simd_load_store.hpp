@@ -113,7 +113,6 @@ namespace SIMD_NAMESPACE
 				__m128 tmp1 = _mm_castsi128_ps(_mm_loadu_si64(ptr));
 				__m128 tmp2 = _mm_load_ss(reinterpret_cast<const float*>(ptr) + 2);
 				return _mm_castps_si128(_mm_movelh_ps(tmp1, tmp2));
-				break;
 			}
 			case 16:
 				return _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr));
@@ -123,6 +122,72 @@ namespace SIMD_NAMESPACE
 				std::memcpy(tmp, ptr, bytes);
 				return _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr));
 			}
+		}
+	}
+	static inline __m128i partial_load(const int16_t *ptr, const int num) noexcept
+	{
+		assert(num >= 0 && num <= 8);
+		switch (num)
+		{
+			default:
+			case 0:
+				return _mm_setzero_si128();
+			case 1:
+				return _mm_setr_epi16(ptr[0], 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+			case 2:
+				return _mm_castps_si128(_mm_load_ss(reinterpret_cast<const float*>(ptr)));
+			case 3:
+				return _mm_setr_epi16(ptr[0], ptr[1], ptr[2], 0u, 0u, 0u, 0u, 0u);
+			case 4:
+				return _mm_loadu_si64(ptr);
+			case 5:
+				return _mm_setr_epi16(ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], 0u, 0u, 0u);
+			case 6:
+			{
+				__m128 tmp1 = _mm_castsi128_ps(_mm_loadu_si64(ptr));
+				__m128 tmp2 = _mm_load_ss(reinterpret_cast<const float*>(ptr) + 2);
+				return _mm_castps_si128(_mm_movelh_ps(tmp1, tmp2));
+			}
+			case 7:
+				return _mm_setr_epi16(ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], 0u);
+			case 8:
+				return _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr));
+		}
+	}
+	static inline __m128i partial_load(const int32_t *ptr, const int num) noexcept
+	{
+		assert(num >= 0 && num <= 4);
+		switch (num)
+		{
+			default:
+			case 0:
+				return _mm_setzero_si128();
+			case 1:
+				return _mm_castps_si128(_mm_load_ss(reinterpret_cast<const float*>(ptr)));
+			case 2:
+				return _mm_loadu_si64(ptr);
+			case 3:
+			{
+				__m128 tmp1 = _mm_castsi128_ps(_mm_loadu_si64(ptr));
+				__m128 tmp2 = _mm_load_ss(reinterpret_cast<const float*>(ptr) + 2);
+				return _mm_castps_si128(_mm_movelh_ps(tmp1, tmp2));
+			}
+			case 4:
+				return _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr));
+		}
+	}
+	static inline __m128i partial_load(const int64_t *ptr, const int num) noexcept
+	{
+		assert(num >= 0 && num <= 2);
+		switch (num)
+		{
+			default:
+			case 0:
+				return _mm_setzero_si128();
+			case 1:
+				return _mm_loadu_si64(ptr);
+			case 2:
+				return _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr));
 		}
 	}
 	static inline void partial_store(__m128i reg, void *ptr, const int bytes) noexcept
@@ -157,6 +222,83 @@ namespace SIMD_NAMESPACE
 			}
 		}
 	}
+	static inline void partial_store(__m128i reg, int16_t *ptr, const int num) noexcept
+	{
+		assert(num >= 0 && num <= 8);
+		switch (num)
+		{
+			case 0:
+				break;
+			case 1:
+				ptr[0] = _mm_extract_epi16(reg, 1);
+				break;
+			case 2:
+			case 3:
+				_mm_store_ss(reinterpret_cast<float*>(ptr), _mm_castsi128_ps(reg));
+				if (num == 3)
+					ptr[3] = _mm_extract_epi16(reg, 3);
+				break;
+			case 4:
+			case 5:
+				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+				if (num == 5)
+					ptr[5] = _mm_extract_epi16(reg, 5);
+				break;
+			case 6:
+			case 7:
+			{
+				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+				__m128 tmp = _mm_movehl_ps(_mm_castsi128_ps(reg), _mm_castsi128_ps(reg));
+				_mm_store_ss(reinterpret_cast<float*>(ptr) + 2, tmp);
+				if (num == 7)
+					ptr[7] = _mm_extract_epi16(reg, 7);
+				break;
+			}
+			case 8:
+				_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), reg);
+				break;
+		}
+	}
+	static inline void partial_store(__m128i reg, int32_t *ptr, const int num) noexcept
+	{
+		assert(num >= 0 && num <= 4);
+		switch (num)
+		{
+			case 0:
+				break;
+			case 1:
+				_mm_store_ss(reinterpret_cast<float*>(ptr), _mm_castsi128_ps(reg));
+				break;
+			case 2:
+				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+				break;
+			case 3:
+			{
+				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+				__m128 tmp = _mm_movehl_ps(_mm_castsi128_ps(reg), _mm_castsi128_ps(reg));
+				_mm_store_ss(reinterpret_cast<float*>(ptr) + 2, tmp);
+				break;
+			}
+			case 4:
+				_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), reg);
+				break;
+		}
+	}
+	static inline void partial_store(__m128i reg, int64_t *ptr, const int num) noexcept
+	{
+		assert(num >= 0 && num <= 2);
+		switch (num)
+		{
+			case 0:
+				break;
+			case 1:
+				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+				break;
+			case 2:
+				_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), reg);
+				break;
+		}
+	}
 #endif
 
 #if SUPPORTS_AVX
@@ -181,13 +323,13 @@ namespace SIMD_NAMESPACE
 	{
 		assert(ptr != nullptr);
 		assert(num >= 0 && num <= 8); // TODO AVX512 adds full support for bfloat16 data
-		return partial_load(ptr, sizeof(bfloat16) * num);
+		return partial_load(reinterpret_cast<const int16_t*>(ptr), num);
 	}
 	static inline __m128i simd_load(const float16 *ptr, int num) noexcept
 	{
 		assert(ptr != nullptr);
 		assert(num >= 0 && num <= 8); // TODO AVX512 adds full support for float16 data
-		return partial_load(ptr, sizeof(float16) * num);
+		return partial_load(reinterpret_cast<const int16_t*>(ptr), num);
 	}
 	static inline __m256 simd_load(const float *ptr, int num) noexcept
 	{
@@ -240,13 +382,13 @@ namespace SIMD_NAMESPACE
 	{
 		assert(ptr != nullptr);
 		assert(num >= 0 && num <= 8);
-		partial_store(x, ptr, sizeof(bfloat16) * num);
+		partial_store(x, reinterpret_cast<int16_t*>(ptr), num);
 	}
 	static inline void simd_store(__m128i x, float16 *ptr, int num) noexcept
 	{
 		assert(ptr != nullptr);
 		assert(num >= 0 && num <= 8);
-		partial_store(x, ptr, sizeof(float16) * num);
+		partial_store(x, reinterpret_cast<int16_t*>(ptr), num);
 	}
 	static inline void simd_store(__m256 x, float *ptr, int num) noexcept
 	{
@@ -296,13 +438,13 @@ namespace SIMD_NAMESPACE
 	{
 		assert(ptr != nullptr);
 		assert(num >= 0 && num <= 4); // TODO AVX512 adds full support for bfloat16 data
-		return partial_load(ptr, sizeof(bfloat16) * num);
+		return partial_load(reinterpret_cast<const int16_t*>(ptr), num);
 	}
 	static inline __m128i simd_load(const float16 *ptr, int num) noexcept
 	{
 		assert(ptr != nullptr);
 		assert(num >= 0 && num <= 4); // TODO AVX512 adds full support for float16 data
-		return partial_load(ptr, sizeof(float16) * num);
+		return partial_load(reinterpret_cast<const int16_t*>(ptr), num);
 	}
 	static inline __m128 simd_load(const float *ptr, int num) noexcept
 	{
@@ -328,13 +470,13 @@ namespace SIMD_NAMESPACE
 	{
 		assert(ptr != nullptr);
 		assert(num >= 0 && num <= 4);
-		partial_store(x, ptr, sizeof(bfloat16) * num);
+		partial_store(x, reinterpret_cast<int16_t*>(ptr), num);
 	}
 	static inline void simd_store(__m128i x, float16 *ptr, int num) noexcept
 	{
 		assert(ptr != nullptr);
 		assert(num >= 0 && num <= 4);
-		partial_store(x, ptr, sizeof(float16) * num);
+		partial_store(x, reinterpret_cast<int16_t*>(ptr), num);
 	}
 	static inline void simd_store(__m128 x, float *ptr, int num) noexcept
 	{
