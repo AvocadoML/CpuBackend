@@ -145,6 +145,20 @@ namespace SIMD_NAMESPACE
 			{
 				return extract(index);
 			}
+			void cutoff(const int num, SIMD<double> value = zero()) noexcept
+			{
+#if SUPPORTS_AVX
+				m_data = _mm256_blend_pd(value, m_data, get_cutoff_mask(num));
+#elif SUPPORTS_SSE41
+				m_data =_mm_blend_pd(value, m_data, get_cutoff_mask(num));
+#elif SUPPORTS_SSE2
+				__m128d mask = get_cutoff_mask_pd(num);
+				m_data = _mm_or_pd(_mm_and_pd(mask, m_data), _mm_andnot_pd(mask, value));
+#else
+				if(num == 0)
+					m_data = value.m_data;
+#endif
+			}
 
 			static constexpr double scalar_zero() noexcept
 			{

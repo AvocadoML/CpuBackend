@@ -112,7 +112,7 @@ namespace SIMD_NAMESPACE
 				return m_data;
 			}
 #elif SUPPORTS_SSE2
-			SIMD(__m128i x) noexcept:
+			SIMD(__m128i x) noexcept :
 					m_data(x)
 			{
 			}
@@ -157,6 +157,50 @@ namespace SIMD_NAMESPACE
 			T operator[](int index) const noexcept
 			{
 				return extract(index);
+			}
+			void cutoff(const int num, SIMD<T> value = zero()) noexcept
+			{
+//#if SUPPORTS_AVX2
+//				switch(sizeof(T))
+//				{
+//					case 1:
+//						m_data = _mm256_blendv_epi8(value, m_data, get_cutoff_mask_i(sizeof(T) * num));
+//						break;
+//					case 2:
+//						m_data =_mm256_blend_epi16(value, m_data, get_cutoff_mask(num));
+//						break;
+//					case 4:
+//						m_data =_mm256_blend_epi32(value, m_data, get_cutoff_mask(num));
+//						break;
+//					case 8:
+//						m_data =_mm256_blend_epi32(value, m_data, get_cutoff_mask(2 * num));
+//						break;
+//				}
+//#elif SUPPORTS_AVX
+//				switch(sizeof(T))
+//				{
+//					case 1:
+//						m_data = _mm256_blendv_epi8(value, m_data, get_cutoff_mask_i(sizeof(T) * num));
+//						break;
+//					case 2:
+//						m_data =_mm256_blend_epi16(value, m_data, get_cutoff_mask(num));
+//						break;
+//					case 4:
+//						m_data =_mm256_blend_epi32(value, m_data, get_cutoff_mask(num));
+//						break;
+//					case 8:
+//						m_data =_mm256_blend_epi32(value, m_data, get_cutoff_mask(2 * num));
+//						break;
+//				}
+//#elif SUPPORTS_SSE41
+//				m_data =_mm_blend_ps(value, m_data, get_cutoff_mask(num));
+//#elif SUPPORTS_SSE2
+//				__m128i mask = get_cutoff_mask_i(sizeof(T) * num);
+//				m_data = _mm_or_si128(_mm_and_si128(mask, m_data), _mm_andnot_si128(mask, value));
+//#else
+//				if(num == 0)
+//					m_data = value.m_data;
+//#endif
 			}
 
 			static constexpr T scalar_zero() noexcept

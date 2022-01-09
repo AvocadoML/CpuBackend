@@ -170,6 +170,20 @@ namespace SIMD_NAMESPACE
 			{
 				return extract(index);
 			}
+			void cutoff(const int num, SIMD<float16> value = zero()) noexcept
+			{
+#if SUPPORTS_AVX
+				m_data = _mm256_blend_ps(value.m_data, m_data, get_cutoff_mask(num));
+#elif SUPPORTS_SSE41
+				m_data =_mm_blend_ps(value.m_data, m_data, get_cutoff_mask(num));
+#elif SUPPORTS_SSE2
+				__m128 mask = get_cutoff_mask_ps(num);
+				m_data = _mm_or_ps(_mm_and_ps(mask, m_data), _mm_andnot_ps(mask, value.m_data));
+#else
+				if(num == 0)
+					m_data = value.m_data;
+#endif
+			}
 
 			static constexpr float16 scalar_zero() noexcept
 			{

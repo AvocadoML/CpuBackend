@@ -242,6 +242,7 @@ namespace
 				{
 					const int elements_left = std::min(dimensions.first - i, SIMD<T>::length);
 					SIMD<T> data(src + i, elements_left);
+					data.cutoff(elements_left, reduction.init());
 					acc = reduction.accumulate(acc, data);
 				}
 #pragma omp critical
