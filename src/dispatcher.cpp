@@ -671,8 +671,8 @@ namespace avocado
 #endif
 		}
 
-		avStatus_t cpuGetConvolutionWorkspaceSize(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
-				const avTensorDescriptor_t xDesc, const avTensorDescriptor_t wDesc, const avTensorDescriptor_t bDesc, avSize_t *result)
+		avStatus_t cpuGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
+				const avTensorDescriptor_t wDesc, const avTensorDescriptor_t bDesc, avSize_t *result)
 		{
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 		}
@@ -943,6 +943,221 @@ namespace avocado
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
 			return SIMD_NAMESPACE::regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
+#endif
+		}
+
+		avStatus_t convolution2dImplicitGemm(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
+				const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2, const avTensorDescriptor_t zDesc,
+				const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem,
+				const avActivationType_t activation)
+		{
+#if DYNAMIC_ARCH
+			switch (getSimdSupport())
+			{
+				case SimdLevel::AVX2:
+					return ns_avx2::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
+				case SimdLevel::F16C:
+					return ns_f16c::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
+				case SimdLevel::AVX:
+					return ns_avx::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
+				case SimdLevel::SSE41:
+					return ns_sse41::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
+				case SimdLevel::SSE2:
+					return ns_sse2::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
+				case SimdLevel::NONE:
+					return ns_none::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
+				default:
+					break;
+			}
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+#else
+			return SIMD_NAMESPACE::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem,
+					beta, yDesc, yMem, activation);
+#endif
+		}
+
+		avSize_t winogradGetWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc, const avTensorDescriptor_t wDesc)
+		{
+//			return SIMD_NAMESPACE::winogradGetWorkspaceSize(config, xDesc, wDesc);
+		}
+
+		avStatus_t winogradWeightTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t wDesc,
+				const avMemoryDescriptor_t wMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem)
+		{
+#if DYNAMIC_ARCH
+			switch (getSimdSupport())
+			{
+				case SimdLevel::AVX2:
+					return ns_avx2::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+				case SimdLevel::F16C:
+					return ns_f16c::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+				case SimdLevel::AVX:
+					return ns_avx::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+				case SimdLevel::SSE41:
+					return ns_sse41::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+				case SimdLevel::SSE2:
+					return ns_sse2::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+				case SimdLevel::NONE:
+					return ns_none::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+				default:
+					break;
+			}
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+#else
+			return SIMD_NAMESPACE::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+#endif
+		}
+
+		avStatus_t winogradInputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
+				const avMemoryDescriptor_t xMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem,
+				const avTensorDescriptor_t wDesc)
+		{
+#if DYNAMIC_ARCH
+			switch (getSimdSupport())
+			{
+				case SimdLevel::AVX2:
+					return ns_avx2::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+				case SimdLevel::F16C:
+					return ns_f16c::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+				case SimdLevel::AVX:
+					return ns_avx::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+				case SimdLevel::SSE41:
+					return ns_sse41::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+				case SimdLevel::SSE2:
+					return ns_sse2::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+				case SimdLevel::NONE:
+					return ns_none::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+				default:
+					break;
+			}
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+#else
+			return SIMD_NAMESPACE::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+#endif
+		}
+
+		avStatus_t winogradOutputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
+				const avTensorDescriptor_t matricesDesc, const avMemoryDescriptor_t matricesMem, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2,
+				const avTensorDescriptor_t zDesc, const avMemoryDescriptor_t zMem, const void *beta, const avActivationType_t activation,
+				const avTensorDescriptor_t wDesc)
+		{
+#if DYNAMIC_ARCH
+			switch (getSimdSupport())
+			{
+				case SimdLevel::AVX2:
+					return ns_avx2::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
+				case SimdLevel::F16C:
+					return ns_f16c::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
+				case SimdLevel::AVX:
+					return ns_avx::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
+				case SimdLevel::SSE41:
+					return ns_sse41::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
+				case SimdLevel::SSE2:
+					return ns_sse2::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
+				case SimdLevel::NONE:
+					return ns_none::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
+				default:
+					break;
+			}
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+#else
+			return SIMD_NAMESPACE::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2,
+					zDesc, zMem, beta, activation, wDesc);
+#endif
+		}
+
+		avStatus_t winogradGradientTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t dyDesc,
+				const avMemoryDescriptor_t dyMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem,
+				const avTensorDescriptor_t wDesc)
+		{
+#if DYNAMIC_ARCH
+			switch (getSimdSupport())
+			{
+				case SimdLevel::AVX2:
+					return ns_avx2::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+				case SimdLevel::F16C:
+					return ns_f16c::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+				case SimdLevel::AVX:
+					return ns_avx::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+				case SimdLevel::SSE41:
+					return ns_sse41::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+				case SimdLevel::SSE2:
+					return ns_sse2::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+				case SimdLevel::NONE:
+					return ns_none::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+				default:
+					break;
+			}
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+#else
+			return SIMD_NAMESPACE::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+#endif
+		}
+
+		avStatus_t winogradUpdateTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
+				const avTensorDescriptor_t matricesDesc, const avMemoryDescriptor_t matricesMem, const void *beta, const avTensorDescriptor_t dwDesc,
+				avMemoryDescriptor_t dwMem)
+		{
+#if DYNAMIC_ARCH
+			switch (getSimdSupport())
+			{
+				case SimdLevel::AVX2:
+					return ns_avx2::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+				case SimdLevel::F16C:
+					return ns_f16c::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+				case SimdLevel::AVX:
+					return ns_avx::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+				case SimdLevel::SSE41:
+					return ns_sse41::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+				case SimdLevel::SSE2:
+					return ns_sse2::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+				case SimdLevel::NONE:
+					return ns_none::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+				default:
+					break;
+			}
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+#else
+			return SIMD_NAMESPACE::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+#endif
+		}
+
+		avStatus_t winogradFusedForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
+				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
+				const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2, const avTensorDescriptor_t zDesc,
+				const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem,
+				const avActivationType_t activation)
+		{
+#if DYNAMIC_ARCH
+			switch (getSimdSupport())
+			{
+				case SimdLevel::AVX2:
+					return ns_avx2::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+							yDesc, yMem, activation);
+				case SimdLevel::F16C:
+					return ns_f16c::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+							yDesc, yMem, activation);
+				case SimdLevel::AVX:
+					return ns_avx::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+							yDesc, yMem, activation);
+				case SimdLevel::SSE41:
+					return ns_sse41::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+							yDesc, yMem, activation);
+				case SimdLevel::SSE2:
+					return ns_sse2::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+							yDesc, yMem, activation);
+				case SimdLevel::NONE:
+					return ns_none::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+							yDesc, yMem, activation);
+				default:
+					break;
+			}
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+#else
+			return SIMD_NAMESPACE::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+					yDesc, yMem, activation);
 #endif
 		}
 

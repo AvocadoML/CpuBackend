@@ -164,8 +164,8 @@ namespace avocado
 		 * \retval AVOCADO_STATUS_SUCCESS The memory was successfully set.
 		 * \retval AVOCADO_STATUS_BAD_PARAM The dstSize is not a multiple of patternSize.
 		 */
-		DLL_PUBLIC avStatus_t cpuSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstSize, const void *pattern,
-				avSize_t patternSize);
+		DLL_PUBLIC avStatus_t cpuSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, avSize_t dstSize,
+				const void *pattern, avSize_t patternSize);
 
 		/**
 		 * \brief Copies block of memory.
@@ -178,7 +178,8 @@ namespace avocado
 		 * \retval AVOCADO_STATUS_SUCCESS The memory was successfully copied.
 		 * \retval AVOCADO_STATUS_BAD_PARAM Either dst descriptor or src descriptor is invalid.
 		 */
-		DLL_PUBLIC avStatus_t cpuCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, const avMemoryDescriptor_t src, avSize_t count);
+		DLL_PUBLIC avStatus_t cpuCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset,
+				const avMemoryDescriptor_t src, avSize_t srcOffset, avSize_t count);
 
 		/**
 		 * \brief This method returns pointer associated with the memory descriptor.
@@ -775,8 +776,8 @@ namespace avocado
 		 * \param[in] bDesc Descriptor of the bias tensor.
 		 * \param[out] result Pointer to the integer with number of bytes required for the workspace.
 		 */
-		DLL_PUBLIC avStatus_t cpuGetConvolutionWorkspaceSize(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
-				const avTensorDescriptor_t xDesc, const avTensorDescriptor_t wDesc, const avTensorDescriptor_t bDesc, avSize_t *result);
+		DLL_PUBLIC avStatus_t cpuGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
+				const avTensorDescriptor_t wDesc, const avTensorDescriptor_t bDesc, avSize_t *result);
 
 		/**
 		 * \brief Calculates convolution, adds bias and optionally some external data and applies activation function.

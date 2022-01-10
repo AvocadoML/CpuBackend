@@ -500,8 +500,8 @@ namespace avocado
 				case AVOCADO_DEVICE_SUPPORTS_DP4A:
 					reinterpret_cast<bool*>(result)[0] = false;
 					break;
-				case AVOCADO_DEVICE_CUDA_ARCH_MAJOR:
-				case AVOCADO_DEVICE_CUDA_ARCH_MINOR:
+				case AVOCADO_DEVICE_ARCH_MAJOR:
+				case AVOCADO_DEVICE_ARCH_MINOR:
 					reinterpret_cast<int32_t*>(result)[0] = 0;
 					break;
 				case AVOCADO_DEVICE_SUPPORTS_TENSOR_CORES:

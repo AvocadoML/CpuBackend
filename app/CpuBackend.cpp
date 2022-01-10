@@ -22,7 +22,7 @@ using namespace avocado::backend;
 void print_defined_flags()
 {
 	std::cout << "defined flags =";
-#if SUPPORTS_SSE2__
+#if SUPPORTS_SSE2
 	std::cout << " sse sse2";
 #endif
 #if SUPPORTS_SSE41
@@ -55,7 +55,7 @@ class TensorWrapper
 
 			avSize_t size_in_bytes = getTensor(desc).sizeInBytes();
 			cpuCreateMemoryDescriptor(&mem, size_in_bytes);
-			cpuSetMemory(cpuGetDefaultContext(), mem, size_in_bytes, nullptr, 0);
+			cpuSetMemory(cpuGetDefaultContext(), mem, 0, size_in_bytes, nullptr, 0);
 		}
 		~TensorWrapper()
 		{
@@ -548,6 +548,19 @@ struct WeightTransform
 {
 };
 template<typename T>
+struct WeightTransform<T, 2, 3>
+{
+		inline Line<T, 4> operator()(Line<T, 3> line) const noexcept
+		{
+			Line<T, 4> result;
+			result[0] = line[0];
+			result[1] = line[0] + line[1] + line[2];
+			result[2] = line[0] - line[1] + line[2];
+			result[3] = line[2];
+			return result;
+		}
+};
+template<typename T>
 struct WeightTransform<T, 4, 3>
 {
 		inline Line<T, 6> operator()(Line<T, 3> line) const noexcept
@@ -555,16 +568,57 @@ struct WeightTransform<T, 4, 3>
 			const SIMD_NAMESPACE::SIMD<T> c13(1.0 / 3.0);
 			const SIMD_NAMESPACE::SIMD<T> c23(2.0 / 3.0);
 			const SIMD_NAMESPACE::SIMD<T> c2(2.0);
-			const SIMD_NAMESPACE::SIMD<T> c4(4.0);
 
 			Line<T, 6> result;
 			result[0] = line[0];
-			result[1] = c23 * (line[0] + line[1] + line[2]);
-			result[2] = c23 * (line[0] - line[1] + line[2]);
-			result[3] = c13 * (line[0] + c2 * line[1] + c4 * line[2]);
-			result[4] = c13 * (line[0] - c2 * line[1] + c4 * line[2]);
+			result[1] = mul_add(c23, line[0] + line[2], c23 * line[1]);
+			result[2] = mul_sub(c23, line[0] + line[2], c23 * line[1]);
+			result[3] = mul_add(c13, line[0] + line[2], c23 * line[1]);
+			result[4] = mul_sub(c13, line[0] + line[2], c23 * line[1]);
 			result[5] = c2 * line[2];
 			return result;
+		}
+};
+template<typename T>
+struct WeightTransform<T, 2, 5>
+{
+		inline Line<T, 6> operator()(Line<T, 5> line) const noexcept
+		{
+			const SIMD_NAMESPACE::SIMD<T> c16(1.0 / 6.0);
+			const SIMD_NAMESPACE::SIMD<T> c13(1.0 / 3.0);
+			const SIMD_NAMESPACE::SIMD<T> c23(2.0 / 3.0);
+			const SIMD_NAMESPACE::SIMD<T> c2(2.0);
+
+			Line<T, 6> result;
+			result[0] = line[0];
+			result[1] = c23 * (line[0] + line[1] + line[2] + line[3] + line[4]);
+			result[2] = c23 * (line[0] - line[1] + line[2] - line[3] + line[4]);
+			result[3] = c16 * line[0] + mul_add(c13, line[1] + line[3], line[3]) + mul_add(c13, line[2] + line[4], c2 * line[4]);
+			result[4] = c16 * line[0] - mul_add(c13, line[1] + line[3], line[3]) + mul_add(c13, line[2] + line[4], c2 * line[4]);
+			result[5] = c2 * line[4];
+			return result;
+		}
+};
+
+template<typename T>
+struct InputTransform<T, 2, 3>
+{
+		inline Line<T, 4> operator()(Line<T, 4> line) const noexcept
+		{
+			Line<T, 4> result;
+			result[0] = line[0] - line[2];
+			result[1] = line[1] + line[2];
+			result[2] = line[2] - line[1];
+			result[3] = line[3] - line[1];
+			return result;
+		}
+};
+template<typename T>
+struct InputTransform<T, 2, 5>
+{
+		inline Line<T, 6> operator()(Line<T, 6> line) const noexcept
+		{
+			return InputTransform<T, 4, 3>()(line); // it turns out that those two transforms are the same
 		}
 };
 template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
@@ -732,57 +786,82 @@ void measure_time(int batch, int filters)
 
 	TensorWrapper input5( { batch, 20, 20, filters }, AVOCADO_DTYPE_FLOAT16);
 	TensorWrapper matrix5( { 36, batch * 5 * 5, filters }, AVOCADO_DTYPE_FLOAT16);
-	int repeats = 10000 / filters;
+	int repeats = 4000 / filters;
 	double start, stop;
 
 	std::cout << filters << " ";
 
 //	start = omp_get_wtime();
 //	for (int i = 0; i < repeats; i++)
-//		cpu_winograd3x3_4x4_transform_input(input, matrix);
-//	stop = omp_get_wtime();
-//	std::cout << (1000.0 / repeats) * (stop - start) << " ";
-//
-//	start = omp_get_wtime();
-//	for (int i = 0; i < repeats; i++)
-//		vec_winograd3x3_4x4_transform_input<float>(input, matrix2);
+	cpu_winograd3x3_4x4_transform_input(input, matrix);
 //	stop = omp_get_wtime();
 //	std::cout << (1000.0 / repeats) * (stop - start) << " ";
 
-	start = omp_get_wtime();
-	for (int i = 0; i < repeats; i++)
-		winograd_weight_transform<float, 4, 3>(weight.tensor(), weight.data<float>(), weight_matrix.tensor(), weight_matrix.data<float>(), false);
-	stop = omp_get_wtime();
-	std::cout << (1000.0 / repeats) * (stop - start) << " ";
-
-	start = omp_get_wtime();
-	for (int i = 0; i < repeats; i++)
-		winograd_input_transform<float, 4, 3>(input.tensor(), input.data<float>(), matrix3.tensor(), matrix3.data<float>(), { -1, -1 },
-				workspace.data<float>());
-	stop = omp_get_wtime();
-//	std::cout << (1000.0 / repeats) * (stop - start) << " ";
-//
 //	start = omp_get_wtime();
 //	for (int i = 0; i < repeats; i++)
-//		winograd_input_transform<bfloat16, 4, 3>(input4.tensor(), input4.data<bfloat16>(), matrix4.tensor(), matrix4.data<bfloat16>(), { -1, -1 },
+	vec_winograd3x3_4x4_transform_input<float>(input, matrix2);
+//	stop = omp_get_wtime();
+//	std::cout << (1000.0 / repeats) * (stop - start) << " ";
+
+//	TensorWrapper matrix2x2_3x3( { 16, batch * 10 * 10, filters }, dtype);
+//	start = omp_get_wtime();
+//	for (int i = 0; i < repeats; i++)
+//		winograd_input_transform<float, 2, 3>(input.tensor(), input.data<float>(), matrix2x2_3x3.tensor(), matrix2x2_3x3.data<float>(), { -1, -1 },
+//				workspace.data<float>());
+//	stop = omp_get_wtime();
+//	std::cout << (1000.0 / repeats) * (stop - start) << " ";
+
+//	start = omp_get_wtime();
+//	for (int i = 0; i < repeats; i++)
+//		winograd_weight_transform<float, 2, 3>(weight.tensor(), weight.data<float>(), weight_matrix.tensor(), weight_matrix.data<float>(), false);
+//	stop = omp_get_wtime();
+//	std::cout << (1000.0 / repeats) * (stop - start) << " ";
+
+//	start = omp_get_wtime();
+//	for (int i = 0; i < repeats; i++)
+	winograd_input_transform<float, 4, 3>(input.tensor(), input.data<float>(), matrix3.tensor(), matrix3.data<float>(), { -1, -1 },
+			workspace.data<float>());
+//	stop = omp_get_wtime();
+//	std::cout << (1000.0 / repeats) * (stop - start) << " ";
+
+//	start = omp_get_wtime();
+//	for (int i = 0; i < repeats; i++)
+//		winograd_input_transform<bfloat16, 2, 3>(input4.tensor(), input4.data<bfloat16>(), matrix4.tensor(), matrix4.data<bfloat16>(), { -1, -1 },
 //				workspace.data<bfloat16>());
 //	stop = omp_get_wtime();
 //	std::cout << (1000.0 / repeats) * (stop - start) << " ";
-//
+
 //	start = omp_get_wtime();
 //	for (int i = 0; i < repeats; i++)
-//		winograd_input_transform<float16, 4, 3>(input5.tensor(), input5.data<float16>(), matrix5.tensor(), matrix5.data<float16>(), { -1, -1 },
+//		winograd_input_transform<float16, 2, 3>(input5.tensor(), input5.data<float16>(), matrix5.tensor(), matrix5.data<float16>(), { -1, -1 },
 //				workspace.data<float16>());
 //	stop = omp_get_wtime();
-	std::cout << (1000.0 / repeats) * (stop - start) << "\n";
+//	std::cout << (1000.0 / repeats) * (stop - start) << " ";
 
-//	std::cout << diff<float>(matrix, matrix2) << '\n';
-//	std::cout << diff<float>(matrix, matrix3) << '\n';
+//	TensorWrapper matrix2x2_5x5( { 36, batch * 10 * 10, filters }, dtype);
+//	start = omp_get_wtime();
+//	for (int i = 0; i < repeats; i++)
+//		winograd_input_transform<float, 2, 5>(input.tensor(), input.data<float>(), matrix2x2_5x5.tensor(), matrix2x2_5x5.data<float>(), { -1, -1 },
+//				workspace.data<float>());
+//	stop = omp_get_wtime();
+//	std::cout << (1000.0 / repeats) * (stop - start) << "\n";
+
+	std::cout << diff<float>(matrix, matrix2) << '\n';
+	std::cout << diff<float>(matrix, matrix3) << '\n';
 }
 
 int main()
 {
 //	float float_data[8] = { 1.0f / 3.0f, 0.65f, -0.34f, -1.23f, 45.0f, 10.1f, 3.34f, 0.1f };
+//	float float_data[8] = { 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f };
+//	SIMD_NAMESPACE::SIMD<float16> asdf(float_data);
+//	asdf.cutoff(2, 99.0f);
+//
+//	float dst[8];
+//	asdf.store(dst);
+//	for (int i = 0; i < asdf.length; i++)
+//		std::cout << i << " : " << float_data[i] << " " << dst[i] << '\n';
+
 //	float16 float16_data[8];
 //	SIMD_NAMESPACE::SIMD<float16> asdf(float_data);
 //	std::cout << "loaded\n";
@@ -793,14 +872,14 @@ int main()
 //
 //	float dst[8];
 //	asdf2.store(dst);
-//	for (int i = 0; i < 8; i++)
-//		std::cout << float_data[i] << " " << dst[i] << '\n';
 
-//	print_defined_flags();
+	print_defined_flags();
+	return 0;
 	std::cout << "filters old weight v2 new bf16 fp16\n";
 //	std::cout << "filters bf16 fp16\n";
-	for (int i = 8; i <= 256; i += 8)
-		measure_time(8, i);
+//	for (int i = 8; i <= 256; i += 8)
+//		measure_time(128, i);
+	measure_time(32, 64);
 	return 0;
 
 	char result[256];
