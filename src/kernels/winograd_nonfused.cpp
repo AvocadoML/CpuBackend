@@ -832,7 +832,7 @@ namespace
 	}
 }
 
-#if DYNAMIC_ARCH == 0 or (DYNAMIC_ARCH == 1 and defined(COMPILE_COMMON_CODE))
+#if defined(COMPILE_COMMON_CODE)
 namespace avocado
 {
 	namespace backend

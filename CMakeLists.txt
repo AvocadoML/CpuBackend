@@ -6,6 +6,8 @@ option(BUILD_WITH_OPENBLAS "Use OpenBlas for linear algebra on CPU?" ON)
 option(BUILD_WITH_BLIS "Use BLIS for linear algebra on CPU?" OFF)
 option(DYNAMIC_ARCH "Use runtime dispatching of simd code" ON)
 option(BUILD_SHARED_LIBS "Build shared library?" OFF)
+set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Choose debug postfix" FORCE)
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose build type" FORCE)
 set(PATH_TO_MAIN_LIB "${PROJECT_SOURCE_DIR}/../Avocado" CACHE STRING "Path to the main Avocado project")
 
 set(libsrc 	src/cpu_properties.cpp
@@ -89,7 +91,7 @@ if(DYNAMIC_ARCH)
 	target_include_directories(sse41_backend PUBLIC "${PROJECT_SOURCE_DIR}/include" "${PATH_TO_MAIN_LIB}/include/Avocado/backend")
 	
 	add_library(avx_backend OBJECT ${kernelsrc})
-	target_compile_options(avx_backend PRIVATE -mavx)
+	target_compile_options(avx_backend PRIVATE -mavx -mf16c)
 	target_compile_definitions(avx_backend PRIVATE USE_CPU=1 USE_CUDA=0 USE_OPENCL=0 DYNAMIC_ARCH=1)
 	set_target_properties(avx_backend PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 	target_include_directories(avx_backend PUBLIC "${PROJECT_SOURCE_DIR}/include" "${PATH_TO_MAIN_LIB}/include/Avocado/backend")
@@ -122,5 +124,5 @@ endif()
 
 
 install(TARGETS ${LIBRARY_NAME})
-install(FILES "include/CpuBackend/cuda_backend.h" DESTINATION include/CpuBackend)
+install(FILES "include/CpuBackend/cpu_backend.h" DESTINATION include/CpuBackend)
 install(FILES "${PATH_TO_MAIN_LIB}/include/Avocado/backend/backend_defs.h" DESTINATION include/CpuBackend)

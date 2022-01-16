@@ -15,6 +15,9 @@
 #define NAMESPACE_NO_SIMD ns_none
 
 //#define __AVX2__
+#if DYNAMIC_ARCH == 0 and not defined(COMPILE_COMMON_CODE)
+#  define COMPILE_COMMON_CODE
+#endif
 
 #if defined(COMPILE_COMMON_CODE) and not defined(SIMD_LEVEL)
 #  define SIMD_LEVEL 0

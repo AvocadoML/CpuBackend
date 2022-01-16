@@ -459,7 +459,7 @@ namespace avocado
 					reinterpret_cast<int64_t*>(result)[0] = features.memory;
 					break;
 				case AVOCADO_DEVICE_SUPPORTS_HALF_PRECISION:
-					reinterpret_cast<bool*>(result)[0] = features.OS_AVX and features.HW_F16C;
+					reinterpret_cast<bool*>(result)[0] = features.HW_F16C;
 					break;
 				case AVOCADO_DEVICE_SUPPORTS_BFLOAT16:
 				case AVOCADO_DEVICE_SUPPORTS_SINGLE_PRECISION:
@@ -488,7 +488,7 @@ namespace avocado
 					reinterpret_cast<bool*>(result)[0] = features.OS_AVX and features.HW_AVX;
 					break;
 				case AVOCADO_DEVICE_SUPPORTS_AVX2:
-					reinterpret_cast<bool*>(result)[0] = features.OS_AVX and features.HW_AVX2;
+					reinterpret_cast<bool*>(result)[0] = features.OS_AVX and features.HW_AVX2 and features.HW_FMA3;
 					break;
 				case AVOCADO_DEVICE_SUPPORTS_AVX512_F:
 					reinterpret_cast<bool*>(result)[0] = features.OS_AVX512 and features.HW_AVX512_F;
