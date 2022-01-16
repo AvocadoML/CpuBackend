@@ -5,7 +5,7 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/cpu_backend.h>
+#include <CpuBackend/cpu_backend.h>
 #include "kernel_definitions.hpp"
 
 namespace avocado
@@ -20,8 +20,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::changeType(context, dst, dstType, src, srcType, elements);
-				case SimdLevel::F16C:
-					return ns_f16c::changeType(context, dst, dstType, src, srcType, elements);
 				case SimdLevel::AVX:
 					return ns_avx::changeType(context, dst, dstType, src, srcType, elements);
 				case SimdLevel::SSE41:
@@ -47,8 +45,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
-				case SimdLevel::F16C:
-					return ns_f16c::concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::AVX:
 					return ns_avx::concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::SSE41:
@@ -74,8 +70,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
-				case SimdLevel::F16C:
-					return ns_f16c::splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::AVX:
 					return ns_avx::splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::SSE41:
@@ -101,8 +95,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
-				case SimdLevel::F16C:
-					return ns_f16c::transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
 				case SimdLevel::AVX:
 					return ns_avx::transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
 				case SimdLevel::SSE41:
@@ -127,8 +119,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::scaleTensor(context, cDesc, cMem, alpha);
-				case SimdLevel::F16C:
-					return ns_f16c::scaleTensor(context, cDesc, cMem, alpha);
 				case SimdLevel::AVX:
 					return ns_avx::scaleTensor(context, cDesc, cMem, alpha);
 				case SimdLevel::SSE41:
@@ -154,8 +144,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::addScalarToTensor(context, cDesc, cMem, scalar);
-				case SimdLevel::F16C:
-					return ns_f16c::addScalarToTensor(context, cDesc, cMem, scalar);
 				case SimdLevel::AVX:
 					return ns_avx::addScalarToTensor(context, cDesc, cMem, scalar);
 				case SimdLevel::SSE41:
@@ -182,8 +170,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
-				case SimdLevel::F16C:
-					return ns_f16c::binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
 				case SimdLevel::AVX:
 					return ns_avx::binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
 				case SimdLevel::SSE41:
@@ -209,8 +195,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
-				case SimdLevel::F16C:
-					return ns_f16c::unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::AVX:
 					return ns_avx::unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::SSE41:
@@ -236,8 +220,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
-				case SimdLevel::F16C:
-					return ns_f16c::reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::AVX:
 					return ns_avx::reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::SSE41:
@@ -264,8 +246,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
-				case SimdLevel::F16C:
-					return ns_f16c::addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
 				case SimdLevel::AVX:
 					return ns_avx::addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
 				case SimdLevel::SSE41:
@@ -292,8 +272,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
-				case SimdLevel::F16C:
-					return ns_f16c::activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::AVX:
 					return ns_avx::activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE41:
@@ -320,8 +298,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
-				case SimdLevel::F16C:
-					return ns_f16c::activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::AVX:
 					return ns_avx::activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::SSE41:
@@ -347,8 +323,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
-				case SimdLevel::F16C:
-					return ns_f16c::softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::AVX:
 					return ns_avx::softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE41:
@@ -375,8 +349,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
-				case SimdLevel::F16C:
-					return ns_f16c::softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::AVX:
 					return ns_avx::softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::SSE41:
@@ -404,8 +376,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
-				case SimdLevel::F16C:
-					return ns_f16c::affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::AVX:
 					return ns_avx::affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE41:
@@ -433,9 +403,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
-							biasMem, meanMem, varianceMem, epsilon);
-				case SimdLevel::F16C:
-					return ns_f16c::batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				case SimdLevel::AVX:
 					return ns_avx::batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
@@ -469,9 +436,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
-							biasMem, meanMem, varianceMem, epsilon);
-				case SimdLevel::F16C:
-					return ns_f16c::batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				case SimdLevel::AVX:
 					return ns_avx::batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
@@ -508,9 +472,6 @@ namespace avocado
 				case SimdLevel::AVX2:
 					return ns_avx2::batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
 							scaleMeanVarDesc, scaleMem, meanMem, varianceMem, alpha2, beta2, scaleUpdateMem, biasUpdateMem, epsilon);
-				case SimdLevel::F16C:
-					return ns_f16c::batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
-							scaleMeanVarDesc, scaleMem, meanMem, varianceMem, alpha2, beta2, scaleUpdateMem, biasUpdateMem, epsilon);
 				case SimdLevel::AVX:
 					return ns_avx::batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
 							scaleMeanVarDesc, scaleMem, meanMem, varianceMem, alpha2, beta2, scaleUpdateMem, biasUpdateMem, epsilon);
@@ -541,8 +502,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
-				case SimdLevel::F16C:
-					return ns_f16c::dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
 				case SimdLevel::AVX:
 					return ns_avx::dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
 				case SimdLevel::SSE41:
@@ -568,8 +527,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
-				case SimdLevel::F16C:
-					return ns_f16c::dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
 				case SimdLevel::AVX:
 					return ns_avx::dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
 				case SimdLevel::SSE41:
@@ -596,8 +553,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
-				case SimdLevel::F16C:
-					return ns_f16c::poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::AVX:
 					return ns_avx::poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE41:
@@ -624,8 +579,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
-				case SimdLevel::F16C:
-					return ns_f16c::poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::AVX:
 					return ns_avx::poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::SSE41:
@@ -652,8 +605,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
-				case SimdLevel::F16C:
-					return ns_f16c::im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
 				case SimdLevel::AVX:
 					return ns_avx::im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
 				case SimdLevel::SSE41:
@@ -689,9 +640,6 @@ namespace avocado
 				case SimdLevel::AVX2:
 					return ns_avx2::convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
 							zMem, beta, yDesc, yMem, activation, workspace);
-				case SimdLevel::F16C:
-					return ns_f16c::convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
-							zMem, beta, yDesc, yMem, activation, workspace);
 				case SimdLevel::AVX:
 					return ns_avx::convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
 							zMem, beta, yDesc, yMem, activation, workspace);
@@ -723,8 +671,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
-				case SimdLevel::F16C:
-					return ns_f16c::convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
 				case SimdLevel::AVX:
 					return ns_avx::convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
 				case SimdLevel::SSE41:
@@ -751,8 +697,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
-				case SimdLevel::F16C:
-					return ns_f16c::convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
 				case SimdLevel::AVX:
 					return ns_avx::convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
 				case SimdLevel::SSE41:
@@ -779,8 +723,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
-				case SimdLevel::F16C:
-					return ns_f16c::convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
 				case SimdLevel::AVX:
 					return ns_avx::convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
 				case SimdLevel::SSE41:
@@ -806,8 +748,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
-				case SimdLevel::F16C:
-					return ns_f16c::metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::AVX:
 					return ns_avx::metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::SSE41:
@@ -833,8 +773,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
-				case SimdLevel::F16C:
-					return ns_f16c::lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::AVX:
 					return ns_avx::lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::SSE41:
@@ -861,9 +799,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
-							gradientMem, isFused);
-				case SimdLevel::F16C:
-					return ns_f16c::lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
 							gradientMem, isFused);
 				case SimdLevel::AVX:
 					return ns_avx::lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
@@ -900,8 +835,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
-				case SimdLevel::F16C:
-					return ns_f16c::optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
 				case SimdLevel::AVX:
 					return ns_avx::optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
 				case SimdLevel::SSE41:
@@ -927,8 +860,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
-				case SimdLevel::F16C:
-					return ns_f16c::regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
 				case SimdLevel::AVX:
 					return ns_avx::regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
 				case SimdLevel::SSE41:
@@ -957,8 +888,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
-				case SimdLevel::F16C:
-					return ns_f16c::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
 				case SimdLevel::AVX:
 					return ns_avx::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
 				case SimdLevel::SSE41:
@@ -977,11 +906,6 @@ namespace avocado
 #endif
 		}
 
-		avSize_t winogradGetWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc, const avTensorDescriptor_t wDesc)
-		{
-//			return SIMD_NAMESPACE::winogradGetWorkspaceSize(config, xDesc, wDesc);
-		}
-
 		avStatus_t winogradWeightTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t wDesc,
 				const avMemoryDescriptor_t wMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem)
 		{
@@ -990,8 +914,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
-				case SimdLevel::F16C:
-					return ns_f16c::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
 				case SimdLevel::AVX:
 					return ns_avx::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
 				case SimdLevel::SSE41:
@@ -1018,8 +940,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
-				case SimdLevel::F16C:
-					return ns_f16c::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::AVX:
 					return ns_avx::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::SSE41:
@@ -1048,8 +968,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
-				case SimdLevel::F16C:
-					return ns_f16c::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
 				case SimdLevel::AVX:
 					return ns_avx::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
 				case SimdLevel::SSE41:
@@ -1077,8 +995,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
-				case SimdLevel::F16C:
-					return ns_f16c::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::AVX:
 					return ns_avx::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::SSE41:
@@ -1105,8 +1021,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
-				case SimdLevel::F16C:
-					return ns_f16c::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
 				case SimdLevel::AVX:
 					return ns_avx::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
 				case SimdLevel::SSE41:
@@ -1135,9 +1049,6 @@ namespace avocado
 			{
 				case SimdLevel::AVX2:
 					return ns_avx2::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
-							yDesc, yMem, activation);
-				case SimdLevel::F16C:
-					return ns_f16c::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
 							yDesc, yMem, activation);
 				case SimdLevel::AVX:
 					return ns_avx::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,

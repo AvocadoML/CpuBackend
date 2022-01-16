@@ -6,7 +6,7 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <avocado/backend/backend_descriptors.hpp>
+#include <backend_descriptors.hpp>
 
 #include "activation.hpp"
 

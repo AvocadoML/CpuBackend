@@ -9,11 +9,12 @@
 #define VECTORS_SIMD_MACROS_HPP_
 
 #define NAMESPACE_AVX2 ns_avx2
-#define NAMESPACE_F16C ns_f16c
 #define NAMESPACE_AVX ns_avx
 #define NAMESPACE_SSE41 ns_sse41
 #define NAMESPACE_SSE2 ns_sse2
-#define NAMESPACE_NONE ns_none
+#define NAMESPACE_NO_SIMD ns_none
+
+//#define __AVX2__
 
 #if defined(COMPILE_COMMON_CODE) and not defined(SIMD_LEVEL)
 #  define SIMD_LEVEL 0
@@ -22,17 +23,14 @@
 
 #ifndef SIMD_LEVEL
 #  if defined(__AVX512VL__) and defined(__AVX512BW__) and defined(__AVX512DQ__)
-#    define SIMD_LEVEL 11
-#    define SIMD_NAMESPACE NAMESPACE_AVX2
-#  elif defined(__AVX512F__) or defined(__AVX512__)
 #    define SIMD_LEVEL 10
 #    define SIMD_NAMESPACE NAMESPACE_AVX2
-#  elif defined(__AVX2__)
+#  elif defined(__AVX512F__) or defined(__AVX512__)
 #    define SIMD_LEVEL 9
 #    define SIMD_NAMESPACE NAMESPACE_AVX2
-#  elif defined(__F16C__)
+#  elif defined(__AVX2__)
 #    define SIMD_LEVEL 8
-#    define SIMD_NAMESPACE NAMESPACE_F16C
+#    define SIMD_NAMESPACE NAMESPACE_AVX2
 #  elif defined(__AVX__)
 #    define SIMD_LEVEL 7
 #    define SIMD_NAMESPACE NAMESPACE_AVX
@@ -53,19 +51,19 @@
 #    define SIMD_NAMESPACE NAMESPACE_SSE2
 #  elif defined(__SSE__ )
 #    define SIMD_LEVEL 1
-#    define SIMD_NAMESPACE NAMESPACE_NONE
+#    define SIMD_NAMESPACE NAMESPACE_NO_SIMD
 #  elif defined(_M_IX86_FP)
 #    define SIMD_LEVEL _M_IX86_FP
-#    define SIMD_NAMESPACE NAMESPACE_NONE
+#    define SIMD_NAMESPACE NAMESPACE_NO_SIMD
 #  else
 #    define SIMD_LEVEL 0
-#    define SIMD_NAMESPACE NAMESPACE_NONE
+#    define SIMD_NAMESPACE NAMESPACE_NO_SIMD
 #  endif
 #endif
 
 /* These are intended for use in other source files */
-#define SUPPORTS_AVX2 (SIMD_LEVEL >= 9)
-#define SUPPORTS_FP16 (SIMD_LEVEL >= 8)
+#define SUPPORTS_AVX2 (SIMD_LEVEL >= 8)
+#define SUPPORTS_FP16 defined(__F16C__)
 #define SUPPORTS_AVX (SIMD_LEVEL >= 7)
 #define SUPPORTS_SSE41 (SIMD_LEVEL >= 5)
 #define SUPPORTS_SSE2 (SIMD_LEVEL >= 2)

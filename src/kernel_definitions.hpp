@@ -8,7 +8,7 @@
 #ifndef KERNELS_KERNEL_DEFINITIONS_HPP_
 #define KERNELS_KERNEL_DEFINITIONS_HPP_
 
-#include <avocado/cpu_backend.h>
+#include <CpuBackend/cpu_backend.h>
 
 #include "vectors/simd_macros.hpp"
 #include "utils.hpp"
@@ -23,10 +23,6 @@ namespace NAMESPACE_AVX
 {
 #include "kernels/kernel_definitions.ipp"
 }
-namespace NAMESPACE_F16C
-{
-#include "kernels/kernel_definitions.ipp"
-}
 namespace NAMESPACE_SSE41
 {
 #include "kernels/kernel_definitions.ipp"
@@ -35,7 +31,7 @@ namespace NAMESPACE_SSE2
 {
 #include "kernels/kernel_definitions.ipp"
 }
-namespace NAMESPACE_NONE
+namespace NAMESPACE_NO_SIMD
 {
 #include "kernels/kernel_definitions.ipp"
 }

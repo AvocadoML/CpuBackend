@@ -79,7 +79,7 @@ namespace SIMD_NAMESPACE
 
 #else /* if __SSE2__ is not defined */
 
-	static inline float float16_to_floatbfloat16 x) noexcept
+	static inline float float16_to_float(float16 x) noexcept
 	{
 		return scalar::float16_to_float(x);
 	}

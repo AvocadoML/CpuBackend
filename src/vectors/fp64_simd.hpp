@@ -148,9 +148,39 @@ namespace SIMD_NAMESPACE
 			void cutoff(const int num, SIMD<double> value = zero()) noexcept
 			{
 #if SUPPORTS_AVX
-				m_data = _mm256_blend_pd(value, m_data, get_cutoff_mask(num));
+				switch(num)
+				{
+					case 0:
+						m_data = value.m_data;
+						break;
+					case 1:
+						m_data = _mm256_blend_pd(value, m_data, 1);
+						break;
+					case 2:
+						m_data = _mm256_blend_pd(value, m_data, 3);
+						break;
+					case 3:
+						m_data = _mm256_blend_pd(value, m_data, 7);
+						break;
+					default:
+					case 4:
+						m_data = _mm256_blend_pd(value, m_data, 15);
+						break;
+				}
 #elif SUPPORTS_SSE41
-				m_data =_mm_blend_pd(value, m_data, get_cutoff_mask(num));
+				switch(num)
+				{
+					case 0:
+						m_data = value.m_data;
+						break;
+					case 1:
+						m_data = _mm_blend_pd(value, m_data, 1);
+						break;
+					default:
+					case 2:
+						m_data = _mm_blend_pd(value, m_data, 3);
+						break;
+				}
 #elif SUPPORTS_SSE2
 				__m128d mask = get_cutoff_mask_pd(num);
 				m_data = _mm_or_pd(_mm_and_pd(mask, m_data), _mm_andnot_pd(mask, value));
@@ -341,7 +371,7 @@ namespace SIMD_NAMESPACE
 #elif SUPPORTS_SSE2
 		return _mm_or_pd(_mm_and_pd(mask, x), _mm_andnot_pd(mask, y));
 #else
-		return bitwise_cast<uint64_t>(static_cast<double>(mask) == 0xFFFFFFFFFFFFFFFFu ? x : y);
+		return (bitwise_cast<uint64_t>(static_cast<double>(mask)) == 0xFFFFFFFFFFFFFFFFu) ? x : y;
 #endif
 	}
 
@@ -406,7 +436,7 @@ namespace SIMD_NAMESPACE
 		__m128d negative = _mm_and_pd(_mm_cmplt_pd(x, zero), _mm_set1_pd(-1.0));
 		return _mm_or_pd(positive, negative);
 #else
-		return (static_cast<double>(x) > 0.0) - (static_cast<double>(x) < 0.0);
+		return static_cast<double>((static_cast<double>(x) > 0.0) - (static_cast<double>(x) < 0.0));
 #endif
 	}
 	static inline SIMD<double> floor(SIMD<double> x) noexcept

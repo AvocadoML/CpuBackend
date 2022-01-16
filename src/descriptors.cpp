@@ -5,8 +5,8 @@
  *      Author: Maciej Kozarzewski
  */
 
-#include <avocado/cpu_backend.h>
-#include <avocado/backend/backend_descriptors.hpp>
+#include <CpuBackend/cpu_backend.h>
+#include <backend_descriptors.hpp>
 
 #include <omp.h>
 

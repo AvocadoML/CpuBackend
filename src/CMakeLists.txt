@@ -1,4 +1,4 @@
-target_sources(AvocadoCpuBackend PRIVATE	cpu_features.cpp
+target_sources(AvocadoCpuBackend PRIVATE	cpu_properties.cpp
 											descriptors.cpp
 											dispatcher.cpp
 											gemms.cpp)

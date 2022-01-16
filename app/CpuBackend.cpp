@@ -3,9 +3,9 @@
 // Author      : Maciej Kozarzewski
 //============================================================================
 
-#include <avocado/cpu_backend.h>
-#include <avocado/backend/backend_defs.h>
-#include <avocado/backend/backend_descriptors.hpp>
+#include <CpuBackend/cpu_backend.h>
+#include <backend_defs.h>
+#include <backend_descriptors.hpp>
 
 #include <type_traits>
 #include <iostream>
@@ -759,7 +759,7 @@ double diff(const TensorWrapper &lhs, const TensorWrapper &rhs)
 	if (typeOf<T>() != lhs.dtype() or lhs.dtype() != rhs.dtype())
 		throw std::logic_error("diff() : data type mismatch");
 
-	assert(volume(lhs.shape) == volume(rhs.shape));
+	assert(lhs.volume() == rhs.volume());
 	double result = 0.0;
 	for (int i = 0; i < lhs.volume(); i++)
 		result += std::abs(lhs.data<T>()[i] - rhs.data<T>()[i]);

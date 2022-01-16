@@ -6,7 +6,7 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <avocado/backend/backend_descriptors.hpp>
+#include <backend_descriptors.hpp>
 
 #include "activation.hpp"
 #include "../vectors/simd_vectors.hpp"
@@ -832,34 +832,42 @@ namespace
 	}
 }
 
+#if DYNAMIC_ARCH == 0 or (DYNAMIC_ARCH == 1 and defined(COMPILE_COMMON_CODE))
+namespace avocado
+{
+	namespace backend
+	{
+		avSize_t winogradGetWorkspaceSize(const ConvolutionDescriptor &config, const TensorDescriptor &xDesc, const TensorDescriptor &yDesc,
+				const TensorDescriptor &wDesc)
+		{
+			if (config.algorithm == AVOCADO_CONVOLUTION_ALGORITHM_WINOGRAD)
+			{
+				switch (wDesc.dtype())
+				{
+					case AVOCADO_DTYPE_FLOAT16:
+					case AVOCADO_DTYPE_BFLOAT16:
+					case AVOCADO_DTYPE_FLOAT32:
+					case AVOCADO_DTYPE_FLOAT64:
+					{
+						if (is_conv(3, wDesc))
+							return getWinogradWorkspace(4, xDesc, yDesc, wDesc);
+						if (is_conv(5, wDesc))
+							return getWinogradWorkspace(2, xDesc, yDesc, wDesc);
+						return 0;
+					}
+					default:
+						return 0;
+				}
+			}
+			return 0;
+		}
+	} /* namespace backend */
+} /* namespace avocado */
+#endif
+
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
-
-	avSize_t winogradGetWorkspaceSize(const ConvolutionDescriptor &config, const TensorDescriptor &xDesc, const TensorDescriptor &yDesc,
-			const TensorDescriptor &wDesc)
-	{
-		if (config.algorithm == AVOCADO_CONVOLUTION_ALGORITHM_WINOGRAD)
-		{
-			switch (wDesc.dtype())
-			{
-				case AVOCADO_DTYPE_FLOAT16:
-				case AVOCADO_DTYPE_BFLOAT16:
-				case AVOCADO_DTYPE_FLOAT32:
-				case AVOCADO_DTYPE_FLOAT64:
-				{
-					if (is_conv(3, wDesc))
-						return getWinogradWorkspace(4, xDesc, yDesc, wDesc);
-					if (is_conv(5, wDesc))
-						return getWinogradWorkspace(2, xDesc, yDesc, wDesc);
-					return 0;
-				}
-				default:
-					return 0;
-			}
-		}
-		return 0;
-	}
 
 	avStatus_t winogradWeightTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t wDesc,
 			const avMemoryDescriptor_t wMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem)

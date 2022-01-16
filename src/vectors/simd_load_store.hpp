@@ -99,7 +99,7 @@ namespace SIMD_NAMESPACE
 #if SUPPORTS_SSE2 // _mm_castps_si128() requires sse2
 	static inline __m128i partial_load(const void *ptr, const int bytes) noexcept
 	{
-		assert(num >= 0 && num <= 16);
+		assert(bytes >= 0 && bytes <= 16);
 		switch (bytes)
 		{
 			case 0:
@@ -192,7 +192,7 @@ namespace SIMD_NAMESPACE
 	}
 	static inline void partial_store(__m128i reg, void *ptr, const int bytes) noexcept
 	{
-		assert(num >= 0 && num <= 16);
+		assert(bytes >= 0 && bytes <= 16);
 		switch (bytes)
 		{
 			case 0:

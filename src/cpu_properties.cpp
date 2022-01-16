@@ -6,7 +6,7 @@
  *      modified by Maciej Kozarzewski
  */
 
-#include <avocado/cpu_backend.h>
+#include <CpuBackend/cpu_backend.h>
 
 #include <string>
 #include <cstring>
