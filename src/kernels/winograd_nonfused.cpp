@@ -347,7 +347,7 @@ namespace
 	};
 
 	template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-	void kernel_weight_transform(const TensorDescriptor &wDesc, const T *wMem, const TensorDescriptor &mDesc, T *mMem, bool invert)
+	void kernel_weight_transform(const cpu::TensorDescriptor &wDesc, const T *wMem, const cpu::TensorDescriptor &mDesc, T *mMem, bool invert)
 	{
 		const int filtersOut = wDesc.firstDim();
 		const int filtersIn = wDesc.lastDim();
@@ -396,8 +396,8 @@ namespace
 		}
 	}
 	template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-	void kernel_input_transform(const TensorDescriptor &xDesc, const T *xMem, const TensorDescriptor &mDesc, T *mMem, std::array<int, 3> padding,
-			T *workspace)
+	void kernel_input_transform(const cpu::TensorDescriptor &xDesc, const T *xMem, const cpu::TensorDescriptor &mDesc, T *mMem,
+			std::array<int, 3> padding, T *workspace)
 	{
 		const int batch_size = xDesc.dimension(0);
 		const int height = xDesc.dimension(1);
@@ -461,8 +461,8 @@ namespace
 		}
 	}
 	template<typename T, typename U, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-	void kernel_output_transform(const TensorDescriptor &yDesc, T *yMem, const TensorDescriptor &mDesc, const T *mMem, const T *bMem, const T *zMem,
-			avActivationType_t activation, U alpha1, U alpha2, U beta, T *workspace)
+	void kernel_output_transform(const cpu::TensorDescriptor &yDesc, T *yMem, const cpu::TensorDescriptor &mDesc, const T *mMem, const T *bMem,
+			const T *zMem, avActivationType_t activation, U alpha1, U alpha2, U beta, T *workspace)
 	{
 		const int batch_size = yDesc.dimension(0);
 		const int height = yDesc.dimension(1);
@@ -574,7 +574,7 @@ namespace
 		}
 	}
 	template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-	void kernel_gradient_transform(const TensorDescriptor &dyDesc, const T *dyMem, const TensorDescriptor &mDesc, T *mMem, T *workspace)
+	void kernel_gradient_transform(const cpu::TensorDescriptor &dyDesc, const T *dyMem, const cpu::TensorDescriptor &mDesc, T *mMem, T *workspace)
 	{
 		const int batch_size = dyDesc.dimension(0);
 		const int height = dyDesc.dimension(1);
@@ -638,7 +638,7 @@ namespace
 		}
 	}
 	template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-	void kernel_update_transform(const TensorDescriptor &dwDesc, T *dwMem, const TensorDescriptor &mDesc, const T *mMem, T alpha, T beta)
+	void kernel_update_transform(const cpu::TensorDescriptor &dwDesc, T *dwMem, const cpu::TensorDescriptor &mDesc, const T *mMem, T alpha, T beta)
 	{
 		const int filtersOut = dwDesc.firstDim();
 		const int filtersIn = dwDesc.lastDim();
@@ -695,7 +695,8 @@ namespace
 		}
 	}
 
-	int getWinogradWorkspace(int transformSize, const TensorDescriptor &xDesc, const TensorDescriptor &yDesc, const TensorDescriptor &wDesc)
+	int getWinogradWorkspace(int transformSize, const cpu::TensorDescriptor &xDesc, const cpu::TensorDescriptor &yDesc,
+			const cpu::TensorDescriptor &wDesc)
 	{
 		assert(wDesc.dimension(1) == wDesc.dimension(2));
 		assert(wDesc.nbDims() == 3 || wDesc.nbDims() == 4 || wDesc.nbDims() == 5);
@@ -706,14 +707,14 @@ namespace
 		for (int i = 0; i < wDesc.nbDims() - 2; i++)
 			nb_of_tiles *= (xDesc.dimension(1 + i) + tile_size - 1) / tile_size;
 
-		int weight_matrix_size = dataTypeSize(wDesc.dtype()) * wDesc.firstDim() * wDesc.lastDim();
-		int input_matrix_size = dataTypeSize(xDesc.dtype()) * nb_of_tiles * xDesc.lastDim();
-		int output_matrix_size = dataTypeSize(yDesc.dtype()) * nb_of_tiles * yDesc.lastDim();
+		int weight_matrix_size = cpu::dataTypeSize(wDesc.dtype()) * wDesc.firstDim() * wDesc.lastDim();
+		int input_matrix_size = cpu::dataTypeSize(xDesc.dtype()) * nb_of_tiles * xDesc.lastDim();
+		int output_matrix_size = cpu::dataTypeSize(yDesc.dtype()) * nb_of_tiles * yDesc.lastDim();
 
 		return nb_of_matrices * (weight_matrix_size + input_matrix_size + output_matrix_size);
 	}
 
-	bool is_conv(int expectedSize, const TensorDescriptor &wDesc)
+	bool is_conv(int expectedSize, const cpu::TensorDescriptor &wDesc)
 	{
 		for (int i = 0; i < wDesc.nbDims() - 2; i++)
 			if (wDesc.dimension(1 + i) != expectedSize)
@@ -725,15 +726,17 @@ namespace
 	avStatus_t launch_weight_transform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t wDesc,
 			const avMemoryDescriptor_t wMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem)
 	{
-		bool invert = getConvolution(config).mode == AVOCADO_CROSS_CORRELATION_MODE;
-		if (is_conv(3, getTensor(wDesc)))
+		bool invert = cpu::getConvolution(config).mode == AVOCADO_CROSS_CORRELATION_MODE;
+		if (is_conv(3, cpu::getTensor(wDesc)))
 		{
-			kernel_weight_transform<T, 4, 3>(getTensor(wDesc), getPointer<T>(wMem), getTensor(matricesDesc), getPointer<T>(matricesMem), invert);
+			kernel_weight_transform<T, 4, 3>(cpu::getTensor(wDesc), cpu::getPointer<T>(wMem), cpu::getTensor(matricesDesc),
+					cpu::getPointer<T>(matricesMem), invert);
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		if (is_conv(5, getTensor(wDesc)))
+		if (is_conv(5, cpu::getTensor(wDesc)))
 		{
-			kernel_weight_transform<T, 2, 5>(getTensor(wDesc), getPointer<T>(wMem), getTensor(matricesDesc), getPointer<T>(matricesMem), invert);
+			kernel_weight_transform<T, 2, 5>(cpu::getTensor(wDesc), cpu::getPointer<T>(wMem), cpu::getTensor(matricesDesc),
+					cpu::getPointer<T>(matricesMem), invert);
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
@@ -743,20 +746,20 @@ namespace
 			const avMemoryDescriptor_t xMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem,
 			const avTensorDescriptor_t wDesc)
 	{
-		const int input_filters = getTensor(wDesc).lastDim();
-		if (getContext(context).getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters)
+		const int input_filters = cpu::getTensor(wDesc).lastDim();
+		if (cpu::getContext(context).getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters)
 			return AVOCADO_STATUS_INTERNAL_ERROR;
 
-		if (is_conv(3, getTensor(wDesc)))
+		if (is_conv(3, cpu::getTensor(wDesc)))
 		{
-			kernel_input_transform<T, 4, 3>(getTensor(xDesc), getPointer<T>(xMem), getTensor(matricesDesc), getPointer<T>(matricesMem),
-					getConvolution(config).padding, getContext(context).getWorkspace().data<T>());
+			kernel_input_transform<T, 4, 3>(cpu::getTensor(xDesc), cpu::getPointer<T>(xMem), cpu::getTensor(matricesDesc),
+					cpu::getPointer<T>(matricesMem), cpu::getConvolution(config).padding, cpu::getContext(context).getWorkspace().data<T>());
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		if (is_conv(5, getTensor(wDesc)))
+		if (is_conv(5, cpu::getTensor(wDesc)))
 		{
-			kernel_input_transform<T, 2, 5>(getTensor(xDesc), getPointer<T>(xMem), getTensor(matricesDesc), getPointer<T>(matricesMem),
-					getConvolution(config).padding, getContext(context).getWorkspace().data<T>());
+			kernel_input_transform<T, 2, 5>(cpu::getTensor(xDesc), cpu::getPointer<T>(xMem), cpu::getTensor(matricesDesc),
+					cpu::getPointer<T>(matricesMem), cpu::getConvolution(config).padding, cpu::getContext(context).getWorkspace().data<T>());
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
@@ -768,22 +771,22 @@ namespace
 			const avTensorDescriptor_t zDesc, const avMemoryDescriptor_t zMem, const void *beta, const avActivationType_t activation,
 			const avTensorDescriptor_t wDesc)
 	{
-		const int input_filters = getTensor(wDesc).lastDim();
-		if (getContext(context).getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters * (1 + cpuGetNumberOfThreads()))
+		const int input_filters = cpu::getTensor(wDesc).lastDim();
+		if (cpu::getContext(context).getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters * (1 + cpuGetNumberOfThreads()))
 			return AVOCADO_STATUS_INTERNAL_ERROR;
 
-		if (is_conv(3, getTensor(wDesc)))
+		if (is_conv(3, cpu::getTensor(wDesc)))
 		{
-			kernel_output_transform<T, U, 4, 3>(getTensor(yDesc), getPointer<T>(yMem), getTensor(matricesDesc), getPointer<T>(matricesMem),
-					getPointer<T>(bMem), getPointer<T>(zMem), activation, getAlphaValue<U>(alpha1), getAlphaValue<U>(alpha2), getBetaValue<U>(beta),
-					getContext(context).getWorkspace().data<T>());
+			kernel_output_transform<T, U, 4, 3>(cpu::getTensor(yDesc), cpu::getPointer<T>(yMem), cpu::getTensor(matricesDesc),
+					cpu::getPointer<T>(matricesMem), cpu::getPointer<T>(bMem), cpu::getPointer<T>(zMem), activation, cpu::getAlphaValue<U>(alpha1),
+					cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta), cpu::getContext(context).getWorkspace().data<T>());
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		if (is_conv(5, getTensor(wDesc)))
+		if (is_conv(5, cpu::getTensor(wDesc)))
 		{
-			kernel_output_transform<T, U, 2, 5>(getTensor(yDesc), getPointer<T>(yMem), getTensor(matricesDesc), getPointer<T>(matricesMem),
-					getPointer<T>(bMem), getPointer<T>(zMem), activation, getAlphaValue<U>(alpha1), getAlphaValue<U>(alpha2), getBetaValue<U>(beta),
-					getContext(context).getWorkspace().data<T>());
+			kernel_output_transform<T, U, 2, 5>(cpu::getTensor(yDesc), cpu::getPointer<T>(yMem), cpu::getTensor(matricesDesc),
+					cpu::getPointer<T>(matricesMem), cpu::getPointer<T>(bMem), cpu::getPointer<T>(zMem), activation, cpu::getAlphaValue<U>(alpha1),
+					cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta), cpu::getContext(context).getWorkspace().data<T>());
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
@@ -793,20 +796,20 @@ namespace
 			const avMemoryDescriptor_t dyMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem,
 			const avTensorDescriptor_t wDesc)
 	{
-		const int input_filters = getTensor(wDesc).lastDim();
-		if (getContext(context).getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters)
+		const int input_filters = cpu::getTensor(wDesc).lastDim();
+		if (cpu::getContext(context).getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters)
 			return AVOCADO_STATUS_INTERNAL_ERROR;
 
-		if (is_conv(3, getTensor(wDesc)))
+		if (is_conv(3, cpu::getTensor(wDesc)))
 		{
-			kernel_gradient_transform<T, 4, 3>(getTensor(dyDesc), getPointer<T>(dyMem), getTensor(matricesDesc), getPointer<T>(matricesMem),
-					getContext(context).getWorkspace().data<T>());
+			kernel_gradient_transform<T, 4, 3>(cpu::getTensor(dyDesc), cpu::getPointer<T>(dyMem), cpu::getTensor(matricesDesc),
+					cpu::getPointer<T>(matricesMem), cpu::getContext(context).getWorkspace().data<T>());
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		if (is_conv(5, getTensor(wDesc)))
+		if (is_conv(5, cpu::getTensor(wDesc)))
 		{
-			kernel_gradient_transform<T, 2, 5>(getTensor(dyDesc), getPointer<T>(dyMem), getTensor(matricesDesc), getPointer<T>(matricesMem),
-					getContext(context).getWorkspace().data<T>());
+			kernel_gradient_transform<T, 2, 5>(cpu::getTensor(dyDesc), cpu::getPointer<T>(dyMem), cpu::getTensor(matricesDesc),
+					cpu::getPointer<T>(matricesMem), cpu::getContext(context).getWorkspace().data<T>());
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
@@ -816,29 +819,29 @@ namespace
 			const avTensorDescriptor_t matricesDesc, const avMemoryDescriptor_t matricesMem, const void *beta, const avTensorDescriptor_t dwDesc,
 			avMemoryDescriptor_t dwMem)
 	{
-		if (is_conv(3, getTensor(dwDesc)))
+		if (is_conv(3, cpu::getTensor(dwDesc)))
 		{
-			kernel_update_transform<T, 4, 3>(getTensor(dwDesc), getPointer<T>(dwMem), getTensor(matricesDesc), getPointer<T>(matricesMem),
-					getAlphaValue<T>(alpha), getBetaValue<T>(beta));
+			kernel_update_transform<T, 4, 3>(cpu::getTensor(dwDesc), cpu::getPointer<T>(dwMem), cpu::getTensor(matricesDesc),
+					cpu::getPointer<T>(matricesMem), cpu::getAlphaValue<T>(alpha), cpu::getBetaValue<T>(beta));
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		if (is_conv(5, getTensor(dwDesc)))
+		if (is_conv(5, cpu::getTensor(dwDesc)))
 		{
-			kernel_update_transform<T, 2, 5>(getTensor(dwDesc), getPointer<T>(dwMem), getTensor(matricesDesc), getPointer<T>(matricesMem),
-					getAlphaValue<T>(alpha), getBetaValue<T>(beta));
+			kernel_update_transform<T, 2, 5>(cpu::getTensor(dwDesc), cpu::getPointer<T>(dwMem), cpu::getTensor(matricesDesc),
+					cpu::getPointer<T>(matricesMem), cpu::getAlphaValue<T>(alpha), cpu::getBetaValue<T>(beta));
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}
 }
 
-#if defined(COMPILE_COMMON_CODE)
+#if DYNAMIC_ARCH == 0 or (DYNAMIC_ARCH == 1 and defined(COMPILE_COMMON_CODE))
 namespace avocado
 {
 	namespace backend
 	{
-		avSize_t winogradGetWorkspaceSize(const ConvolutionDescriptor &config, const TensorDescriptor &xDesc, const TensorDescriptor &yDesc,
-				const TensorDescriptor &wDesc)
+		avSize_t winogradGetWorkspaceSize(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &xDesc,
+				const cpu::TensorDescriptor &yDesc, const cpu::TensorDescriptor &wDesc)
 		{
 			if (config.algorithm == AVOCADO_CONVOLUTION_ALGORITHM_WINOGRAD)
 			{
@@ -869,10 +872,10 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t winogradWeightTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t wDesc,
+	avStatus_t cpu_winogradWeightTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t wDesc,
 			const avMemoryDescriptor_t wMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem)
 	{
-		switch (getTensor(wDesc).dtype())
+		switch (cpu::getTensor(wDesc).dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
 				return launch_weight_transform<float16>(context, config, wDesc, wMem, matricesDesc, matricesMem);
@@ -887,11 +890,11 @@ namespace SIMD_NAMESPACE
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}
-	avStatus_t winogradInputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
+	avStatus_t cpu_winogradInputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
 			const avMemoryDescriptor_t xMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem,
 			const avTensorDescriptor_t wDesc)
 	{
-		switch (getTensor(xDesc).dtype())
+		switch (cpu::getTensor(xDesc).dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
 				return launch_input_transform<float16>(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
@@ -906,13 +909,13 @@ namespace SIMD_NAMESPACE
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t winogradOutputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
+	avStatus_t cpu_winogradOutputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
 			const avTensorDescriptor_t matricesDesc, const avMemoryDescriptor_t matricesMem, const avTensorDescriptor_t yDesc,
 			avMemoryDescriptor_t yMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2,
 			const avTensorDescriptor_t zDesc, const avMemoryDescriptor_t zMem, const void *beta, const avActivationType_t activation,
 			const avTensorDescriptor_t wDesc)
 	{
-		switch (getTensor(yDesc).dtype())
+		switch (cpu::getTensor(yDesc).dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
 				return launch_output_transform<float16, float>(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2,
@@ -931,11 +934,11 @@ namespace SIMD_NAMESPACE
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t winogradGradientTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t dyDesc,
+	avStatus_t cpu_winogradGradientTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t dyDesc,
 			const avMemoryDescriptor_t dyMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem,
 			const avTensorDescriptor_t wDesc)
 	{
-		switch (getTensor(dyDesc).dtype())
+		switch (cpu::getTensor(dyDesc).dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 				return launch_gradient_transform<float>(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
@@ -946,11 +949,11 @@ namespace SIMD_NAMESPACE
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t winogradUpdateTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
+	avStatus_t cpu_winogradUpdateTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
 			const avTensorDescriptor_t matricesDesc, const avMemoryDescriptor_t matricesMem, const void *beta, const avTensorDescriptor_t dwDesc,
 			avMemoryDescriptor_t dwMem)
 	{
-		switch (getTensor(dwDesc).dtype())
+		switch (cpu::getTensor(dwDesc).dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 				return launch_update_transform<float>(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);

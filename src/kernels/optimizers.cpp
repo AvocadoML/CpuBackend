@@ -73,8 +73,8 @@ namespace
 	}
 
 	template<typename T>
-	avStatus_t launcher_optimizer(const OptimizerDescriptor &optimizer, const TensorDescriptor &wDesc, T *weight, const T *update,
-			MemoryDescriptor &workspace)
+	avStatus_t launcher_optimizer(const cpu::OptimizerDescriptor &optimizer, const cpu::TensorDescriptor &wDesc, T *weight, const T *update,
+			cpu::MemoryDescriptor &workspace)
 	{
 		const int elements = wDesc.volume();
 		switch (optimizer.type)
@@ -82,7 +82,7 @@ namespace
 			case AVOCADO_OPTIMIZER_SGD:
 			{
 				bool use_momentum = optimizer.flags[0];
-				if (use_momentum and workspace.size() < 2 * elements * dataTypeSize(wDesc.dtype()))
+				if (use_momentum and workspace.size() < 2 * elements * cpu::dataTypeSize(wDesc.dtype()))
 					return AVOCADO_STATUS_INTERNAL_ERROR;
 
 				bool use_nesterov = optimizer.flags[1];
@@ -102,7 +102,7 @@ namespace
 			}
 			case AVOCADO_OPTIMIZER_ADAM:
 			{
-				if (workspace.size() < 2 * elements * dataTypeSize(wDesc.dtype()))
+				if (workspace.size() < 2 * elements * cpu::dataTypeSize(wDesc.dtype()))
 					return AVOCADO_STATUS_INTERNAL_ERROR;
 				T beta1 = optimizer.coef[0];
 				T beta2 = optimizer.coef[1];
@@ -123,17 +123,17 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t optimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const avTensorDescriptor_t wDesc,
+	avStatus_t cpu_optimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const avTensorDescriptor_t wDesc,
 			avMemoryDescriptor_t wMem, const avTensorDescriptor_t dwDesc, const avMemoryDescriptor_t dwMem, avMemoryDescriptor_t workspace)
 	{
-		switch (getTensor(wDesc).dtype())
+		switch (cpu::getTensor(wDesc).dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
-				return launcher_optimizer(getOptimizer(config), getTensor(wDesc), getPointer<float>(wMem), getPointer<float>(dwMem),
-						getMemory(workspace));
+				return launcher_optimizer(cpu::getOptimizer(config), cpu::getTensor(wDesc), cpu::getPointer<float>(wMem),
+						cpu::getPointer<float>(dwMem), cpu::getMemory(workspace));
 			case AVOCADO_DTYPE_FLOAT64:
-				return launcher_optimizer(getOptimizer(config), getTensor(wDesc), getPointer<double>(wMem), getPointer<double>(dwMem),
-						getMemory(workspace));
+				return launcher_optimizer(cpu::getOptimizer(config), cpu::getTensor(wDesc), cpu::getPointer<double>(wMem),
+						cpu::getPointer<double>(dwMem), cpu::getMemory(workspace));
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}

@@ -146,21 +146,21 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t lossFunction(avContextDescriptor_t context, avLossType_t lossType, const avTensorDescriptor_t outputDesc,
+	avStatus_t cpu_lossFunction(avContextDescriptor_t context, avLossType_t lossType, const avTensorDescriptor_t outputDesc,
 			const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, void *result)
 	{
-		const int elements = getTensor(outputDesc).volume();
-		switch (getTensor(outputDesc).dtype())
+		const int elements = cpu::getTensor(outputDesc).volume();
+		switch (cpu::getTensor(outputDesc).dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				float loss = launcher_loss(lossType, getPointer<float>(outputMem), getPointer<float>(targetMem), elements);
+				float loss = launcher_loss(lossType, cpu::getPointer<float>(outputMem), cpu::getPointer<float>(targetMem), elements);
 				std::memcpy(result, &loss, sizeof(float));
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				double loss = launcher_loss(lossType, getPointer<double>(outputMem), getPointer<double>(targetMem), elements);
+				double loss = launcher_loss(lossType, cpu::getPointer<double>(outputMem), cpu::getPointer<double>(targetMem), elements);
 				std::memcpy(result, &loss, sizeof(float));
 				break;
 			}
@@ -169,23 +169,23 @@ namespace SIMD_NAMESPACE
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t lossGradient(avContextDescriptor_t context, avLossType_t lossType, const void *alpha, const avTensorDescriptor_t outputDesc,
+	avStatus_t cpu_lossGradient(avContextDescriptor_t context, avLossType_t lossType, const void *alpha, const avTensorDescriptor_t outputDesc,
 			const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, const void *beta,
 			const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem, bool isFused)
 	{
-		const int elements = getTensor(outputDesc).volume();
-		switch (getTensor(outputDesc).dtype())
+		const int elements = cpu::getTensor(outputDesc).volume();
+		switch (cpu::getTensor(outputDesc).dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				launcher_gradient(lossType, getPointer<float>(gradientMem), getPointer<float>(outputMem), getPointer<float>(targetMem), elements,
-						scalar::one<float>() / getTensor(outputDesc).firstDim(), isFused);
+				launcher_gradient(lossType, cpu::getPointer<float>(gradientMem), cpu::getPointer<float>(outputMem), cpu::getPointer<float>(targetMem),
+						elements, scalar::one<float>() / cpu::getTensor(outputDesc).firstDim(), isFused);
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				launcher_gradient(lossType, getPointer<double>(gradientMem), getPointer<double>(outputMem), getPointer<double>(targetMem), elements,
-						scalar::one<double>() / getTensor(outputDesc).firstDim(), isFused);
+				launcher_gradient(lossType, cpu::getPointer<double>(gradientMem), cpu::getPointer<double>(outputMem),
+						cpu::getPointer<double>(targetMem), elements, scalar::one<double>() / cpu::getTensor(outputDesc).firstDim(), isFused);
 				break;
 			}
 			default:

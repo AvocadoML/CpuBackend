@@ -149,7 +149,7 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t changeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType, const avMemoryDescriptor_t src,
+	avStatus_t cpu_changeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType, const avMemoryDescriptor_t src,
 			avDataType_t srcType, avSize_t elements)
 	{
 		return AVOCADO_STATUS_SUCCESS;

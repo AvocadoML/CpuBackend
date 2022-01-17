@@ -228,7 +228,7 @@ namespace
 	};
 
 	template<class Op, typename T, typename U>
-	void kernel_reduce_tensor(T *dst, const T *src, U alpha, U beta, BroadcastedDimensions dimensions, T *workspace) noexcept
+	void kernel_reduce_tensor(T *dst, const T *src, U alpha, U beta, cpu::BroadcastedDimensions dimensions, T *workspace) noexcept
 	{
 		Op reduction;
 		if (dimensions.last == 1) // reduce into single element
@@ -306,7 +306,7 @@ namespace
 		}
 	}
 	template<typename T, typename U>
-	void launcher_tensor_reduction(T *dst, const T *src, U alpha, U beta, BroadcastedDimensions dimensions, avReduceOp_t operation, T *workspace)
+	void launcher_tensor_reduction(T *dst, const T *src, U alpha, U beta, cpu::BroadcastedDimensions dimensions, avReduceOp_t operation, T *workspace)
 	{
 		switch (operation)
 		{
@@ -345,32 +345,32 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t reduceTensor(avContextDescriptor_t context, avReduceOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
+	avStatus_t cpu_reduceTensor(avContextDescriptor_t context, avReduceOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
 			const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 	{
-		BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(aDesc), getTensor(cDesc));
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(cpu::getTensor(aDesc), cpu::getTensor(cDesc));
 
-		const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * dimensions.last * dataTypeSize(getTensor(aDesc).dtype());
-		if (getContext(context).getWorkspace().size() < required_workspace_size)
+		const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * dimensions.last * cpu::dataTypeSize(cpu::getTensor(aDesc).dtype());
+		if (cpu::getContext(context).getWorkspace().size() < required_workspace_size)
 			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
-		switch (getTensor(aDesc).dtype())
+		switch (cpu::getTensor(aDesc).dtype())
 		{
 //			case AVOCADO_DTYPE_FLOAT16:
-//				launcher_tensor_reduction(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta), dimensions,
-//						operation, getContext(context).getWorkspace().data<float16>());
+//				launcher_tensor_reduction(getPointer<float16>(cMem), cpu::getPointer<float16>(aMem), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), dimensions,
+//						operation, cpu::getContext(context).getWorkspace().data<float16>());
 //				break;
 //			case AVOCADO_DTYPE_BFLOAT16:
-//				launcher_tensor_reduction(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta),
-//						dimensions, operation, getContext(context).getWorkspace().data<bfloat16>());
+//				launcher_tensor_reduction(getPointer<bfloat16>(cMem), cpu::getPointer<bfloat16>(aMem), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta),
+//						dimensions, operation, cpu::getContext(context).getWorkspace().data<bfloat16>());
 //				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				launcher_tensor_reduction(getPointer<float>(cMem), getPointer<float>(aMem), getAlphaValue(alpha), getBetaValue(beta), dimensions,
-						operation, getContext(context).getWorkspace().data<float>());
+				launcher_tensor_reduction(cpu::getPointer<float>(cMem), cpu::getPointer<float>(aMem), cpu::getAlphaValue(alpha),
+						cpu::getBetaValue(beta), dimensions, operation, cpu::getContext(context).getWorkspace().data<float>());
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				launcher_tensor_reduction(getPointer<double>(cMem), getPointer<double>(aMem), getAlphaValue<double>(alpha),
-						getBetaValue<double>(beta), dimensions, operation, getContext(context).getWorkspace().data<double>());
+				launcher_tensor_reduction(cpu::getPointer<double>(cMem), cpu::getPointer<double>(aMem), cpu::getAlphaValue<double>(alpha),
+						cpu::getBetaValue<double>(beta), dimensions, operation, cpu::getContext(context).getWorkspace().data<double>());
 				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

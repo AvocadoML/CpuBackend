@@ -162,7 +162,7 @@ namespace
 	};
 
 	template<class Op, typename T, typename U, bool ZeroBeta, bool LogicalOp = false>
-	void kernel_binary_op(T *dst, const T *src1, const T *src2, U alpha1, U alpha2, U beta, BroadcastedDimensions dimensions) noexcept
+	void kernel_binary_op(T *dst, const T *src1, const T *src2, U alpha1, U alpha2, U beta, cpu::BroadcastedDimensions dimensions) noexcept
 	{
 		Op operation;
 		if (dimensions.first == 1) // both src1 and src2 have the same shape
@@ -248,7 +248,7 @@ namespace
 
 	}
 	template<typename T, typename U, bool ZeroBeta>
-	void launcher_binary_op(T *dst, const T *src1, const T *src2, U alpha1, U alpha2, U beta, BroadcastedDimensions dimensions,
+	void launcher_binary_op(T *dst, const T *src1, const T *src2, U alpha1, U alpha2, U beta, cpu::BroadcastedDimensions dimensions,
 			avBinaryOp_t operation)
 	{
 		switch (operation)
@@ -310,7 +310,8 @@ namespace
 		}
 	}
 	template<typename T, typename U>
-	void helper_binary_op(T *dst, const T *src1, const T *src2, U alpha1, U alpha2, U beta, BroadcastedDimensions dimensions, avBinaryOp_t operation)
+	void helper_binary_op(T *dst, const T *src1, const T *src2, U alpha1, U alpha2, U beta, cpu::BroadcastedDimensions dimensions,
+			avBinaryOp_t operation)
 	{
 		if (beta == scalar::zero<U>())
 			launcher_binary_op<T, U, true>(dst, src1, src2, alpha1, alpha2, beta, dimensions, operation);
@@ -323,28 +324,29 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t binaryOp(avContextDescriptor_t context, avBinaryOp_t operation, const void *alpha1, const avTensorDescriptor_t aDesc,
+	avStatus_t cpu_binaryOp(avContextDescriptor_t context, avBinaryOp_t operation, const void *alpha1, const avTensorDescriptor_t aDesc,
 			const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *beta,
 			const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 	{
-		BroadcastedDimensions dimensions = getBroadcastDimensions(getTensor(aDesc), getTensor(bDesc));
-		switch (getTensor(cDesc).dtype())
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(cpu::getTensor(aDesc), cpu::getTensor(bDesc));
+		switch (cpu::getTensor(cDesc).dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				helper_binary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getPointer<float16>(bMem), getAlphaValue(alpha1),
-						getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
+				helper_binary_op(cpu::getPointer<float16>(cMem), cpu::getPointer<float16>(aMem), cpu::getPointer<float16>(bMem),
+						cpu::getAlphaValue(alpha1), cpu::getAlphaValue(alpha2), cpu::getBetaValue(beta), dimensions, operation);
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				helper_binary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getPointer<bfloat16>(bMem), getAlphaValue(alpha1),
-						getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
+				helper_binary_op(cpu::getPointer<bfloat16>(cMem), cpu::getPointer<bfloat16>(aMem), cpu::getPointer<bfloat16>(bMem),
+						cpu::getAlphaValue(alpha1), cpu::getAlphaValue(alpha2), cpu::getBetaValue(beta), dimensions, operation);
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				helper_binary_op(getPointer<float>(cMem), getPointer<float>(aMem), getPointer<float>(bMem), getAlphaValue(alpha1),
-						getAlphaValue(alpha2), getBetaValue(beta), dimensions, operation);
+				helper_binary_op(cpu::getPointer<float>(cMem), cpu::getPointer<float>(aMem), cpu::getPointer<float>(bMem), cpu::getAlphaValue(alpha1),
+						cpu::getAlphaValue(alpha2), cpu::getBetaValue(beta), dimensions, operation);
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				helper_binary_op(getPointer<double>(cMem), getPointer<double>(aMem), getPointer<double>(bMem), getAlphaValue<double>(alpha1),
-						getAlphaValue<double>(alpha2), getBetaValue<double>(beta), dimensions, operation);
+				helper_binary_op(cpu::getPointer<double>(cMem), cpu::getPointer<double>(aMem), cpu::getPointer<double>(bMem),
+						cpu::getAlphaValue<double>(alpha1), cpu::getAlphaValue<double>(alpha2), cpu::getBetaValue<double>(beta), dimensions,
+						operation);
 				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

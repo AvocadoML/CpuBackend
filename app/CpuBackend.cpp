@@ -53,7 +53,7 @@ class TensorWrapper
 			cpuCreateTensorDescriptor(&desc);
 			cpuSetTensorDescriptor(desc, dtype, dimensions.size(), dimensions.begin());
 
-			avSize_t size_in_bytes = getTensor(desc).sizeInBytes();
+			avSize_t size_in_bytes = cpu::getTensor(desc).sizeInBytes();
 			cpuCreateMemoryDescriptor(&mem, size_in_bytes);
 			cpuSetMemory(cpuGetDefaultContext(), mem, 0, size_in_bytes, nullptr, 0);
 		}
@@ -64,30 +64,30 @@ class TensorWrapper
 		}
 		int dimension(int idx) const noexcept
 		{
-			return getTensor(desc).dimension(idx);
+			return cpu::getTensor(desc).dimension(idx);
 		}
 		template<typename T>
 		void fill(T value)
 		{
-			assert(typeOf<T>() == getTensor(desc).dtype());
-			for (int i = 0; i < getTensor(desc).volume(); i++)
-				getPointer<T>(mem)[i] = value;
+			assert(cpu::typeOf<T>() == cpu::getTensor(desc).dtype());
+			for (int i = 0; i < cpu::getTensor(desc).volume(); i++)
+				cpu::getPointer<T>(mem)[i] = value;
 		}
 		template<typename T>
 		void set(T value, std::initializer_list<int> idx)
 		{
-			assert(typeOf<T>() == getTensor(desc).dtype());
-			getPointer<T>(mem)[getTensor(desc).getIndex(idx)] = value;
+			assert(cpu::typeOf<T>() == cpu::getTensor(desc).dtype());
+			cpu::getPointer<T>(mem)[cpu::getTensor(desc).getIndex(idx)] = value;
 		}
 		template<typename T>
 		T get(std::initializer_list<int> idx) const
 		{
-			assert(typeOf<T>() == getTensor(desc).dtype());
-			return getPointer<T>(mem)[getTensor(desc).getIndex(idx)];
+			assert(cpu::typeOf<T>() == cpu::getTensor(desc).dtype());
+			return cpu::getPointer<T>(mem)[cpu::getTensor(desc).getIndex(idx)];
 		}
-		const TensorDescriptor& tensor() const noexcept
+		const cpu::TensorDescriptor& tensor() const noexcept
 		{
-			return getTensor(desc);
+			return cpu::getTensor(desc);
 		}
 		avTensorDescriptor_t getDesc() const noexcept
 		{
@@ -100,24 +100,24 @@ class TensorWrapper
 		template<typename T = void>
 		T* data() noexcept
 		{
-			return getPointer<T>(mem);
+			return cpu::getPointer<T>(mem);
 		}
 		template<typename T = void>
 		const T* data() const noexcept
 		{
-			return getPointer<T>(mem);
+			return cpu::getPointer<T>(mem);
 		}
 		int volume() const noexcept
 		{
-			return getTensor(desc).volume();
+			return cpu::getTensor(desc).volume();
 		}
 		int sizeIntBytes() const noexcept
 		{
-			return volume() * dataTypeSize(getTensor(desc).dtype());
+			return volume() * cpu::dataTypeSize(cpu::getTensor(desc).dtype());
 		}
 		avDataType_t dtype() const noexcept
 		{
-			return getTensor(desc).dtype();
+			return cpu::getTensor(desc).dtype();
 		}
 };
 
@@ -622,7 +622,7 @@ struct InputTransform<T, 2, 5>
 		}
 };
 template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-void winograd_weight_transform(const TensorDescriptor &wDesc, const T *wMem, const TensorDescriptor &mDesc, T *mMem, bool invert)
+void winograd_weight_transform(const cpu::TensorDescriptor &wDesc, const T *wMem, const cpu::TensorDescriptor &mDesc, T *mMem, bool invert)
 {
 	const int filtersOut = wDesc.firstDim();
 	const int filtersIn = wDesc.lastDim();
@@ -671,7 +671,7 @@ void winograd_weight_transform(const TensorDescriptor &wDesc, const T *wMem, con
 	}
 }
 template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-void winograd_input_transform(const TensorDescriptor &xDesc, const T *xMem, const TensorDescriptor &mDesc, T *mMem, int2 padding, T *workspace)
+void winograd_input_transform(const cpu::TensorDescriptor &xDesc, const T *xMem, const cpu::TensorDescriptor &mDesc, T *mMem, int2 padding, T *workspace)
 {
 	const int batch_size = xDesc.dimension(0);
 	const int height = xDesc.dimension(1);
@@ -738,7 +738,7 @@ void winograd_input_transform(const TensorDescriptor &xDesc, const T *xMem, cons
 template<typename T>
 void initTensor(TensorWrapper &tensor)
 {
-	if (typeOf<T>() != tensor.dtype())
+	if (cpu::typeOf<T>() != tensor.dtype())
 		throw std::logic_error("initTensor() : data type mismatch");
 
 	for (int i = 0; i < tensor.volume(); i++)
@@ -747,7 +747,7 @@ void initTensor(TensorWrapper &tensor)
 template<typename T>
 void setTensor(TensorWrapper &tensor, T value)
 {
-	if (typeOf<T>() != tensor.dtype())
+	if (cpu::typeOf<T>() != tensor.dtype())
 		throw std::logic_error("setTensor() : data type mismatch");
 
 	for (int i = 0; i < tensor.volume(); i++)
@@ -756,7 +756,7 @@ void setTensor(TensorWrapper &tensor, T value)
 template<typename T>
 double diff(const TensorWrapper &lhs, const TensorWrapper &rhs)
 {
-	if (typeOf<T>() != lhs.dtype() or lhs.dtype() != rhs.dtype())
+	if (cpu::typeOf<T>() != lhs.dtype() or lhs.dtype() != rhs.dtype())
 		throw std::logic_error("diff() : data type mismatch");
 
 	assert(lhs.volume() == rhs.volume());

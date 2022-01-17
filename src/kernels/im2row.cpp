@@ -14,8 +14,9 @@ namespace
 {
 	using namespace avocado::backend;
 
-	void kernel_im2row_2d(const ConvolutionDescriptor &config, const TensorDescriptor &rowDesc, MemoryDescriptor &rowMem,
-			const TensorDescriptor &srcDesc, const MemoryDescriptor &srcMem, const TensorDescriptor &filterDesc, MemoryDescriptor &workspace)
+	void kernel_im2row_2d(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &rowDesc, cpu::MemoryDescriptor &rowMem,
+			const cpu::TensorDescriptor &srcDesc, const cpu::MemoryDescriptor &srcMem, const cpu::TensorDescriptor &filterDesc,
+			cpu::MemoryDescriptor &workspace)
 	{
 		const int batch_size = srcDesc.dimension(0);
 		const int input_height = srcDesc.dimension(1);
@@ -36,7 +37,7 @@ namespace
 
 		const bool no_dilation = (dilation_h == 1) and (dilation_w == 1);
 
-		const int dtype_size = dataTypeSize(srcDesc.dtype());
+		const int dtype_size = cpu::dataTypeSize(srcDesc.dtype());
 		const bool zero_padding = config.paddingWithZeros();
 
 		if (not zero_padding)
@@ -45,7 +46,7 @@ namespace
 				std::memcpy(workspace.data<uint8_t>() + i, config.padding_value.data(), dtype_size);
 		}
 
-		TensorDescriptor output_shape = getConvolutionOutputShape(config, srcDesc, filterDesc);
+		cpu::TensorDescriptor output_shape = getConvolutionOutputShape(config, srcDesc, filterDesc);
 
 		for (int b = 0; b < batch_size; b++)
 			for (int h = 0; h < output_shape.dimension(1); h++)
@@ -110,18 +111,18 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t im2row(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t filterDesc,
+	avStatus_t cpu_im2row(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t filterDesc,
 			const avTensorDescriptor_t srcDesc, const avMemoryDescriptor_t srcMem, const avTensorDescriptor_t rowDesc, avMemoryDescriptor_t rowMem)
 	{
-		switch (getTensor(filterDesc).nbDims())
+		switch (cpu::getTensor(filterDesc).nbDims())
 		{
 //			case 3: // 1D convolution
 //				kernel_im2row_1d(getConvolution(config), getTensor(rowDesc), getMemory(rowMem), getTensor(srcDesc), getMemory(srcMem),
 //						getTensor(filterDesc), getContext(context).getWorkspace());
 //				return AVOCADO_STATUS_SUCCESS;
 			case 4: // 2D convolution
-				kernel_im2row_2d(getConvolution(config), getTensor(rowDesc), getMemory(rowMem), getTensor(srcDesc), getMemory(srcMem),
-						getTensor(filterDesc), getContext(context).getWorkspace());
+				kernel_im2row_2d(cpu::getConvolution(config), cpu::getTensor(rowDesc), cpu::getMemory(rowMem), cpu::getTensor(srcDesc),
+						cpu::getMemory(srcMem), cpu::getTensor(filterDesc), cpu::getContext(context).getWorkspace());
 				return AVOCADO_STATUS_SUCCESS;
 			case 5: // 3D convolution
 				return AVOCADO_STATUS_NOT_SUPPORTED; // TODO

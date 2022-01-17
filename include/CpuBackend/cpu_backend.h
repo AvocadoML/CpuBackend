@@ -8,7 +8,7 @@
 #ifndef AVOCADO_CPU_BACKEND_H_
 #define AVOCADO_CPU_BACKEND_H_
 
-#include <backend_defs.h>
+#include "backend_defs.h"
 
 namespace avocado
 {

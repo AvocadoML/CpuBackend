@@ -220,25 +220,27 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t unaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
+	avStatus_t cpu_unaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
 			const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 	{
-		const avSize_t elements = getTensor(aDesc).volume();
-		switch (getTensor(cDesc).dtype())
+		const avSize_t elements = cpu::getTensor(aDesc).volume();
+		switch (cpu::getTensor(cDesc).dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				helper_unary_op(getPointer<float16>(cMem), getPointer<float16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements, operation);
+				helper_unary_op(cpu::getPointer<float16>(cMem), cpu::getPointer<float16>(aMem), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta),
+						elements, operation);
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				helper_unary_op(getPointer<bfloat16>(cMem), getPointer<bfloat16>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements,
-						operation);
+				helper_unary_op(cpu::getPointer<bfloat16>(cMem), cpu::getPointer<bfloat16>(aMem), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta),
+						elements, operation);
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				helper_unary_op(getPointer<float>(cMem), getPointer<float>(aMem), getAlphaValue(alpha), getBetaValue(beta), elements, operation);
+				helper_unary_op(cpu::getPointer<float>(cMem), cpu::getPointer<float>(aMem), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta),
+						elements, operation);
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				helper_unary_op(getPointer<double>(cMem), getPointer<double>(aMem), getAlphaValue<double>(alpha), getBetaValue<double>(beta),
-						elements, operation);
+				helper_unary_op(cpu::getPointer<double>(cMem), cpu::getPointer<double>(aMem), cpu::getAlphaValue<double>(alpha),
+						cpu::getBetaValue<double>(beta), elements, operation);
 				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

@@ -19,21 +19,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::changeType(context, dst, dstType, src, srcType, elements);
+					return ns_avx2::cpu_changeType(context, dst, dstType, src, srcType, elements);
 				case SimdLevel::AVX:
-					return ns_avx::changeType(context, dst, dstType, src, srcType, elements);
+					return ns_avx::cpu_changeType(context, dst, dstType, src, srcType, elements);
 				case SimdLevel::SSE41:
-					return ns_sse41::changeType(context, dst, dstType, src, srcType, elements);
+					return ns_sse41::cpu_changeType(context, dst, dstType, src, srcType, elements);
 				case SimdLevel::SSE2:
-					return ns_sse2::changeType(context, dst, dstType, src, srcType, elements);
+					return ns_sse2::cpu_changeType(context, dst, dstType, src, srcType, elements);
 				case SimdLevel::NONE:
-					return ns_none::changeType(context, dst, dstType, src, srcType, elements);
+					return ns_none::cpu_changeType(context, dst, dstType, src, srcType, elements);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::changeType(context, dst, dstType, src, srcType, elements);
+			return SIMD_NAMESPACE::cpu_changeType(context, dst, dstType, src, srcType, elements);
 #endif
 		}
 
@@ -44,21 +44,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+					return ns_avx2::cpu_concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::AVX:
-					return ns_avx::concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+					return ns_avx::cpu_concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::SSE41:
-					return ns_sse41::concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+					return ns_sse41::cpu_concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::SSE2:
-					return ns_sse2::concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+					return ns_sse2::cpu_concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::NONE:
-					return ns_none::concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+					return ns_none::cpu_concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+			return SIMD_NAMESPACE::cpu_concatTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 #endif
 		}
 
@@ -69,21 +69,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+					return ns_avx2::cpu_splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::AVX:
-					return ns_avx::splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+					return ns_avx::cpu_splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::SSE41:
-					return ns_sse41::splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+					return ns_sse41::cpu_splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::SSE2:
-					return ns_sse2::splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+					return ns_sse2::cpu_splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				case SimdLevel::NONE:
-					return ns_none::splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+					return ns_none::cpu_splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
+			return SIMD_NAMESPACE::cpu_splitTensors(context, cDesc, cMem, aDesc, aMem, nbTensors);
 #endif
 		}
 
@@ -94,21 +94,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
+					return ns_avx2::cpu_transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
 				case SimdLevel::AVX:
-					return ns_avx::transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
+					return ns_avx::cpu_transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
 				case SimdLevel::SSE41:
-					return ns_sse41::transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
+					return ns_sse41::cpu_transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
 				case SimdLevel::SSE2:
-					return ns_sse2::transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
+					return ns_sse2::cpu_transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
 				case SimdLevel::NONE:
-					return ns_none::transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
+					return ns_none::cpu_transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
+			return SIMD_NAMESPACE::cpu_transpose(context, cDesc, cMem, aDesc, aMem, newDimOrder);
 #endif
 		}
 
@@ -118,21 +118,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::scaleTensor(context, cDesc, cMem, alpha);
+					return ns_avx2::cpu_scaleTensor(context, cDesc, cMem, alpha);
 				case SimdLevel::AVX:
-					return ns_avx::scaleTensor(context, cDesc, cMem, alpha);
+					return ns_avx::cpu_scaleTensor(context, cDesc, cMem, alpha);
 				case SimdLevel::SSE41:
-					return ns_sse41::scaleTensor(context, cDesc, cMem, alpha);
+					return ns_sse41::cpu_scaleTensor(context, cDesc, cMem, alpha);
 				case SimdLevel::SSE2:
-					return ns_sse2::scaleTensor(context, cDesc, cMem, alpha);
+					return ns_sse2::cpu_scaleTensor(context, cDesc, cMem, alpha);
 				case SimdLevel::NONE:
-					return ns_none::scaleTensor(context, cDesc, cMem, alpha);
+					return ns_none::cpu_scaleTensor(context, cDesc, cMem, alpha);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::scaleTensor(context, cDesc, cMem, alpha);
+			return SIMD_NAMESPACE::cpu_scaleTensor(context, cDesc, cMem, alpha);
 #endif
 		}
 
@@ -143,21 +143,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::addScalarToTensor(context, cDesc, cMem, scalar);
+					return ns_avx2::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
 				case SimdLevel::AVX:
-					return ns_avx::addScalarToTensor(context, cDesc, cMem, scalar);
+					return ns_avx::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
 				case SimdLevel::SSE41:
-					return ns_sse41::addScalarToTensor(context, cDesc, cMem, scalar);
+					return ns_sse41::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
 				case SimdLevel::SSE2:
-					return ns_sse2::addScalarToTensor(context, cDesc, cMem, scalar);
+					return ns_sse2::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
 				case SimdLevel::NONE:
-					return ns_none::addScalarToTensor(context, cDesc, cMem, scalar);
+					return ns_none::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::addScalarToTensor(context, cDesc, cMem, scalar);
+			return SIMD_NAMESPACE::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
 #endif
 		}
 
@@ -169,21 +169,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
+					return ns_avx2::cpu_binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
 				case SimdLevel::AVX:
-					return ns_avx::binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
+					return ns_avx::cpu_binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
+					return ns_sse41::cpu_binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
+					return ns_sse2::cpu_binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
 				case SimdLevel::NONE:
-					return ns_none::binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
+					return ns_none::cpu_binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
+			return SIMD_NAMESPACE::cpu_binaryOp(context, operation, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem);
 #endif
 		}
 
@@ -194,21 +194,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+					return ns_avx2::cpu_unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::AVX:
-					return ns_avx::unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+					return ns_avx::cpu_unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+					return ns_sse41::cpu_unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+					return ns_sse2::cpu_unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::NONE:
-					return ns_none::unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+					return ns_none::cpu_unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+			return SIMD_NAMESPACE::cpu_unaryOp(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 #endif
 		}
 
@@ -219,21 +219,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+					return ns_avx2::cpu_reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::AVX:
-					return ns_avx::reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+					return ns_avx::cpu_reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+					return ns_sse41::cpu_reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+					return ns_sse2::cpu_reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				case SimdLevel::NONE:
-					return ns_none::reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+					return ns_none::cpu_reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
+			return SIMD_NAMESPACE::cpu_reduceTensor(context, operation, alpha, aDesc, aMem, beta, cDesc, cMem);
 #endif
 		}
 
@@ -245,21 +245,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
+					return ns_avx2::cpu_addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
 				case SimdLevel::AVX:
-					return ns_avx::addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
+					return ns_avx::cpu_addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
 				case SimdLevel::SSE41:
-					return ns_sse41::addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
+					return ns_sse41::cpu_addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
 				case SimdLevel::SSE2:
-					return ns_sse2::addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
+					return ns_sse2::cpu_addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
 				case SimdLevel::NONE:
-					return ns_none::addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
+					return ns_none::cpu_addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
+			return SIMD_NAMESPACE::cpu_addBias(context, alpha3, alpha1, aDesc, aMem, alpha2, bDesc, bMem, beta, cDesc, cMem, activation);
 #endif
 		}
 
@@ -271,21 +271,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_avx2::cpu_activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::AVX:
-					return ns_avx::activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_avx::cpu_activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_sse41::cpu_activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_sse2::cpu_activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::NONE:
-					return ns_none::activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_none::cpu_activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
+			return SIMD_NAMESPACE::cpu_activationForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem);
 #endif
 		}
 
@@ -297,21 +297,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_avx2::cpu_activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::AVX:
-					return ns_avx::activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_avx::cpu_activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_sse41::cpu_activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_sse2::cpu_activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::NONE:
-					return ns_none::activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_none::cpu_activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+			return SIMD_NAMESPACE::cpu_activationBackward(context, activation, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 #endif
 		}
 
@@ -322,21 +322,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_avx2::cpu_softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::AVX:
-					return ns_avx::softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_avx::cpu_softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_sse41::cpu_softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_sse2::cpu_softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::NONE:
-					return ns_none::softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_none::cpu_softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
+			return SIMD_NAMESPACE::cpu_softmaxForward(context, mode, alpha, xDesc, xMem, beta, yDesc, yMem);
 #endif
 		}
 
@@ -348,21 +348,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_avx2::cpu_softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::AVX:
-					return ns_avx::softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_avx::cpu_softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_sse41::cpu_softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_sse2::cpu_softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::NONE:
-					return ns_none::softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_none::cpu_softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+			return SIMD_NAMESPACE::cpu_softmaxBackward(context, mode, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 #endif
 		}
 
@@ -375,21 +375,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_avx2::cpu_affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::AVX:
-					return ns_avx::affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_avx::cpu_affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_sse41::cpu_affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_sse2::cpu_affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::NONE:
-					return ns_none::affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_none::cpu_affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
+			return SIMD_NAMESPACE::cpu_affineForward(context, activation, wDesc, wMem, bDesc, bMem, alpha, xDesc, xMem, beta, yDesc, yMem);
 #endif
 		}
 
@@ -402,26 +402,26 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+					return ns_avx2::cpu_batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				case SimdLevel::AVX:
-					return ns_avx::batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+					return ns_avx::cpu_batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				case SimdLevel::SSE41:
-					return ns_sse41::batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+					return ns_sse41::cpu_batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				case SimdLevel::SSE2:
-					return ns_sse2::batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+					return ns_sse2::cpu_batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				case SimdLevel::NONE:
-					return ns_none::batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+					return ns_none::cpu_batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+			return SIMD_NAMESPACE::cpu_batchNormInference(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 					biasMem, meanMem, varianceMem, epsilon);
 #endif
 		}
@@ -435,26 +435,26 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+					return ns_avx2::cpu_batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				case SimdLevel::AVX:
-					return ns_avx::batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+					return ns_avx::cpu_batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				case SimdLevel::SSE41:
-					return ns_sse41::batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+					return ns_sse41::cpu_batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				case SimdLevel::SSE2:
-					return ns_sse2::batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+					return ns_sse2::cpu_batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				case SimdLevel::NONE:
-					return ns_none::batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+					return ns_none::cpu_batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 							biasMem, meanMem, varianceMem, epsilon);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
+			return SIMD_NAMESPACE::cpu_batchNormForward(context, activation, alpha, xDesc, xMem, beta, yDesc, yMem, scaleBiasMeanVarDesc, scaleMem,
 					biasMem, meanMem, varianceMem, epsilon);
 #endif
 		}
@@ -470,26 +470,26 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
+					return ns_avx2::cpu_batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
 							scaleMeanVarDesc, scaleMem, meanMem, varianceMem, alpha2, beta2, scaleUpdateMem, biasUpdateMem, epsilon);
 				case SimdLevel::AVX:
-					return ns_avx::batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
+					return ns_avx::cpu_batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
 							scaleMeanVarDesc, scaleMem, meanMem, varianceMem, alpha2, beta2, scaleUpdateMem, biasUpdateMem, epsilon);
 				case SimdLevel::SSE41:
-					return ns_sse41::batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
+					return ns_sse41::cpu_batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
 							scaleMeanVarDesc, scaleMem, meanMem, varianceMem, alpha2, beta2, scaleUpdateMem, biasUpdateMem, epsilon);
 				case SimdLevel::SSE2:
-					return ns_sse2::batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
+					return ns_sse2::cpu_batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
 							scaleMeanVarDesc, scaleMem, meanMem, varianceMem, alpha2, beta2, scaleUpdateMem, biasUpdateMem, epsilon);
 				case SimdLevel::NONE:
-					return ns_none::batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
+					return ns_none::cpu_batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
 							scaleMeanVarDesc, scaleMem, meanMem, varianceMem, alpha2, beta2, scaleUpdateMem, biasUpdateMem, epsilon);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
+			return SIMD_NAMESPACE::cpu_batchNormBackward(context, activation, alpha, xDesc, xMem, yDesc, yMem, beta, dxDesc, dxMem, dyDesc, dyMem,
 					scaleMeanVarDesc, scaleMem, meanMem, varianceMem, alpha2, beta2, scaleUpdateMem, biasUpdateMem, epsilon);
 #endif
 		}
@@ -501,21 +501,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
+					return ns_avx2::cpu_dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
 				case SimdLevel::AVX:
-					return ns_avx::dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
+					return ns_avx::cpu_dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
 				case SimdLevel::SSE41:
-					return ns_sse41::dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
+					return ns_sse41::cpu_dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
 				case SimdLevel::SSE2:
-					return ns_sse2::dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
+					return ns_sse2::cpu_dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
 				case SimdLevel::NONE:
-					return ns_none::dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
+					return ns_none::cpu_dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
+			return SIMD_NAMESPACE::cpu_dropoutForward(context, config, xDesc, xMem, yDesc, yMem, states);
 #endif
 		}
 
@@ -526,21 +526,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
+					return ns_avx2::cpu_dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
 				case SimdLevel::AVX:
-					return ns_avx::dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
+					return ns_avx::cpu_dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
 				case SimdLevel::SSE41:
-					return ns_sse41::dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
+					return ns_sse41::cpu_dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
 				case SimdLevel::SSE2:
-					return ns_sse2::dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
+					return ns_sse2::cpu_dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
 				case SimdLevel::NONE:
-					return ns_none::dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
+					return ns_none::cpu_dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
+			return SIMD_NAMESPACE::cpu_dropoutBackward(context, config, dyDesc, dyMem, dxDesc, dxMem, states);
 #endif
 		}
 
@@ -552,21 +552,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_avx2::cpu_poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::AVX:
-					return ns_avx::poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_avx::cpu_poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_sse41::cpu_poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_sse2::cpu_poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
 				case SimdLevel::NONE:
-					return ns_none::poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
+					return ns_none::cpu_poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
+			return SIMD_NAMESPACE::cpu_poolingForward(context, config, alpha, xDesc, xMem, beta, yDesc, yMem);
 #endif
 		}
 
@@ -578,21 +578,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_avx2::cpu_poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::AVX:
-					return ns_avx::poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_avx::cpu_poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_sse41::cpu_poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_sse2::cpu_poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				case SimdLevel::NONE:
-					return ns_none::poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+					return ns_none::cpu_poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
+			return SIMD_NAMESPACE::cpu_poolingBackward(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 #endif
 		}
 
@@ -604,21 +604,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
+					return ns_avx2::cpu_im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
 				case SimdLevel::AVX:
-					return ns_avx::im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
+					return ns_avx::cpu_im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
+					return ns_sse41::cpu_im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
+					return ns_sse2::cpu_im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
 				case SimdLevel::NONE:
-					return ns_none::im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
+					return ns_none::cpu_im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
+			return SIMD_NAMESPACE::cpu_im2row(context, config, filterDesc, srcDesc, srcMem, colDesc, colMem);
 #endif
 		}
 
@@ -638,26 +638,26 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
+					return ns_avx2::cpu_convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
 							zMem, beta, yDesc, yMem, activation, workspace);
 				case SimdLevel::AVX:
-					return ns_avx::convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
+					return ns_avx::cpu_convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
 							zMem, beta, yDesc, yMem, activation, workspace);
 				case SimdLevel::SSE41:
-					return ns_sse41::convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
+					return ns_sse41::cpu_convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
 							zMem, beta, yDesc, yMem, activation, workspace);
 				case SimdLevel::SSE2:
-					return ns_sse2::convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
+					return ns_sse2::cpu_convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
 							zMem, beta, yDesc, yMem, activation, workspace);
 				case SimdLevel::NONE:
-					return ns_none::convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
+					return ns_none::cpu_convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
 							zMem, beta, yDesc, yMem, activation, workspace);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
+			return SIMD_NAMESPACE::cpu_convolutionBiasActivationForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc,
 					zMem, beta, yDesc, yMem, activation, workspace);
 #endif
 		}
@@ -670,21 +670,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
+					return ns_avx2::cpu_convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
 				case SimdLevel::AVX:
-					return ns_avx::convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
+					return ns_avx::cpu_convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
+					return ns_sse41::cpu_convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
+					return ns_sse2::cpu_convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
 				case SimdLevel::NONE:
-					return ns_none::convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
+					return ns_none::cpu_convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
+			return SIMD_NAMESPACE::cpu_convolutionForward(context, config, alpha, xDesc, xMem, wDesc, wMem, beta, yDesc, yMem);
 #endif
 		}
 
@@ -696,21 +696,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
+					return ns_avx2::cpu_convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
 				case SimdLevel::AVX:
-					return ns_avx::convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
+					return ns_avx::cpu_convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
+					return ns_sse41::cpu_convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
+					return ns_sse2::cpu_convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
 				case SimdLevel::NONE:
-					return ns_none::convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
+					return ns_none::cpu_convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
+			return SIMD_NAMESPACE::cpu_convolutionBackward(context, config, alpha, dxDesc, dxMem, wDesc, wMem, beta, dyDesc, dyMem, workspaceMem);
 #endif
 		}
 
@@ -722,21 +722,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
+					return ns_avx2::cpu_convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
 				case SimdLevel::AVX:
-					return ns_avx::convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
+					return ns_avx::cpu_convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
+					return ns_sse41::cpu_convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
+					return ns_sse2::cpu_convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
 				case SimdLevel::NONE:
-					return ns_none::convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
+					return ns_none::cpu_convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
+			return SIMD_NAMESPACE::cpu_convolutionUpdate(context, config, alpha, xDesc, xMem, dyDesc, dyMem, beta, dwDesc, dwMem);
 #endif
 		}
 
@@ -747,21 +747,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
+					return ns_avx2::cpu_metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::AVX:
-					return ns_avx::metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
+					return ns_avx::cpu_metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::SSE41:
-					return ns_sse41::metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
+					return ns_sse41::cpu_metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::SSE2:
-					return ns_sse2::metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
+					return ns_sse2::cpu_metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::NONE:
-					return ns_none::metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
+					return ns_none::cpu_metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
+			return SIMD_NAMESPACE::cpu_metricFunction(context, metricType, outputDesc, outputMem, targetDesc, targetMem, result);
 #endif
 		}
 
@@ -772,21 +772,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
+					return ns_avx2::cpu_lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::AVX:
-					return ns_avx::lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
+					return ns_avx::cpu_lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::SSE41:
-					return ns_sse41::lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
+					return ns_sse41::cpu_lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::SSE2:
-					return ns_sse2::lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
+					return ns_sse2::cpu_lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
 				case SimdLevel::NONE:
-					return ns_none::lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
+					return ns_none::cpu_lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
+			return SIMD_NAMESPACE::cpu_lossFunction(context, lossType, outputDesc, outputMem, targetDesc, targetMem, result);
 #endif
 		}
 
@@ -798,26 +798,26 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
+					return ns_avx2::cpu_lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
 							gradientMem, isFused);
 				case SimdLevel::AVX:
-					return ns_avx::lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
+					return ns_avx::cpu_lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
 							gradientMem, isFused);
 				case SimdLevel::SSE41:
-					return ns_sse41::lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
+					return ns_sse41::cpu_lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
 							gradientMem, isFused);
 				case SimdLevel::SSE2:
-					return ns_sse2::lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
+					return ns_sse2::cpu_lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
 							gradientMem, isFused);
 				case SimdLevel::NONE:
-					return ns_none::lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
+					return ns_none::cpu_lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
 							gradientMem, isFused);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
+			return SIMD_NAMESPACE::cpu_lossGradient(context, lossType, alpha, outputDesc, outputMem, targetDesc, targetMem, beta, gradientDesc,
 					gradientMem, isFused);
 #endif
 		}
@@ -834,21 +834,21 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+					return ns_avx2::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
 				case SimdLevel::AVX:
-					return ns_avx::optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+					return ns_avx::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
 				case SimdLevel::SSE41:
-					return ns_sse41::optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+					return ns_sse41::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
 				case SimdLevel::SSE2:
-					return ns_sse2::optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+					return ns_sse2::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
 				case SimdLevel::NONE:
-					return ns_none::optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+					return ns_none::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+			return SIMD_NAMESPACE::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
 #endif
 		}
 
@@ -859,25 +859,25 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
+					return ns_avx2::cpu_regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
 				case SimdLevel::AVX:
-					return ns_avx::regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
+					return ns_avx::cpu_regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
 				case SimdLevel::SSE41:
-					return ns_sse41::regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
+					return ns_sse41::cpu_regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
 				case SimdLevel::SSE2:
-					return ns_sse2::regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
+					return ns_sse2::cpu_regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
 				case SimdLevel::NONE:
-					return ns_none::regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
+					return ns_none::cpu_regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
+			return SIMD_NAMESPACE::cpu_regularizerL2(context, gradientDesc, gradientMem, weightDesc, weightMem, coefficient, offset, loss);
 #endif
 		}
 
-		avStatus_t convolution2dImplicitGemm(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
+		avStatus_t cpuConvolution2dImplicitGemm(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
 				const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2, const avTensorDescriptor_t zDesc,
 				const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem,
@@ -887,51 +887,51 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
+					return ns_avx2::cpu_convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
 				case SimdLevel::AVX:
-					return ns_avx::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
+					return ns_avx::cpu_convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
 				case SimdLevel::SSE41:
-					return ns_sse41::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
+					return ns_sse41::cpu_convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
 				case SimdLevel::SSE2:
-					return ns_sse2::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
+					return ns_sse2::cpu_convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
 				case SimdLevel::NONE:
-					return ns_none::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
+					return ns_none::cpu_convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta, yDesc, yMem, activation);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem,
+			return SIMD_NAMESPACE::cpu_convolution2dImplicitGemm(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem,
 					beta, yDesc, yMem, activation);
 #endif
 		}
 
-		avStatus_t winogradWeightTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t wDesc,
+		avStatus_t cpuWinogradWeightTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t wDesc,
 				const avMemoryDescriptor_t wMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem)
 		{
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+					return ns_avx2::cpu_winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
 				case SimdLevel::AVX:
-					return ns_avx::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+					return ns_avx::cpu_winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+					return ns_sse41::cpu_winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+					return ns_sse2::cpu_winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
 				case SimdLevel::NONE:
-					return ns_none::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+					return ns_none::cpu_winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
+			return SIMD_NAMESPACE::cpu_winogradWeightTransform(context, config, wDesc, wMem, matricesDesc, matricesMem);
 #endif
 		}
 
-		avStatus_t winogradInputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
+		avStatus_t cpuWinogradInputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
 				const avMemoryDescriptor_t xMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem,
 				const avTensorDescriptor_t wDesc)
 		{
@@ -939,25 +939,25 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+					return ns_avx2::cpu_winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::AVX:
-					return ns_avx::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+					return ns_avx::cpu_winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::SSE41:
-					return ns_sse41::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+					return ns_sse41::cpu_winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::SSE2:
-					return ns_sse2::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+					return ns_sse2::cpu_winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::NONE:
-					return ns_none::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+					return ns_none::cpu_winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+			return SIMD_NAMESPACE::cpu_winogradInputTransform(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
 #endif
 		}
 
-		avStatus_t winogradOutputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
+		avStatus_t cpuWinogradOutputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
 				const avTensorDescriptor_t matricesDesc, const avMemoryDescriptor_t matricesMem, const avTensorDescriptor_t yDesc,
 				avMemoryDescriptor_t yMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2,
 				const avTensorDescriptor_t zDesc, const avMemoryDescriptor_t zMem, const void *beta, const avActivationType_t activation,
@@ -967,26 +967,26 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
+					return ns_avx2::cpu_winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
 				case SimdLevel::AVX:
-					return ns_avx::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
+					return ns_avx::cpu_winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
 				case SimdLevel::SSE41:
-					return ns_sse41::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
+					return ns_sse41::cpu_winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
 				case SimdLevel::SSE2:
-					return ns_sse2::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
+					return ns_sse2::cpu_winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
 				case SimdLevel::NONE:
-					return ns_none::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
+					return ns_none::cpu_winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc, zMem, beta, activation, wDesc);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2,
+			return SIMD_NAMESPACE::cpu_winogradOutputTransform(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2,
 					zDesc, zMem, beta, activation, wDesc);
 #endif
 		}
 
-		avStatus_t winogradGradientTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t dyDesc,
+		avStatus_t cpuWinogradGradientTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t dyDesc,
 				const avMemoryDescriptor_t dyMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem,
 				const avTensorDescriptor_t wDesc)
 		{
@@ -994,25 +994,25 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+					return ns_avx2::cpu_winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::AVX:
-					return ns_avx::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+					return ns_avx::cpu_winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::SSE41:
-					return ns_sse41::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+					return ns_sse41::cpu_winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::SSE2:
-					return ns_sse2::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+					return ns_sse2::cpu_winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
 				case SimdLevel::NONE:
-					return ns_none::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+					return ns_none::cpu_winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+			return SIMD_NAMESPACE::cpu_winogradGradientTransform(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
 #endif
 		}
 
-		avStatus_t winogradUpdateTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
+		avStatus_t cpuWinogradUpdateTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
 				const avTensorDescriptor_t matricesDesc, const avMemoryDescriptor_t matricesMem, const void *beta, const avTensorDescriptor_t dwDesc,
 				avMemoryDescriptor_t dwMem)
 		{
@@ -1020,25 +1020,25 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+					return ns_avx2::cpu_winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
 				case SimdLevel::AVX:
-					return ns_avx::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+					return ns_avx::cpu_winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+					return ns_sse41::cpu_winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+					return ns_sse2::cpu_winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
 				case SimdLevel::NONE:
-					return ns_none::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+					return ns_none::cpu_winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+			return SIMD_NAMESPACE::cpu_winogradUpdateTransform(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
 #endif
 		}
 
-		avStatus_t winogradFusedForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
+		avStatus_t cpuWinogradFusedForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
 				const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2, const avTensorDescriptor_t zDesc,
 				const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem,
@@ -1048,26 +1048,26 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+					return ns_avx2::cpu_winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
 							yDesc, yMem, activation);
 				case SimdLevel::AVX:
-					return ns_avx::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+					return ns_avx::cpu_winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
 							yDesc, yMem, activation);
 				case SimdLevel::SSE41:
-					return ns_sse41::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+					return ns_sse41::cpu_winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
 							yDesc, yMem, activation);
 				case SimdLevel::SSE2:
-					return ns_sse2::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+					return ns_sse2::cpu_winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
 							yDesc, yMem, activation);
 				case SimdLevel::NONE:
-					return ns_none::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+					return ns_none::cpu_winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
 							yDesc, yMem, activation);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
+			return SIMD_NAMESPACE::cpu_winogradFusedForward(context, config, alpha1, xDesc, xMem, wDesc, wMem, bDesc, bMem, alpha2, zDesc, zMem, beta,
 					yDesc, yMem, activation);
 #endif
 		}

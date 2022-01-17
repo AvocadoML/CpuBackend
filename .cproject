@@ -38,6 +38,7 @@
 								<option id="gnu.cpp.compiler.option.dialect.flags.1224655335" name="Other dialect flags" superClass="gnu.cpp.compiler.option.dialect.flags" useByScannerDiscovery="true" value="-std=c++17" valueType="string"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.compiler.option.preprocessor.def.1371517770" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="USE_OPENBLAS=1"/>
+									<listOptionValue builtIn="false" value="USE_CPU=1"/>
 									<listOptionValue builtIn="false" value="DYNAMIC_ARCH=0"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2047918184" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -108,6 +109,9 @@
 								<option id="gnu.cpp.compiler.option.dialect.flags.1676327087" name="Other dialect flags" superClass="gnu.cpp.compiler.option.dialect.flags" useByScannerDiscovery="true" value="-std=c++17" valueType="string"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.compiler.option.preprocessor.def.314614047" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG"/>
+									<listOptionValue builtIn="false" value="USE_CPU=1"/>
+									<listOptionValue builtIn="false" value="USE_CUDA=0"/>
+									<listOptionValue builtIn="false" value="USE_OPENCL=0"/>
 									<listOptionValue builtIn="false" value="USE_OPENBLAS=1"/>
 									<listOptionValue builtIn="false" value="DYNAMIC_ARCH=0"/>
 								</option>
