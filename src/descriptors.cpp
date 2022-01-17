@@ -31,7 +31,14 @@
 
 namespace
 {
+	using namespace avocado::backend;
 	thread_local int number_of_threads = omp_get_num_procs();
+
+	bool isDefault(avContextDescriptor_t context)
+	{
+		auto idx = cpu::get_descriptor_index(context);
+		return idx == 0;
+	}
 }
 
 namespace avocado
@@ -71,6 +78,8 @@ namespace avocado
 		avStatus_t cpuSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, avSize_t dstSize, const void *pattern,
 				avSize_t patternSize)
 		{
+			if (not cpu::same_device_type(context, dst))
+				return AVOCADO_STATUS_DEVICE_TYPE_MISMATCH;
 			if (cpu::getPointer(dst) == nullptr)
 				return AVOCADO_STATUS_BAD_PARAM;
 			if (pattern == nullptr)
@@ -102,6 +111,8 @@ namespace avocado
 		avStatus_t cpuCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, const avMemoryDescriptor_t src,
 				avSize_t srcOffset, avSize_t count)
 		{
+			if (not cpu::same_device_type(context, dst, src))
+				return AVOCADO_STATUS_DEVICE_TYPE_MISMATCH;
 			std::memcpy(cpu::getPointer<int8_t>(dst) + dstOffset, cpu::getPointer<int8_t>(src) + srcOffset, count);
 			return AVOCADO_STATUS_SUCCESS;
 		}
@@ -116,6 +127,8 @@ namespace avocado
 		}
 		avStatus_t cpuDestroyContextDescriptor(avContextDescriptor_t desc)
 		{
+			if (isDefault(desc))
+				return AVOCADO_STATUS_BAD_PARAM;
 			return cpu::destroy<cpu::ContextDescriptor>(desc);
 		}
 		avContextDescriptor_t cpuGetDefaultContext()
