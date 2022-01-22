@@ -37,8 +37,8 @@ namespace avocado
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
 #if USE_BLIS
-			trans_t op_A = is_transpose(aOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
-			trans_t op_B = is_transpose(bOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
+			trans_t op_A = cpu::is_transpose(aOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
+			trans_t op_B = cpu::is_transpose(bOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
 #endif
 #if USE_OPENBLAS
 			CBLAS_TRANSPOSE op_A = cpu::is_transpose(aOp) ? CblasTrans : CblasNoTrans;
@@ -74,8 +74,10 @@ namespace avocado
 					const float *A_ptr = cpu::getPointer<float>(aMem);
 					const float *B_ptr = cpu::getPointer<float>(bMem);
 					float *C_ptr = cpu::getPointer<float>(cMem);
+
 #if USE_BLIS
-					bli_sgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<float*>(A_ptr), LDA, 1, const_cast<float*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
+					bli_sgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<float*>(A_ptr), LDA, 1, const_cast<float*>(B_ptr), LDB, 1, &c_beta, C_ptr,
+							LDC, 1);
 #endif
 #if USE_OPENBLAS
 					cblas_sgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, c_alpha, A_ptr, LDA, B_ptr, LDB, c_beta, C_ptr, LDC);
@@ -90,7 +92,8 @@ namespace avocado
 					const double *B_ptr = cpu::getPointer<double>(bMem);
 					double *C_ptr = cpu::getPointer<double>(cMem);
 #if USE_BLIS
-					bli_dgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<double*>(A_ptr), LDA, 1, const_cast<double*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
+					bli_dgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<double*>(A_ptr), LDA, 1, const_cast<double*>(B_ptr), LDB, 1, &c_beta, C_ptr,
+							LDC, 1);
 #endif
 #if USE_OPENBLAS
 					cblas_dgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, c_alpha, A_ptr, LDA, B_ptr, LDB, c_beta, C_ptr, LDC);
@@ -105,7 +108,8 @@ namespace avocado
 					const std::complex<float> *B_ptr = cpu::getPointer<std::complex<float>>(bMem);
 					std::complex<float> *C_ptr = cpu::getPointer<std::complex<float>>(cMem);
 #if USE_BLIS
-					bli_sgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<std::complex<float>*>(A_ptr), LDA, 1, const_cast<std::complex<float>*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
+//					bli_cgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<std::complex<float>*>(A_ptr), LDA, 1, const_cast<std::complex<float>*>(B_ptr),
+//							LDB, 1, &c_beta, C_ptr, LDC, 1);
 #endif
 #if USE_OPENBLAS
 					cblas_cgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, &c_alpha, A_ptr, LDA, B_ptr, LDB, &c_beta, C_ptr, LDC);
@@ -120,7 +124,8 @@ namespace avocado
 					const std::complex<double> *B_ptr = cpu::getPointer<std::complex<double>>(bMem);
 					std::complex<double> *C_ptr = cpu::getPointer<std::complex<double>>(cMem);
 #if USE_BLIS
-					bli_dgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<std::complex<double>*>(A_ptr), LDA, 1, const_cast<std::complex<double>*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
+//					bli_zgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<std::complex<double>*>(A_ptr), LDA, 1,
+//							const_cast<std::complex<double>*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
 #endif
 #if USE_OPENBLAS
 					cblas_zgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, &c_alpha, A_ptr, LDA, B_ptr, LDB, &c_beta, C_ptr, LDC);
@@ -136,8 +141,8 @@ namespace avocado
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
 #if USE_BLIS
-			trans_t op_A = is_transpose(aOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
-			trans_t op_B = is_transpose(bOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
+			trans_t op_A = cpu::is_transpose(aOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
+			trans_t op_B = cpu::is_transpose(bOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
 #endif
 #if USE_OPENBLAS
 			CBLAS_TRANSPOSE op_A = cpu::is_transpose(aOp) ? CblasTrans : CblasNoTrans;
@@ -178,7 +183,8 @@ namespace avocado
 						const float *B_ptr = cpu::getPointer<float>(bMem) + i * N * K;
 						float *C_ptr = cpu::getPointer<float>(cMem) + i * M * N;
 #if USE_BLIS
-						bli_sgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<float*>(A_ptr), LDA, 1, const_cast<float*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
+						bli_sgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<float*>(A_ptr), LDA, 1, const_cast<float*>(B_ptr), LDB, 1, &c_beta, C_ptr,
+								LDC, 1);
 #endif
 #if USE_OPENBLAS
 						cblas_sgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, c_alpha, A_ptr, LDA, B_ptr, LDB, c_beta, C_ptr, LDC);
@@ -196,7 +202,8 @@ namespace avocado
 						const double *B_ptr = cpu::getPointer<double>(bMem) + i * N * K;
 						double *C_ptr = cpu::getPointer<double>(cMem) + i * M * N;
 #if USE_BLIS
-						bli_dgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<double*>(A_ptr), LDA, 1, const_cast<double*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
+						bli_dgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<double*>(A_ptr), LDA, 1, const_cast<double*>(B_ptr), LDB, 1, &c_beta,
+								C_ptr, LDC, 1);
 #endif
 #if USE_OPENBLAS
 						cblas_dgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, c_alpha, A_ptr, LDA, B_ptr, LDB, c_beta, C_ptr, LDC);
@@ -214,7 +221,8 @@ namespace avocado
 						const std::complex<float> *B_ptr = cpu::getPointer<std::complex<float>>(bMem) + i * N * K;
 						std::complex<float> *C_ptr = cpu::getPointer<std::complex<float>>(cMem) + i * M * N;
 #if USE_BLIS
-						bli_sgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<std::complex<float>*>(A_ptr), LDA, 1, const_cast<std::complex<float>*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
+//						bli_cgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<std::complex<float>*>(A_ptr), LDA, 1,
+//								const_cast<std::complex<float>*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
 #endif
 #if USE_OPENBLAS
 						cblas_cgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, &c_alpha, A_ptr, LDA, B_ptr, LDB, &c_beta, C_ptr, LDC);
@@ -232,7 +240,8 @@ namespace avocado
 						const std::complex<double> *B_ptr = cpu::getPointer<std::complex<double>>(bMem) + i * N * K;
 						std::complex<double> *C_ptr = cpu::getPointer<std::complex<double>>(cMem) + i * M * N;
 #if USE_BLIS
-						bli_dgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<std::complex<double>*>(A_ptr), LDA, 1, const_cast<std::complex<double>*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
+//						bli_zgemm(op_A, op_B, M, N, K, &c_alpha, const_cast<std::complex<double>*>(A_ptr), LDA, 1,
+//								const_cast<std::complex<double>*>(B_ptr), LDB, 1, &c_beta, C_ptr, LDC, 1);
 #endif
 #if USE_OPENBLAS
 						cblas_zgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, &c_alpha, A_ptr, LDA, B_ptr, LDB, &c_beta, C_ptr, LDC);
