@@ -143,16 +143,111 @@ namespace
 			}
 	};
 
+	template<typename T, typename U>
+	void kernel_convert(T *dst, const U *src, avSize_t elements) noexcept
+	{
+		for (avSize_t i = 0; i < elements; i++)
+			dst[i] = Converter<T, U>::convert(src[i]);
+	}
+	template<typename T>
+	void convert_helper(T *dst, const void *src, avSize_t elements, avDataType_t srcType)
+	{
+		assert(dst != nullptr);
+		assert(src != nullptr);
+
+		switch (srcType)
+		{
+			case AVOCADO_DTYPE_UINT8:
+				kernel_convert(dst, reinterpret_cast<const uint8_t*>(src), elements);
+				break;
+			case AVOCADO_DTYPE_INT8:
+				kernel_convert(dst, reinterpret_cast<const int8_t*>(src), elements);
+				break;
+			case AVOCADO_DTYPE_INT16:
+				kernel_convert(dst, reinterpret_cast<const int16_t*>(src), elements);
+				break;
+			case AVOCADO_DTYPE_INT32:
+				kernel_convert(dst, reinterpret_cast<const int32_t*>(src), elements);
+				break;
+			case AVOCADO_DTYPE_INT64:
+				kernel_convert(dst, reinterpret_cast<const int64_t*>(src), elements);
+				break;
+			case AVOCADO_DTYPE_FLOAT16:
+				kernel_convert(dst, reinterpret_cast<const float16*>(src), elements);
+				break;
+			case AVOCADO_DTYPE_BFLOAT16:
+				kernel_convert(dst, reinterpret_cast<const bfloat16*>(src), elements);
+				break;
+			case AVOCADO_DTYPE_FLOAT32:
+				kernel_convert(dst, reinterpret_cast<const float*>(src), elements);
+				break;
+			case AVOCADO_DTYPE_FLOAT64:
+				kernel_convert(dst, reinterpret_cast<const double*>(src), elements);
+				break;
+			case AVOCADO_DTYPE_COMPLEX32:
+				kernel_convert(dst, reinterpret_cast<const std::complex<float>*>(src), elements);
+				break;
+			case AVOCADO_DTYPE_COMPLEX64:
+				kernel_convert(dst, reinterpret_cast<const std::complex<double>*>(src), elements);
+				break;
+			default:
+				break;
+		}
+	}
 }
 
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
+	avStatus_t cpu_changeTypeHost(avContextDescriptor_t context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
+			avSize_t elements)
+	{
+		switch (dstType)
+		{
+			case AVOCADO_DTYPE_UINT8:
+				convert_helper(reinterpret_cast<uint8_t*>(dst), src, elements, srcType);
+				break;
+			case AVOCADO_DTYPE_INT8:
+				convert_helper(reinterpret_cast<int8_t*>(dst), src, elements, srcType);
+				break;
+			case AVOCADO_DTYPE_INT16:
+				convert_helper(reinterpret_cast<int16_t*>(dst), src, elements, srcType);
+				break;
+			case AVOCADO_DTYPE_INT32:
+				convert_helper(reinterpret_cast<int32_t*>(dst), src, elements, srcType);
+				break;
+			case AVOCADO_DTYPE_INT64:
+				convert_helper(reinterpret_cast<int64_t*>(dst), src, elements, srcType);
+				break;
+			case AVOCADO_DTYPE_FLOAT16:
+				convert_helper(reinterpret_cast<float16*>(dst), src, elements, srcType);
+				break;
+			case AVOCADO_DTYPE_BFLOAT16:
+				convert_helper(reinterpret_cast<bfloat16*>(dst), src, elements, srcType);
+				break;
+			case AVOCADO_DTYPE_FLOAT32:
+				convert_helper(reinterpret_cast<float*>(dst), src, elements, srcType);
+				break;
+			case AVOCADO_DTYPE_FLOAT64:
+				convert_helper(reinterpret_cast<double*>(dst), src, elements, srcType);
+				break;
+			case AVOCADO_DTYPE_COMPLEX32:
+				convert_helper(reinterpret_cast<std::complex<float>*>(dst), src, elements, srcType);
+				break;
+			case AVOCADO_DTYPE_COMPLEX64:
+				convert_helper(reinterpret_cast<std::complex<double>*>(dst), src, elements, srcType);
+				break;
+			default:
+				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+		}
+		return AVOCADO_STATUS_SUCCESS;
+	}
+
 	avStatus_t cpu_changeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType, const avMemoryDescriptor_t src,
 			avDataType_t srcType, avSize_t elements)
 	{
-		return AVOCADO_STATUS_SUCCESS;
+		return cpu_changeTypeHost(context, cpu::getPointer(dst), dstType, cpu::getPointer(src), srcType, elements);
 	}
 } /* namespace SIMD_NAMESPACE */
 

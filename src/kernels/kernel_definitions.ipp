@@ -9,6 +9,9 @@ avocado::backend::avStatus_t cpu_changeType(avocado::backend::avContextDescripto
 		avocado::backend::avDataType_t dstType, const avocado::backend::avMemoryDescriptor_t src, avocado::backend::avDataType_t srcType,
 		avocado::backend::avSize_t elements);
 
+avocado::backend::avStatus_t cpu_changeTypeHost(avocado::backend::avContextDescriptor_t context, void *dst, avocado::backend::avDataType_t dstType,
+		const void *src, avocado::backend::avDataType_t srcType, avocado::backend::avSize_t elements);
+
 avocado::backend::avStatus_t cpu_concatTensors(avocado::backend::avContextDescriptor_t context, const avocado::backend::avTensorDescriptor_t cDesc,
 		avocado::backend::avMemoryDescriptor_t cMem, const avocado::backend::avTensorDescriptor_t aDesc[],
 		const avocado::backend::avMemoryDescriptor_t aMem[], int nbTensors);
@@ -24,11 +27,11 @@ avocado::backend::avStatus_t cpu_transpose(avocado::backend::avContextDescriptor
 avocado::backend::avStatus_t cpu_scaleTensor(avocado::backend::avContextDescriptor_t context, const avocado::backend::avTensorDescriptor_t cDesc,
 		avocado::backend::avMemoryDescriptor_t cMem, const void *alpha);
 
-avocado::backend::avStatus_t cpu_addScalarToTensor(avocado::backend::avContextDescriptor_t context, const avocado::backend::avTensorDescriptor_t cDesc,
-		avocado::backend::avMemoryDescriptor_t cMem, const void *scalar);
+avocado::backend::avStatus_t cpu_addScalarToTensor(avocado::backend::avContextDescriptor_t context,
+		const avocado::backend::avTensorDescriptor_t cDesc, avocado::backend::avMemoryDescriptor_t cMem, const void *scalar);
 
-avocado::backend::avStatus_t cpu_binaryOp(avocado::backend::avContextDescriptor_t context, avocado::backend::avBinaryOp_t operation, const void *alpha1,
-		const avocado::backend::avTensorDescriptor_t aDesc, const avocado::backend::avMemoryDescriptor_t aMem, const void *alpha2,
+avocado::backend::avStatus_t cpu_binaryOp(avocado::backend::avContextDescriptor_t context, avocado::backend::avBinaryOp_t operation,
+		const void *alpha1, const avocado::backend::avTensorDescriptor_t aDesc, const avocado::backend::avMemoryDescriptor_t aMem, const void *alpha2,
 		const avocado::backend::avTensorDescriptor_t bDesc, const avocado::backend::avMemoryDescriptor_t bMem, const void *beta,
 		const avocado::backend::avTensorDescriptor_t cDesc, avocado::backend::avMemoryDescriptor_t cMem);
 
@@ -99,19 +102,20 @@ avocado::backend::avStatus_t cpu_dropoutForward(avocado::backend::avContextDescr
 		const avocado::backend::avTensorDescriptor_t yDesc, avocado::backend::avMemoryDescriptor_t yMem,
 		avocado::backend::avMemoryDescriptor_t states);
 
-avocado::backend::avStatus_t cpu_dropoutBackward(avocado::backend::avContextDescriptor_t context, const avocado::backend::avDropoutDescriptor_t config,
-		const avocado::backend::avTensorDescriptor_t dyDesc, const avocado::backend::avMemoryDescriptor_t dyMem,
-		const avocado::backend::avTensorDescriptor_t dxDesc, avocado::backend::avMemoryDescriptor_t dxMem,
-		const avocado::backend::avTensorDescriptor_t states);
+avocado::backend::avStatus_t cpu_dropoutBackward(avocado::backend::avContextDescriptor_t context,
+		const avocado::backend::avDropoutDescriptor_t config, const avocado::backend::avTensorDescriptor_t dyDesc,
+		const avocado::backend::avMemoryDescriptor_t dyMem, const avocado::backend::avTensorDescriptor_t dxDesc,
+		avocado::backend::avMemoryDescriptor_t dxMem, const avocado::backend::avTensorDescriptor_t states);
 
 avocado::backend::avStatus_t cpu_poolingForward(avocado::backend::avContextDescriptor_t context, const avocado::backend::avPoolingDescriptor_t config,
 		const void *alpha, const avocado::backend::avTensorDescriptor_t xDesc, const avocado::backend::avMemoryDescriptor_t xMem, const void *beta,
 		const avocado::backend::avTensorDescriptor_t yDesc, avocado::backend::avMemoryDescriptor_t yMem);
 
-avocado::backend::avStatus_t cpu_poolingBackward(avocado::backend::avContextDescriptor_t context, const avocado::backend::avPoolingDescriptor_t config,
-		const void *alpha, const avocado::backend::avTensorDescriptor_t xDesc, const avocado::backend::avMemoryDescriptor_t xMem,
-		const avocado::backend::avTensorDescriptor_t dyDesc, const avocado::backend::avMemoryDescriptor_t dyMem, const void *beta,
-		const avocado::backend::avTensorDescriptor_t dxDesc, avocado::backend::avMemoryDescriptor_t dxMem);
+avocado::backend::avStatus_t cpu_poolingBackward(avocado::backend::avContextDescriptor_t context,
+		const avocado::backend::avPoolingDescriptor_t config, const void *alpha, const avocado::backend::avTensorDescriptor_t xDesc,
+		const avocado::backend::avMemoryDescriptor_t xMem, const avocado::backend::avTensorDescriptor_t dyDesc,
+		const avocado::backend::avMemoryDescriptor_t dyMem, const void *beta, const avocado::backend::avTensorDescriptor_t dxDesc,
+		avocado::backend::avMemoryDescriptor_t dxMem);
 
 avocado::backend::avStatus_t cpu_im2row(avocado::backend::avContextDescriptor_t context, const avocado::backend::avConvolutionDescriptor_t config,
 		const avocado::backend::avTensorDescriptor_t filterDesc, const avocado::backend::avTensorDescriptor_t srcDesc,
@@ -153,19 +157,20 @@ avocado::backend::avStatus_t cpu_lossFunction(avocado::backend::avContextDescrip
 		const avocado::backend::avTensorDescriptor_t outputDesc, const avocado::backend::avMemoryDescriptor_t outputMem,
 		const avocado::backend::avTensorDescriptor_t targetDesc, const avocado::backend::avMemoryDescriptor_t targetMem, void *result);
 
-avocado::backend::avStatus_t cpu_lossGradient(avocado::backend::avContextDescriptor_t context, avocado::backend::avLossType_t lossType, const void *alpha,
-		const avocado::backend::avTensorDescriptor_t outputDesc, const avocado::backend::avMemoryDescriptor_t outputMem,
+avocado::backend::avStatus_t cpu_lossGradient(avocado::backend::avContextDescriptor_t context, avocado::backend::avLossType_t lossType,
+		const void *alpha, const avocado::backend::avTensorDescriptor_t outputDesc, const avocado::backend::avMemoryDescriptor_t outputMem,
 		const avocado::backend::avTensorDescriptor_t targetDesc, const avocado::backend::avMemoryDescriptor_t targetMem, const void *beta,
 		const avocado::backend::avTensorDescriptor_t gradientDesc, avocado::backend::avMemoryDescriptor_t gradientMem, bool isFused);
 
-avocado::backend::avStatus_t cpu_optimizerLearn(avocado::backend::avContextDescriptor_t context, const avocado::backend::avOptimizerDescriptor_t config,
-		const avocado::backend::avTensorDescriptor_t wDesc, avocado::backend::avMemoryDescriptor_t wMem,
-		const avocado::backend::avTensorDescriptor_t dwDesc, const avocado::backend::avTensorDescriptor_t dwMem,
-		avocado::backend::avMemoryDescriptor_t workspace);
+avocado::backend::avStatus_t cpu_optimizerLearn(avocado::backend::avContextDescriptor_t context,
+		const avocado::backend::avOptimizerDescriptor_t config, const avocado::backend::avTensorDescriptor_t wDesc,
+		avocado::backend::avMemoryDescriptor_t wMem, const avocado::backend::avTensorDescriptor_t dwDesc,
+		const avocado::backend::avTensorDescriptor_t dwMem, avocado::backend::avMemoryDescriptor_t workspace);
 
-avocado::backend::avStatus_t cpu_regularizerL2(avocado::backend::avContextDescriptor_t context, const avocado::backend::avTensorDescriptor_t gradientDesc,
-		avocado::backend::avMemoryDescriptor_t gradientMem, const avocado::backend::avTensorDescriptor_t weightDesc,
-		const avocado::backend::avMemoryDescriptor_t weightMem, const void *coefficient, const void *offset, void *loss);
+avocado::backend::avStatus_t cpu_regularizerL2(avocado::backend::avContextDescriptor_t context,
+		const avocado::backend::avTensorDescriptor_t gradientDesc, avocado::backend::avMemoryDescriptor_t gradientMem,
+		const avocado::backend::avTensorDescriptor_t weightDesc, const avocado::backend::avMemoryDescriptor_t weightMem, const void *coefficient,
+		const void *offset, void *loss);
 
 /*
  * Additional kernels that are not exposed in the main API

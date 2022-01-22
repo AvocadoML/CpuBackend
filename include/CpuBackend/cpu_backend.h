@@ -343,6 +343,20 @@ namespace avocado
 		 * \param[in] elements
 		 *
 		 */
+		DLL_PUBLIC avStatus_t cpuChangeTypeHost(avContextDescriptor_t context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
+				avSize_t elements);
+
+		/**
+		 * \brief This routine is used to convert between data types.
+		 *
+		 * \param[in] context Context in which the operation is performed.
+		 * \param[out] dst
+		 * \param[in] dstType
+		 * \param[in] src
+		 * \param[in] srcType
+		 * \param[in] elements
+		 *
+		 */
 		DLL_PUBLIC avStatus_t cpuChangeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType,
 				const avMemoryDescriptor_t src, avDataType_t srcType, avSize_t elements);
 

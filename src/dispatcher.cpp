@@ -12,6 +12,31 @@ namespace avocado
 {
 	namespace backend
 	{
+		avStatus_t cpuChangeTypeHost(avContextDescriptor_t context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
+				avSize_t elements)
+		{
+#if DYNAMIC_ARCH
+			switch (getSimdSupport())
+			{
+				case SimdLevel::AVX2:
+					return ns_avx2::cpu_changeTypeHost(context, dst, dstType, src, srcType, elements);
+				case SimdLevel::AVX:
+					return ns_avx::cpu_changeTypeHost(context, dst, dstType, src, srcType, elements);
+				case SimdLevel::SSE41:
+					return ns_sse41::cpu_changeTypeHost(context, dst, dstType, src, srcType, elements);
+				case SimdLevel::SSE2:
+					return ns_sse2::cpu_changeTypeHost(context, dst, dstType, src, srcType, elements);
+				case SimdLevel::NONE:
+					return ns_none::cpu_changeTypeHost(context, dst, dstType, src, srcType, elements);
+				default:
+					break;
+			}
+			return AVOCADO_STATUS_NOT_SUPPORTED;
+		#else
+			return SIMD_NAMESPACE::cpu_changeTypeHost(context, dst, dstType, src, srcType, elements);
+#endif
+		}
+
 		avStatus_t cpuChangeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType, const avMemoryDescriptor_t src,
 				avDataType_t srcType, avSize_t elements)
 		{
@@ -986,9 +1011,9 @@ namespace avocado
 #endif
 		}
 
-		avStatus_t cpuWinogradGradientTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t dyDesc,
-				const avMemoryDescriptor_t dyMem, const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem,
-				const avTensorDescriptor_t wDesc)
+		avStatus_t cpuWinogradGradientTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
+				const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const avTensorDescriptor_t matricesDesc,
+				avMemoryDescriptor_t matricesMem, const avTensorDescriptor_t wDesc)
 		{
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
