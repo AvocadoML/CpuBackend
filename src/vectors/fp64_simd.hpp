@@ -293,7 +293,13 @@ namespace SIMD_NAMESPACE
 	}
 	static inline SIMD<double> operator~(SIMD<double> x) noexcept
 	{
-		return x == SIMD<double>(0.0);
+#if SUPPORTS_AVX
+		return _mm256_xor_pd(x, _mm256_castsi256_pd(constant<0xFFFFFFFFu>()));
+#elif SUPPORTS_SSE2
+		return _mm_xor_pd(x, _mm_castsi128_pd(constant<0xFFFFFFFFu>()));
+#else
+		return bitwise_cast<double>(~bitwise_cast<uint64_t>(x));
+#endif
 	}
 	static inline SIMD<double> operator!(SIMD<double> x) noexcept
 	{
