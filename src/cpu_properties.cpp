@@ -462,6 +462,8 @@ namespace avocado
 					reinterpret_cast<bool*>(result)[0] = features.HW_F16C;
 					break;
 				case AVOCADO_DEVICE_SUPPORTS_BFLOAT16:
+					reinterpret_cast<bool*>(result)[0] = features.HW_SSE41;
+					break;
 				case AVOCADO_DEVICE_SUPPORTS_SINGLE_PRECISION:
 				case AVOCADO_DEVICE_SUPPORTS_DOUBLE_PRECISION:
 					reinterpret_cast<bool*>(result)[0] = true;

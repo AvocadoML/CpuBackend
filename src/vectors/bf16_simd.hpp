@@ -56,11 +56,11 @@ namespace SIMD_NAMESPACE
 	{
 #  if SUPPORTS_AVX2
 		__m256i tmp = _mm256_srli_epi32(_mm256_castps_si256(x), 16); // shift right by 16 bits while shifting in zeros
-		return _mm_packs_epi32(get_low(tmp), get_high(tmp)); // pack 32 bits into 16 bits
+		return _mm_packus_epi32(get_low(tmp), get_high(tmp)); // pack 32 bits into 16 bits
 #  else
 		__m128i tmp_lo = _mm_srli_epi32(_mm_castps_si128(get_low(x)), 16); // shift right by 16 bits while shifting in zeros
 		__m128i tmp_hi = _mm_srli_epi32(_mm_castps_si128(get_high(x)), 16); // shift right by 16 bits while shifting in zeros
-		return _mm_packs_epi32(tmp_lo, tmp_hi); // pack 32 bits into 16 bits
+		return _mm_packus_epi32(tmp_lo, tmp_hi); // pack 32 bits into 16 bits
 #  endif
 	}
 
@@ -79,7 +79,11 @@ namespace SIMD_NAMESPACE
 	static inline __m128i float_to_bfloat16(__m128 x) noexcept
 	{
 		__m128i tmp = _mm_srli_epi32(_mm_castps_si128(x), 16); // shift right by 16 bits while shifting in zeros
-		return _mm_packs_epi32(tmp, _mm_setzero_si128()); // pack 32 bits into 16 bits
+#  if SUPPORTS_SSE41
+		return _mm_packus_epi32(tmp, _mm_setzero_si128()); // pack 32 bits into 16 bits
+#else
+		return _mm_setzero_si128();
+#endif
 	}
 
 #else
