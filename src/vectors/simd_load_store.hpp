@@ -230,19 +230,19 @@ namespace SIMD_NAMESPACE
 			case 0:
 				break;
 			case 1:
-				ptr[0] = _mm_extract_epi16(reg, 1);
+				ptr[0] = _mm_extract_epi16(reg, 0);
 				break;
 			case 2:
 			case 3:
 				_mm_store_ss(reinterpret_cast<float*>(ptr), _mm_castsi128_ps(reg));
 				if (num == 3)
-					ptr[3] = _mm_extract_epi16(reg, 3);
+					ptr[2] = _mm_extract_epi16(reg, 2);
 				break;
 			case 4:
 			case 5:
 				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
 				if (num == 5)
-					ptr[5] = _mm_extract_epi16(reg, 5);
+					ptr[4] = _mm_extract_epi16(reg, 4);
 				break;
 			case 6:
 			case 7:
@@ -251,7 +251,7 @@ namespace SIMD_NAMESPACE
 				__m128 tmp = _mm_movehl_ps(_mm_castsi128_ps(reg), _mm_castsi128_ps(reg));
 				_mm_store_ss(reinterpret_cast<float*>(ptr) + 2, tmp);
 				if (num == 7)
-					ptr[7] = _mm_extract_epi16(reg, 7);
+					ptr[6] = _mm_extract_epi16(reg, 6);
 				break;
 			}
 			case 8:
