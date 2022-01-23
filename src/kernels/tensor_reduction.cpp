@@ -41,11 +41,11 @@ namespace
 			{
 				return SIMD<T>::zero();
 			}
-			SIMD<T> accumulate(SIMD<T> &acc, SIMD<T> x) const noexcept
+			SIMD<T> accumulate(SIMD<T> acc, SIMD<T> x) const noexcept
 			{
 				return acc + x;
 			}
-			SIMD<T> combine_partial(SIMD<T> &acc, SIMD<T> x) const noexcept
+			SIMD<T> combine_partial(SIMD<T> acc, SIMD<T> x) const noexcept
 			{
 				return accumulate(acc, x);
 			}
@@ -247,7 +247,7 @@ namespace
 				}
 #pragma omp critical
 				{
-					reduction.combine_partial(result, acc);
+					result = reduction.combine_partial(result, acc);
 				}
 			}
 			T tmp = alpha * reduction.final_action_scalar(result);
@@ -258,6 +258,12 @@ namespace
 		else
 		{
 			T *master_workspace = workspace + 0;
+			for (int j = 0; j < dimensions.last; j += SIMD<T>::length)
+			{
+				const int elements_left = std::min(dimensions.last - j, SIMD<T>::length);
+				SIMD<T> tmp = reduction.init();
+				tmp.store(master_workspace + j, elements_left);
+			}
 #pragma omp parallel
 			{
 				T *thread_workspace = workspace + (1 + omp_get_thread_num()) * dimensions.last;
