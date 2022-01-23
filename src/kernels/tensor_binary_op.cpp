@@ -237,7 +237,7 @@ namespace
 							result = operation(alpha1 * lhs, alpha2 * rhs);
 							if (not ZeroBeta)
 							{
-								SIMD<T> loaded_dst(dst + i, elements_left);
+								SIMD<T> loaded_dst(dst + (i * dimensions.last + j), elements_left);
 								result = result + beta * loaded_dst;
 							}
 						}
