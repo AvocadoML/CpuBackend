@@ -202,7 +202,7 @@ namespace
 				kernel_unary_op<UnaryOpTan<T>, T, U, ZeroBeta>(dst, src, alpha, beta, elements);
 				break;
 			case AVOCADO_UNARY_OP_LOGICAL_NOT:
-				kernel_unary_op<UnaryOpLogicalNot<T>, T, U, ZeroBeta>(dst, src, alpha, beta, elements);
+				kernel_unary_op<UnaryOpLogicalNot<T>, T, U, ZeroBeta, true>(dst, src, alpha, beta, elements);
 				break;
 		}
 	}

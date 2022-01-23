@@ -10,29 +10,24 @@
 #include "../../Avocado/include/Avocado/backend/testing/testing_helpers.hpp"
 #include <CpuBackend/cpu_backend.h>
 #include <iostream>
-#include <cstring>
+#include <bitset>
+#include <x86intrin.h>
+
+#include "../src/vectors/simd_vectors.hpp"
 
 using namespace avocado::backend;
+using namespace SIMD_NAMESPACE;
 
 int main(int argc, char *argv[])
 {
-	cpuSetNumberOfThreads(1);
-//	::testing::InitGoogleTest(&argc, argv);
-//	return RUN_ALL_TESTS();
+//	cpuSetNumberOfThreads(1);
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 
-	UnaryOpTester data(0, AVOCADO_UNARY_OP_LOGICAL_NOT, { 13, 15 }, AVOCADO_DTYPE_FLOAT32);
-	float alpha = 1.0f, beta = 0.0f;
+	UnaryOpTester data(0, AVOCADO_UNARY_OP_LOGICAL_NOT, { 8 }, AVOCADO_DTYPE_FLOAT64);
+	double alpha = 1.1, beta = 0.1;
 	double diff = data.getDifference(&alpha, &beta);
 	std::cout << "diff = " << diff << '\n';
-
-	float f = 2.0f;
-	int tmp;
-	std::memcpy(&tmp, &f, 4);
-	std::cout << tmp << '\n';
-	tmp = ~tmp;
-	std::cout << tmp << '\n';
-	std::memcpy(&f, &tmp, 4);
-	std::cout << f << '\n';
 
 	std::cout << "END" << std::endl;
 	return 0;
