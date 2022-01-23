@@ -306,6 +306,20 @@ namespace SIMD_NAMESPACE
 	{
 		return (lhs < rhs) | (lhs == rhs);
 	}
+	static inline SIMD<int32_t> operator>(SIMD<int32_t> lhs, SIMD<int32_t> rhs) noexcept
+	{
+#if SUPPORTS_AVX
+		return _mm256_cmpgt_epi32(lhs, rhs);
+#elif SUPPORTS_SSE2
+		return _mm_cmplt_epi32(rhs, lhs);
+#else
+		return SIMD<int32_t>(static_cast<int32_t>(lhs) > static_cast<int32_t>(rhs) ? 0xFFFFFFFFu : 0x00000000u);
+#endif
+	}
+	static inline SIMD<int32_t> operator>=(SIMD<int32_t> lhs, SIMD<int32_t> rhs) noexcept
+	{
+		return (lhs > rhs) | (lhs == rhs);
+	}
 
 	/* 32 bit integers arithmetics */
 	static inline SIMD<int32_t> operator+(SIMD<int32_t> lhs, SIMD<int32_t> rhs) noexcept

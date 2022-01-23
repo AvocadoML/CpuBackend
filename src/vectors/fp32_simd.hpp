@@ -291,6 +291,26 @@ namespace SIMD_NAMESPACE
 		return bitwise_cast<float>(static_cast<float>(lhs) <= static_cast<float>(rhs) ? 0xFFFFFFFFu : 0x00000000u);
 #endif
 	}
+	static inline SIMD<float> operator>(SIMD<float> lhs, SIMD<float> rhs) noexcept
+	{
+#if SUPPORTS_AVX
+		return _mm256_cmp_ps(lhs, rhs, 14);
+#elif SUPPORTS_SSE2
+		return _mm_cmpgt_ps(lhs, rhs);
+#else
+		return bitwise_cast<float>(static_cast<float>(lhs) > static_cast<float>(rhs) ? 0xFFFFFFFFu : 0x00000000u);
+#endif
+	}
+	static inline SIMD<float> operator>=(SIMD<float> lhs, SIMD<float> rhs) noexcept
+	{
+#if SUPPORTS_AVX
+		return _mm256_cmp_ps(lhs, rhs, 13);
+#elif SUPPORTS_SSE2
+		return _mm_cmpge_ps(lhs, rhs);
+#else
+		return bitwise_cast<float>(static_cast<float>(lhs) >= static_cast<float>(rhs) ? 0xFFFFFFFFu : 0x00000000u);
+#endif
+	}
 	static inline SIMD<float> operator&(SIMD<float> lhs, SIMD<float> rhs) noexcept
 	{
 #if SUPPORTS_AVX

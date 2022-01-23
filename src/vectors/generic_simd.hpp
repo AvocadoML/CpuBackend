@@ -136,17 +136,6 @@ namespace SIMD_NAMESPACE
 		return lhs < rhs;
 	}
 
-	template<typename T>
-	static inline SIMD<T> operator>(SIMD<T> lhs, SIMD<T> rhs) noexcept
-	{
-		return lhs <= rhs;
-	}
-	template<typename T>
-	static inline SIMD<T> operator>=(SIMD<T> lhs, SIMD<T> rhs) noexcept
-	{
-		return lhs < rhs;
-	}
-
 	/*
 	 * Arithmetic operations
 	 */

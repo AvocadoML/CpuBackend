@@ -232,6 +232,14 @@ namespace SIMD_NAMESPACE
 	{
 		return static_cast<SIMD<float>>(lhs) <= static_cast<SIMD<float>>(rhs);
 	}
+	static inline SIMD<float16> operator>(SIMD<float16> lhs, SIMD<float16> rhs) noexcept
+	{
+		return static_cast<SIMD<float>>(lhs) > static_cast<SIMD<float>>(rhs);
+	}
+	static inline SIMD<float16> operator>=(SIMD<float16> lhs, SIMD<float16> rhs) noexcept
+	{
+		return static_cast<SIMD<float>>(lhs) >= static_cast<SIMD<float>>(rhs);
+	}
 	static inline SIMD<float16> operator&(SIMD<float16> lhs, SIMD<float16> rhs) noexcept
 	{
 		return static_cast<SIMD<float>>(lhs) & static_cast<SIMD<float>>(rhs);
