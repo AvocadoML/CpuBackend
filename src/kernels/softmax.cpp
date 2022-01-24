@@ -18,6 +18,22 @@ namespace
 	using namespace avocado::backend;
 	using namespace SIMD_NAMESPACE;
 
+	template<typename T>
+	struct limits
+	{
+			static constexpr T min_value = std::numeric_limits<T>::lowest();
+	};
+	template<>
+	struct limits<float16>
+	{
+			static constexpr float16 min_value { 0xFbffu }; // -65504
+	};
+	template<>
+	struct limits<bfloat16>
+	{
+			static constexpr bfloat16 min_value { 0xFf7fu }; //  approx. -3.402 × 10^38
+	};
+
 	template<typename T, typename U = T>
 	void kernel_softmax_forward(U alpha, const T *input, U beta, T *output, int first_dim, int last_dim, T *workspace)
 	{
@@ -27,11 +43,12 @@ namespace
 #pragma omp for
 			for (int i = 0; i < first_dim; i++)
 			{
-				SIMD<T> max_value(input[i * last_dim]);
+				SIMD<T> max_value(limits<T>::min_value);
 				for (int j = 0; j < last_dim; j += SIMD<T>::length)
 				{
 					const int elements_left = std::min(last_dim - j, SIMD<T>::length);
 					SIMD<T> loaded(input + i * last_dim + j, elements_left);
+					loaded.cutoff(elements_left, limits<T>::min_value);
 					max_value = max(max_value, loaded);
 				}
 				max_value = horizontal_max(max_value);
@@ -42,6 +59,7 @@ namespace
 					const int elements_left = std::min(last_dim - j, SIMD<T>::length);
 					SIMD<T> loaded(input + i * last_dim + j, elements_left);
 					loaded = exp(loaded - max_value);
+					loaded.cutoff(elements_left);
 					sum_value += loaded;
 					loaded.store(thread_workspace + j, elements_left);
 				}
@@ -71,7 +89,7 @@ namespace
 				}
 				else
 				{
-					sum_value = alpha / sum_value;
+					sum_value = alpha / SIMD<T>(tmp);
 					if (beta == scalar::zero<U>())
 					{
 						for (int j = 0; j < last_dim; j += SIMD<T>::length)
@@ -127,20 +145,20 @@ namespace SIMD_NAMESPACE
 		switch (cpu::getTensor(xDesc).dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				kernel_softmax_forward<float16, float>(cpu::getAlphaValue(alpha), cpu::getPointer<float16>(xDesc), cpu::getBetaValue(beta),
-						cpu::getPointer<float16>(yDesc), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<float16>());
+				kernel_softmax_forward(cpu::getAlphaValue(alpha), cpu::getPointer<float16>(xMem), cpu::getBetaValue(beta),
+						cpu::getPointer<float16>(yMem), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<float16>());
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				kernel_softmax_forward<bfloat16, float>(cpu::getAlphaValue(alpha), cpu::getPointer<bfloat16>(xDesc), cpu::getBetaValue(beta),
-						cpu::getPointer<bfloat16>(yDesc), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<bfloat16>());
+				kernel_softmax_forward(cpu::getAlphaValue(alpha), cpu::getPointer<bfloat16>(xMem), cpu::getBetaValue(beta),
+						cpu::getPointer<bfloat16>(yMem), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<bfloat16>());
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				kernel_softmax_forward<float>(cpu::getAlphaValue(alpha), cpu::getPointer<float>(xDesc), cpu::getBetaValue(beta),
-						cpu::getPointer<float>(yDesc), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<float>());
+				kernel_softmax_forward(cpu::getAlphaValue(alpha), cpu::getPointer<float>(xMem), cpu::getBetaValue(beta),
+						cpu::getPointer<float>(yMem), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<float>());
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				kernel_softmax_forward<double>(cpu::getAlphaValue<double>(alpha), cpu::getPointer<double>(xDesc), cpu::getBetaValue<double>(beta),
-						cpu::getPointer<double>(yDesc), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<double>());
+				kernel_softmax_forward(cpu::getAlphaValue<double>(alpha), cpu::getPointer<double>(xMem), cpu::getBetaValue<double>(beta),
+						cpu::getPointer<double>(yMem), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<double>());
 				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
