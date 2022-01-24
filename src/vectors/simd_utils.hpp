@@ -135,7 +135,6 @@ namespace SIMD_NAMESPACE
 		std::memcpy(&result, &x, sizeof(T));
 		return result;
 	}
-
 #if SUPPORTS_SSE41
 	static inline int get_cutoff_mask(int num) noexcept
 	{
@@ -214,6 +213,103 @@ namespace SIMD_NAMESPACE
 		}
 	}
 #endif
+
+#if SUPPORTS_AVX
+	static inline __m256 cutoff_ps(__m256 data, int num, __m256 value) noexcept
+	{
+		switch(num)
+		{
+			case 0:
+				return value;
+			case 1:
+				return _mm256_blend_ps(value, data, 1);
+			case 2:
+				return _mm256_blend_ps(value, data, 3);
+			case 3:
+				return _mm256_blend_ps(value, data, 7);
+			case 4:
+				return _mm256_blend_ps(value, data, 15);
+			case 5:
+				return _mm256_blend_ps(value, data, 31);
+			case 6:
+				return _mm256_blend_ps(value, data, 63);
+			case 7:
+				return _mm256_blend_ps(value, data, 127);
+			default:
+			case 8:
+				return data;
+		}
+	}
+	static inline __m256d cutoff_pd(__m256d data, int num, __m256d value) noexcept
+	{
+		switch(num)
+		{
+			case 0:
+				return value;
+			case 1:
+				return _mm256_blend_pd(value, data, 1);
+			case 2:
+				return _mm256_blend_pd(value, data, 3);
+			case 3:
+				return _mm256_blend_pd(value, data, 7);
+			default:
+			case 4:
+				return data;
+		}
+	}
+#elif SUPPORTS_SSE41
+	static inline __m128 cutoff_ps(__m128 data, int num, __m128 value) noexcept
+	{
+		switch(num)
+		{
+			case 0:
+				return value;
+			case 1:
+				return _mm_blend_ps(value, data, 1);
+			case 2:
+				return _mm_blend_ps(value, data, 3);
+			case 3:
+				return _mm_blend_ps(value, data, 7);
+			default:
+			case 4:
+				return data;
+		}
+	}
+	static inline __m128d cutoff_pd(__m128d data, int num, __m128d value) noexcept
+	{
+		switch(num)
+		{
+			case 0:
+				return value;
+			case 1:
+				return _mm_blend_pd(value, data, 1);
+			default:
+			case 2:
+				return data;
+		}
+	}
+#elif SUPPORTS_SSE2
+	static inline __m128 cutoff_ps(__m128 data, int num, __m128 value) noexcept
+	{
+		__m128 mask = get_cutoff_mask_ps(num);
+		return _mm_or_ps(_mm_and_ps(mask, data), _mm_andnot_ps(mask, value));
+	}
+	static inline __m128d cutoff_pd(__m128d data, int num, __m128d value) noexcept
+	{
+		__m128d mask = get_cutoff_mask_pd(num);
+		return _mm_or_pd(_mm_and_pd(mask, data), _mm_andnot_pd(mask, value));
+	}
+#else
+	static inline float cutoff_ps(float data, int num, float value) noexcept
+	{
+		return (num == 0) ? value : data;
+	}
+	static inline double cutoff_pd(double data, int num, double value) noexcept
+	{
+		return (num == 0) ? value : data;
+	}
+#endif
+
 }
 
 #endif /* VECTORS_SIMD_UTILS_HPP_ */

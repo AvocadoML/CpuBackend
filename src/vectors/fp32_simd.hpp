@@ -159,65 +159,7 @@ namespace SIMD_NAMESPACE
 			}
 			void cutoff(const int num, SIMD<float> value = zero()) noexcept
 			{
-#if SUPPORTS_AVX
-				switch(num)
-				{
-					case 0:
-						m_data = value.m_data;
-						break;
-					case 1:
-						m_data = _mm256_blend_ps(value, m_data, 1);
-						break;
-					case 2:
-						m_data = _mm256_blend_ps(value, m_data, 3);
-						break;
-					case 3:
-						m_data = _mm256_blend_ps(value, m_data, 7);
-						break;
-					case 4:
-						m_data = _mm256_blend_ps(value, m_data, 15);
-						break;
-					case 5:
-						m_data = _mm256_blend_ps(value, m_data, 31);
-						break;
-					case 6:
-						m_data = _mm256_blend_ps(value, m_data, 63);
-						break;
-					case 7:
-						m_data = _mm256_blend_ps(value, m_data, 127);
-						break;
-					default:
-					case 8:
-						m_data = _mm256_blend_ps(value, m_data, 255);
-						break;
-				}
-#elif SUPPORTS_SSE41
-				switch(num)
-				{
-					case 0:
-						m_data = value.m_data;
-						break;
-					case 1:
-						m_data = _mm_blend_ps(value, m_data, 1);
-						break;
-					case 2:
-						m_data = _mm_blend_ps(value, m_data, 3);
-						break;
-					case 3:
-						m_data = _mm_blend_ps(value, m_data, 7);
-						break;
-					default:
-					case 4:
-						m_data = _mm_blend_ps(value, m_data, 15);
-						break;
-				}
-#elif SUPPORTS_SSE2
-				__m128 mask = get_cutoff_mask_ps(num);
-				m_data = _mm_or_ps(_mm_and_ps(mask, m_data), _mm_andnot_ps(mask, value));
-#else
-				if(num == 0)
-					m_data = value.m_data;
-#endif
+				m_data = cutoff_ps(m_data, num, value.m_data);
 			}
 
 			static constexpr float scalar_zero() noexcept

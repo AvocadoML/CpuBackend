@@ -147,47 +147,7 @@ namespace SIMD_NAMESPACE
 			}
 			void cutoff(const int num, SIMD<double> value = zero()) noexcept
 			{
-#if SUPPORTS_AVX
-				switch(num)
-				{
-					case 0:
-						m_data = value.m_data;
-						break;
-					case 1:
-						m_data = _mm256_blend_pd(value, m_data, 1);
-						break;
-					case 2:
-						m_data = _mm256_blend_pd(value, m_data, 3);
-						break;
-					case 3:
-						m_data = _mm256_blend_pd(value, m_data, 7);
-						break;
-					default:
-					case 4:
-						m_data = _mm256_blend_pd(value, m_data, 15);
-						break;
-				}
-#elif SUPPORTS_SSE41
-				switch(num)
-				{
-					case 0:
-						m_data = value.m_data;
-						break;
-					case 1:
-						m_data = _mm_blend_pd(value, m_data, 1);
-						break;
-					default:
-					case 2:
-						m_data = _mm_blend_pd(value, m_data, 3);
-						break;
-				}
-#elif SUPPORTS_SSE2
-				__m128d mask = get_cutoff_mask_pd(num);
-				m_data = _mm_or_pd(_mm_and_pd(mask, m_data), _mm_andnot_pd(mask, value));
-#else
-				if(num == 0)
-					m_data = value.m_data;
-#endif
+				m_data = cutoff_pd(m_data, num, value.m_data);
 			}
 
 			static constexpr double scalar_zero() noexcept
