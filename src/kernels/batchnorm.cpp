@@ -70,7 +70,7 @@ namespace
 		prepare_scaling_factors(workspace, scaleMem, biasMem, meanMem, varianceMem, dims.last, epsilon);
 #pragma omp parallel for
 		for (int i = 0; i < dims.first; i++)
-			for (int j = 0; j < dims.last; j++)
+			for (int j = 0; j < dims.last; j += SIMD<T>::length)
 			{
 				const int elements_left = std::min(dims.last - j, SIMD<T>::length);
 				SIMD<T> input(xMem + i * dims.last + j, elements_left);
@@ -122,13 +122,13 @@ namespace
 			for (int i = 0; i < dims.first; i++)
 				for (int j = 0; j < dims.last; j += SIMD<T>::length)
 				{
-					const int elements_left = std::min(dims.last - i, SIMD<T>::length);
+					const int elements_left = std::min(dims.last - j, SIMD<T>::length);
 					SIMD<T> input(xMem + i * dims.last + j, elements_left);
 					SIMD<T> mean(meanMem + j, elements_left);
-					SIMD<T> variance(thread_workspace + i * dims.last + j, elements_left);
+					SIMD<T> variance(thread_workspace + j, elements_left);
 
 					variance += square(input - mean);
-					variance.store(thread_workspace + i, elements_left);
+					variance.store(thread_workspace + j, elements_left);
 				}
 #pragma omp critical
 			{
@@ -187,6 +187,7 @@ namespace
 					const int elements_left = std::min(dims.last - j, SIMD<T>::length);
 					SIMD<T> gradient_next(dyMem + i * dims.last + j, elements_left);
 					SIMD<T> output(yMem + i * dims.last + j, elements_left);
+
 					gradient_next = activation_backward(activation, gradient_next, output);
 					gradient_next.store(dyMem + i * dims.last + j, elements_left);
 
@@ -200,8 +201,8 @@ namespace
 					SIMD<T> tmp_d_mu(thread_d_mu + j, elements_left);
 					tmp_d_sigma += gradient_next * input;
 					tmp_d_mu += gradient_next;
-					tmp_d_sigma.store(thread_d_sigma, elements_left);
-					tmp_d_mu.store(thread_d_mu, elements_left);
+					tmp_d_sigma.store(thread_d_sigma + j, elements_left);
+					tmp_d_mu.store(thread_d_mu + j, elements_left);
 				}
 
 #pragma omp critical
@@ -214,23 +215,9 @@ namespace
 			{
 				add_arrays(dwMem, d_sigma, alpha2, beta2, dims.last);
 				add_arrays(dbMem, d_mu, alpha2, beta2, dims.last);
-
-				for (int j = 0; j < dims.last; j += SIMD<T>::length)
-				{
-					const int elements_left = std::min(dims.last - j, SIMD<T>::length);
-					SIMD<T> tmp_d_sigma(d_sigma + j, elements_left);
-					SIMD<T> tmp_d_mu(d_mu + j, elements_left);
-					SIMD<T> scale(scaleMem + j, elements_left);
-					SIMD<T> variance(varianceMem + j, elements_left);
-
-					tmp_d_sigma *= -scale * rsqrt(epsilon + variance);
-					tmp_d_mu *= -scale * rsqrt(epsilon + variance);
-
-					tmp_d_sigma.store(d_sigma, elements_left);
-					tmp_d_mu.store(d_sigma, elements_left);
-				}
 			} // here is implicit synchronization
 
+			const SIMD<T> inv_m = SIMD<T>::one() / static_cast<T>(dims.first);
 #pragma omp for
 			for (int i = 0; i < dims.first; i++)
 				for (int j = 0; j < dims.last; j += SIMD<T>::length)
@@ -247,21 +234,14 @@ namespace
 
 					SIMD<T> inv_stddev = rsqrt(epsilon + variance);
 					input = (input - mean) * inv_stddev;
-
-					SIMD<T> inv_m = SIMD<T>::one() / static_cast<T>(dims.first);
-					SIMD<T> tmp1 = scale * gradient_next * inv_stddev;
-					SIMD<T> tmp2 = tmp_d_sigma * input * inv_m;
-					SIMD<T> tmp3 = tmp_d_mu * inv_m;
-
-					tmp1 = alpha1 * (tmp1 + tmp2 + tmp3);
+					SIMD<T> tmp = alpha1 * scale * inv_stddev * (gradient_next - (tmp_d_sigma * input + tmp_d_mu) * inv_m);
 
 					if (beta1 != scalar::zero<T>())
 					{
 						SIMD<T> gradient_prev(dxMem + i * dims.last + j, elements_left);
-						tmp1 += beta1 * gradient_prev;
+						tmp += beta1 * gradient_prev;
 					}
-
-					tmp1.store(dxMem + i * dims.last + j, elements_left);
+					tmp.store(dxMem + i * dims.last + j, elements_left);
 				}
 		}
 	}
