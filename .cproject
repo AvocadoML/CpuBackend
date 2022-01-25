@@ -40,6 +40,7 @@
 									<listOptionValue builtIn="false" value="USE_OPENBLAS=1"/>
 									<listOptionValue builtIn="false" value="USE_CPU=1"/>
 									<listOptionValue builtIn="false" value="DYNAMIC_ARCH=0"/>
+									<listOptionValue builtIn="false" value="ENABLE_FAST_MATH=0"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2047918184" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -113,6 +114,7 @@
 									<listOptionValue builtIn="false" value="USE_OPENCL=0"/>
 									<listOptionValue builtIn="false" value="USE_OPENBLAS=1"/>
 									<listOptionValue builtIn="false" value="DYNAMIC_ARCH=0"/>
+									<listOptionValue builtIn="false" value="ENABLE_FAST_MATH=0"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.7072618" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -186,6 +188,7 @@
 									<listOptionValue builtIn="false" value="USE_CUDA=0"/>
 									<listOptionValue builtIn="false" value="USE_OPENCL=0"/>
 									<listOptionValue builtIn="false" value="DYNAMIC_ARCH=0"/>
+									<listOptionValue builtIn="false" value="ENABLE_FAST_MATH=0"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1403889806" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
