@@ -20,9 +20,15 @@ namespace avocado
 			double diff1 = data.getDifferenceInference(&alpha, &beta);
 			double diff2 = data.getDifferenceForward(&alpha, &beta);
 			double diff3 = data.getDifferenceBackward(&alpha, &beta);
+#if ENABLE_FAST_MATH
+			EXPECT_LT(diff1, 1.0e-1);
+			EXPECT_LT(diff2, 1.0e-1);
+			EXPECT_LT(diff3, 1.0e-1);
+#else
 			EXPECT_LT(diff1, 1.0e-4);
 			EXPECT_LT(diff2, 1.0e-4);
 			EXPECT_LT(diff3, 1.0e-3);
+#endif
 		}
 		TEST(TestBatchNorm, float64)
 		{
@@ -31,9 +37,9 @@ namespace avocado
 			double diff1 = data.getDifferenceInference(&alpha, &beta);
 			double diff2 = data.getDifferenceForward(&alpha, &beta);
 			double diff3 = data.getDifferenceBackward(&alpha, &beta);
-			EXPECT_LT(diff1, 1.0e-4);
-			EXPECT_LT(diff2, 1.0e-4);
-			EXPECT_LT(diff3, 1.0e-4);
+			EXPECT_LT(diff1, 1.0e-6);
+			EXPECT_LT(diff2, 1.0e-6);
+			EXPECT_LT(diff3, 1.0e-6);
 		}
 
 	} /* namespace backend */

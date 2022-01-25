@@ -26,22 +26,22 @@ namespace
 	void kernel_concat_tensors(const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, const avTensorDescriptor_t aDesc[],
 			const avMemoryDescriptor_t aMem[], int nbTensors)
 	{
-		const int64_t dtype_size = cpu::dataTypeSize(cpu::getTensor(cDesc).dtype());
-		const int64_t first_dim = cpu::getTensor(cDesc).volumeWithoutLastDim();
+		const int dtype_size = cpu::dataTypeSize(cpu::getTensor(cDesc).dtype());
+		const int first_dim = cpu::getTensor(cDesc).volumeWithoutLastDim();
 
-		const int64_t dst_last_dim = cpu::getTensor(cDesc).lastDim() * dtype_size;
+		const int dst_last_dim = cpu::getTensor(cDesc).lastDim() * dtype_size;
 
 #pragma omp parallel
 		{
-			int64_t last_dim_offset = 0;
+			int last_dim_offset = 0;
 			for (int k = 0; k < nbTensors; k++)
 			{
-				const int64_t src_last_dim = cpu::getTensor(aDesc[k]).lastDim() * dtype_size;
+				const int src_last_dim = cpu::getTensor(aDesc[k]).lastDim() * dtype_size;
 
 #pragma omp for nowait
-				for (int64_t i = 0; i < first_dim; i++)
-					std::memcpy(cpu::getPointer<uint8_t>(cMem) + i * dst_last_dim, cpu::getPointer<uint8_t>(aMem[k]) + i * src_last_dim,
-							src_last_dim);
+				for (int i = 0; i < first_dim; i++)
+					std::memcpy(cpu::getPointer<uint8_t>(cMem) + i * dst_last_dim + last_dim_offset,
+							cpu::getPointer<uint8_t>(aMem[k]) + i * src_last_dim, src_last_dim);
 				last_dim_offset += src_last_dim;
 			}
 		}
@@ -50,22 +50,22 @@ namespace
 	void kernel_split_tensors(const avTensorDescriptor_t cDesc[], avMemoryDescriptor_t cMem[], const avTensorDescriptor_t aDesc,
 			const avMemoryDescriptor_t aMem, int nbTensors)
 	{
-		const int64_t dtype_size = cpu::dataTypeSize(cpu::getTensor(aDesc).dtype());
-		const avSize_t first_dim = cpu::getTensor(aDesc).volumeWithoutLastDim();
+		const int dtype_size = cpu::dataTypeSize(cpu::getTensor(aDesc).dtype());
+		const int first_dim = cpu::getTensor(aDesc).volumeWithoutLastDim();
 
-		const avSize_t src_last_dim = cpu::getTensor(aDesc).lastDim() * dtype_size;
+		const int src_last_dim = cpu::getTensor(aDesc).lastDim() * dtype_size;
 
 #pragma omp parallel
 		{
-			int64_t last_dim_offset = 0;
+			int last_dim_offset = 0;
 			for (int k = 0; k < nbTensors; k++)
 			{
-				const int64_t dst_last_dim = cpu::getTensor(cDesc[k]).lastDim() * dtype_size;
+				const int dst_last_dim = cpu::getTensor(cDesc[k]).lastDim() * dtype_size;
 
 #pragma omp for nowait
-				for (int64_t i = 0; i < first_dim; i++)
-					std::memcpy(cpu::getPointer<uint8_t>(cMem[k]) + i * dst_last_dim, cpu::getPointer<uint8_t>(aMem) + i * src_last_dim,
-							dst_last_dim);
+				for (int i = 0; i < first_dim; i++)
+					std::memcpy(cpu::getPointer<uint8_t>(cMem[k]) + i * dst_last_dim,
+							cpu::getPointer<uint8_t>(aMem) + i * src_last_dim + last_dim_offset, dst_last_dim);
 				last_dim_offset += dst_last_dim;
 			}
 		}
@@ -132,7 +132,7 @@ namespace
 	void kernel_add_bias(T *dst, U alpha3, U alpha1, const V *src1, U alpha2, const U *src2, U beta, cpu::BroadcastedDimensions dims,
 			avActivationType_t type) noexcept
 	{
-//		if (beta == zero<U>())
+//		if (beta == scalar::zero<U>())
 //			clear(dst, volume(dims));
 //
 //		for (int64_t i = 0; i < dims.first; i++)

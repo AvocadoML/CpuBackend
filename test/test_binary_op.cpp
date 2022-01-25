@@ -46,9 +46,9 @@ namespace avocado
 				GTEST_SKIP();
 			BinaryOpTester data(0, GetParam(), { 23, 45 }, AVOCADO_DTYPE_FLOAT32);
 			float alpha1 = 1.1f, alpha2 = 1.2f, beta = 0.1f;
-			EXPECT_LT(data.getDifferenceSame(&alpha1, &alpha2, &beta), 1.0e-4);
-			EXPECT_LT(data.getDifference1D(&alpha1, &alpha2, &beta), 1.0e-4);
-			EXPECT_LT(data.getDifferenceSingle(&alpha1, &alpha2, &beta), 1.0e-4);
+			EXPECT_LT(data.getDifferenceSame(&alpha1, &alpha2, &beta), 2.0e-4);
+			EXPECT_LT(data.getDifference1D(&alpha1, &alpha2, &beta), 2.0e-4);
+			EXPECT_LT(data.getDifferenceSingle(&alpha1, &alpha2, &beta), 2.0e-4);
 		}
 		TEST_P(TestBinaryOp, float64)
 		{
