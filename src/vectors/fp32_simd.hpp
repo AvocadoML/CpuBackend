@@ -347,7 +347,13 @@ namespace SIMD_NAMESPACE
 	static inline SIMD<float> operator/(SIMD<float> lhs, SIMD<float> rhs) noexcept
 	{
 #if ENABLE_FAST_MATH
-		return lhs * rcp(rhs);
+#  if SUPPORTS_AVX
+		return _mm256_mul_ps(lhs, _mm256_rcp_ps(rhs));
+#  elif SUPPORTS_SSE2
+		return _mm_mul_ps(lhs, _mm_rcp_ps(rhs));
+#  else
+		return static_cast<float>(lhs) / static_cast<float>(rhs);
+#  endif
 #else
 # if SUPPORTS_AVX
 		return _mm256_div_ps(lhs, rhs);
