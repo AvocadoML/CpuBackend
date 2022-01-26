@@ -394,22 +394,27 @@ namespace avocado
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const int newDimOrder[]);
 
 		/**
+		 * In-place operation is possible.
 		 * \param[in] context Context in which the operation is performed.
+		 * \param[in] aDesc
+		 * \param[in] aMem
+		 * \param[in] alpha
 		 * \param[in] cDesc
 		 * \param[out] cMem
-		 * \param[in] alpha
 		 */
-		DLL_PUBLIC avStatus_t cpuScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
-				const void *alpha);
+		DLL_PUBLIC avStatus_t cpuScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
+				const void *alpha, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
+		 * \param[in] aDesc
+		 * \param[in] aMem
+		 * \param[in] scalar
 		 * \param[in] cDesc
 		 * \param[out] cMem
-		 * \param[in] scalar
 		 */
-		DLL_PUBLIC avStatus_t cpuAddScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
-				const void *scalar);
+		DLL_PUBLIC avStatus_t cpuAddScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
+				const void *scalar, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.

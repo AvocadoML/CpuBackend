@@ -137,52 +137,53 @@ namespace avocado
 #endif
 		}
 
-		avStatus_t cpuScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, const void *alpha)
+		avStatus_t cpuScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
+				const void *alpha, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::cpu_scaleTensor(context, cDesc, cMem, alpha);
+					return ns_avx2::cpu_scaleTensor(context, aDesc, aMem, alpha, cDesc, cMem);
 				case SimdLevel::AVX:
-					return ns_avx::cpu_scaleTensor(context, cDesc, cMem, alpha);
+					return ns_avx::cpu_scaleTensor(context, aDesc, aMem, alpha, cDesc, cMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::cpu_scaleTensor(context, cDesc, cMem, alpha);
+					return ns_sse41::cpu_scaleTensor(context, aDesc, aMem, alpha, cDesc, cMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::cpu_scaleTensor(context, cDesc, cMem, alpha);
+					return ns_sse2::cpu_scaleTensor(context, aDesc, aMem, alpha, cDesc, cMem);
 				case SimdLevel::NONE:
-					return ns_none::cpu_scaleTensor(context, cDesc, cMem, alpha);
+					return ns_none::cpu_scaleTensor(context, aDesc, aMem, alpha, cDesc, cMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::cpu_scaleTensor(context, cDesc, cMem, alpha);
+			return SIMD_NAMESPACE::cpu_scaleTensor(context, aDesc, aMem, alpha, cDesc, cMem);
 #endif
 		}
 
-		avStatus_t cpuAddScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
-				const void *scalar)
+		avStatus_t cpuAddScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
+				const void *scalar, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
+					return ns_avx2::cpu_addScalarToTensor(context, aDesc, aMem, scalar, cDesc, cMem);
 				case SimdLevel::AVX:
-					return ns_avx::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
+					return ns_avx::cpu_addScalarToTensor(context, aDesc, aMem, scalar, cDesc, cMem);
 				case SimdLevel::SSE41:
-					return ns_sse41::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
+					return ns_sse41::cpu_addScalarToTensor(context, aDesc, aMem, scalar, cDesc, cMem);
 				case SimdLevel::SSE2:
-					return ns_sse2::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
+					return ns_sse2::cpu_addScalarToTensor(context, aDesc, aMem, scalar, cDesc, cMem);
 				case SimdLevel::NONE:
-					return ns_none::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
+					return ns_none::cpu_addScalarToTensor(context, aDesc, aMem, scalar, cDesc, cMem);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::cpu_addScalarToTensor(context, cDesc, cMem, scalar);
+			return SIMD_NAMESPACE::cpu_addScalarToTensor(context, aDesc, aMem, scalar, cDesc, cMem);
 #endif
 		}
 

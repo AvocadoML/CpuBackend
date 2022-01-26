@@ -10,6 +10,7 @@
 
 #include "../vectors/simd_vectors.hpp"
 #include "../utils.hpp"
+#include "activation.hpp"
 
 #include <omp.h>
 
@@ -104,47 +105,89 @@ namespace
 	}
 
 	template<typename T, typename U>
-	void kernel_scale_tensor(T *dst, U value, int elements) noexcept
+	void kernel_scale_tensor(T *dst, const T *src, U value, int elements) noexcept
 	{
 #pragma omp parallel for
 		for (int i = 0; i < elements; i += SIMD<T>::length)
 		{
 			const int elements_left = std::min(elements - i, SIMD<T>::length);
-			SIMD<T> data(dst + i, elements_left);
+			SIMD<T> data(src + i, elements_left);
 			data = data * value;
 			data.store(dst + i, elements_left);
 		}
 	}
 	template<typename T, typename U>
-	void kernel_add_scalar_to_tensor(T *dst, U scalar, int elements) noexcept
+	void kernel_add_scalar_to_tensor(T *dst, const T *src, U scalar, int elements) noexcept
 	{
 #pragma omp parallel for
 		for (int i = 0; i < elements; i += SIMD<T>::length)
 		{
 			const int elements_left = std::min(elements - i, SIMD<T>::length);
-			SIMD<T> data(dst + i, elements_left);
+			SIMD<T> data(src + i, elements_left);
 			data = data + scalar;
 			data.store(dst + i, elements_left);
 		}
 	}
 
-	template<typename T, typename U, typename V>
-	void kernel_add_bias(T *dst, U alpha3, U alpha1, const V *src1, U alpha2, const U *src2, U beta, cpu::BroadcastedDimensions dims,
-			avActivationType_t type) noexcept
+	template<class Activation, typename T, typename U, typename V>
+	void kernel_add_bias(T *dst, U alpha3, U alpha1, const V *src, U alpha2, const U *bias, U beta, cpu::BroadcastedDimensions dims) noexcept
 	{
-//		if (beta == scalar::zero<U>())
-//			clear(dst, volume(dims));
-//
-//		for (int64_t i = 0; i < dims.first; i++)
-//			for (int64_t j = 0; j < dims.last; j++)
-//			{
-//				U lhs = alpha1 * static_cast<U>(src1[i * dims.last + j]);
-//				U rhs = alpha2 * static_cast<U>(src2[j]);
-//				U tmp = activation_forward(type, lhs + rhs);
-//				dst[i * dims.last + j] = Store<T, U>::store(alpha3 * tmp + beta * static_cast<U>(dst[i * dims.last + j]));
-//			}
+		Activation activation;
+//#pragma omp parallel for
+		for (int i = 0; i < dims.first; i++)
+			for (int j = 0; j < dims.last; j += SIMD<T>::length)
+			{
+				const int elements_left = std::min(dims.last - j, SIMD<T>::length);
+				SIMD<T> lhs(src + i * dims.last + j, elements_left);
+				SIMD<T> rhs(bias + j, elements_left);
+				SIMD<T> result = alpha3 * activation.forward(lhs * alpha1 + rhs * alpha2);
+				if (beta != scalar::zero<U>())
+				{
+					SIMD<T> tmp(dst + i * dims.last + j, elements_left);
+					result += beta * tmp;
+				}
+				result.store(dst + i * dims.last + j, elements_left);
+			}
 	}
 
+	template<typename T, typename U, typename V>
+	avStatus_t launcher_add_bias(T *dst, U alpha3, U alpha1, const V *src, U alpha2, const U *bias, U beta, cpu::BroadcastedDimensions dims,
+			avActivationType_t activation) noexcept
+	{
+		switch (activation)
+		{
+			case AVOCADO_ACTIVATION_LINEAR:
+				kernel_add_bias<ActivationLinear<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				break;
+			case AVOCADO_ACTIVATION_SIGMOID:
+				kernel_add_bias<ActivationSigmoid<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				break;
+			case AVOCADO_ACTIVATION_TANH:
+				kernel_add_bias<ActivationTanh<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				break;
+			case AVOCADO_ACTIVATION_RELU:
+				kernel_add_bias<ActivationRelu<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				break;
+			case AVOCADO_ACTIVATION_SELU:
+				kernel_add_bias<ActivationSelu<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				break;
+			case AVOCADO_ACTIVATION_ELU:
+				kernel_add_bias<ActivationElu<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				break;
+			case AVOCADO_ACTIVATION_EXPONENTIAL:
+				kernel_add_bias<ActivationExponential<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				break;
+			case AVOCADO_ACTIVATION_SOFTPLUS:
+				kernel_add_bias<ActivationSoftplus<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				break;
+			case AVOCADO_ACTIVATION_SOFTSIGN:
+				kernel_add_bias<ActivationSoftsign<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				break;
+			default:
+				return AVOCADO_STATUS_BAD_PARAM;
+		}
+		return AVOCADO_STATUS_SUCCESS;
+	}
 }
 
 namespace SIMD_NAMESPACE
@@ -209,88 +252,93 @@ namespace SIMD_NAMESPACE
 		return AVOCADO_STATUS_SUCCESS;
 	}
 
-	avStatus_t cpu_scaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, const void *alpha)
+	avStatus_t cpu_scaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *alpha,
+			const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 	{
 		const avSize_t elements = cpu::getTensor(cDesc).volume();
 		switch (cpu::getTensor(cDesc).dtype())
 		{
-//				case AVOCADO_DTYPE_UINT8:
-//					kernel_scale_tensor(cpu::getPointer<uint8_t>(cMem), cpu::getAlphaValue(alpha), elements);
-//					break;
-//				case AVOCADO_DTYPE_INT8:
-//					kernel_scale_tensor(cpu::getPointer<int8_t>(cMem), cpu::getAlphaValue(alpha), elements);
-//					break;
-//				case AVOCADO_DTYPE_INT16:
-//					kernel_scale_tensor(cpu::getPointer<int16_t>(cMem), cpu::getAlphaValue(alpha), elements);
-//					break;
-//				case AVOCADO_DTYPE_INT32:
-//					kernel_scale_tensor(cpu::getPointer<int32_t>(cMem), cpu::getAlphaValue(alpha), elements);
-//					break;
-//				case AVOCADO_DTYPE_INT64:
-//					kernel_scale_tensor(cpu::getPointer<int64_t>(cMem), cpu::getAlphaValue(alpha), elements);
-//					break;
+//			case AVOCADO_DTYPE_UINT8:
+//				kernel_scale_tensor(cpu::getPointer<uint8_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT8:
+//				kernel_scale_tensor(cpu::getPointer<int8_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT16:
+//				kernel_scale_tensor(cpu::getPointer<int16_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT32:
+//				kernel_scale_tensor(cpu::getPointer<int32_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT64:
+//				kernel_scale_tensor(cpu::getPointer<int64_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
 			case AVOCADO_DTYPE_FLOAT16:
-				kernel_scale_tensor(cpu::getPointer<float16>(cMem), cpu::getAlphaValue(alpha), elements);
+				kernel_scale_tensor(cpu::getPointer<float16>(cMem), cpu::getPointer<float16>(aMem), cpu::getAlphaValue(alpha), elements);
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				kernel_scale_tensor(cpu::getPointer<bfloat16>(cMem), cpu::getAlphaValue(alpha), elements);
+				kernel_scale_tensor(cpu::getPointer<bfloat16>(cMem), cpu::getPointer<bfloat16>(aMem), cpu::getAlphaValue(alpha), elements);
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				kernel_scale_tensor(cpu::getPointer<float>(cMem), cpu::getAlphaValue(alpha), elements);
+				kernel_scale_tensor(cpu::getPointer<float>(cMem), cpu::getPointer<float>(aMem), cpu::getAlphaValue(alpha), elements);
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				kernel_scale_tensor(cpu::getPointer<double>(cMem), cpu::getAlphaValue<double>(alpha), elements);
+				kernel_scale_tensor(cpu::getPointer<double>(cMem), cpu::getPointer<double>(aMem), cpu::getAlphaValue<double>(alpha), elements);
 				break;
-//				case AVOCADO_DTYPE_COMPLEX32:
-//					kernel_scale_tensor(cpu::getPointer<std::complex<float>>(cMem), cpu::getAlphaValue<std::complex<float>>(alpha), elements);
-//					break;
-//				case AVOCADO_DTYPE_COMPLEX64:
-//					kernel_scale_tensor(cpu::getPointer<std::complex<double>>(cMem), cpu::getAlphaValue<std::complex<double>>(alpha), elements);
-//					break;
+//			case AVOCADO_DTYPE_COMPLEX32:
+//				kernel_scale_tensor(cpu::getPointer<std::complex<float>>(cMem), cpu::getAlphaValue<std::complex<float>>(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_COMPLEX64:
+//				kernel_scale_tensor(cpu::getPointer<std::complex<double>>(cMem), cpu::getAlphaValue<std::complex<double>>(alpha), elements);
+//				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
 
-	avStatus_t cpu_addScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, const void *scalar)
+	avStatus_t cpu_addScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
+			const void *scalar, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 	{
 		const avSize_t elements = cpu::getTensor(cDesc).volume();
 		switch (cpu::getTensor(cDesc).dtype())
 		{
-//				case AVOCADO_DTYPE_UINT8:
-//					kernel_add_scalar_to_tensor(getPointer<uint8_t>(cMem), scalar, elements);
-//					break;
-//				case AVOCADO_DTYPE_INT8:
-//					kernel_add_scalar_to_tensor(getPointer<int8_t>(cMem), scalar, elements);
-//					break;
-//				case AVOCADO_DTYPE_INT16:
-//					kernel_add_scalar_to_tensor(getPointer<int16_t>(cMem), scalar, elements);
-//					break;
-//				case AVOCADO_DTYPE_INT32:
-//					kernel_add_scalar_to_tensor(getPointer<int32_t>(cMem), scalar, elements);
-//					break;
-//				case AVOCADO_DTYPE_INT64:
-//					kernel_add_scalar_to_tensor(getPointer<int64_t>(cMem), scalar, elements);
-//					break;
+//			case AVOCADO_DTYPE_UINT8:
+//				kernel_add_scalar_to_tensor(getPointer<uint8_t>(cMem), scalar, elements);
+//				break;
+//			case AVOCADO_DTYPE_INT8:
+//				kernel_add_scalar_to_tensor(getPointer<int8_t>(cMem), scalar, elements);
+//				break;
+//			case AVOCADO_DTYPE_INT16:
+//				kernel_add_scalar_to_tensor(getPointer<int16_t>(cMem), scalar, elements);
+//				break;
+//			case AVOCADO_DTYPE_INT32:
+//				kernel_add_scalar_to_tensor(getPointer<int32_t>(cMem), scalar, elements);
+//				break;
+//			case AVOCADO_DTYPE_INT64:
+//				kernel_add_scalar_to_tensor(getPointer<int64_t>(cMem), scalar, elements);
+//				break;
 			case AVOCADO_DTYPE_FLOAT16:
-				kernel_add_scalar_to_tensor(cpu::getPointer<float16>(cMem), cpu::getScalarValue<float>(scalar), elements);
+				kernel_add_scalar_to_tensor(cpu::getPointer<float16>(cMem), cpu::getPointer<float16>(aMem), cpu::getScalarValue<float>(scalar),
+						elements);
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				kernel_add_scalar_to_tensor(cpu::getPointer<bfloat16>(cMem), cpu::getScalarValue<float>(scalar), elements);
+				kernel_add_scalar_to_tensor(cpu::getPointer<bfloat16>(cMem), cpu::getPointer<bfloat16>(aMem), cpu::getScalarValue<float>(scalar),
+						elements);
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				kernel_add_scalar_to_tensor(cpu::getPointer<float>(cMem), cpu::getScalarValue<float>(scalar), elements);
+				kernel_add_scalar_to_tensor(cpu::getPointer<float>(cMem), cpu::getPointer<float>(aMem), cpu::getScalarValue<float>(scalar), elements);
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				kernel_add_scalar_to_tensor(cpu::getPointer<double>(cMem), cpu::getScalarValue<double>(scalar), elements);
+				kernel_add_scalar_to_tensor(cpu::getPointer<double>(cMem), cpu::getPointer<double>(aMem), cpu::getScalarValue<double>(scalar),
+						elements);
 				break;
-//				case AVOCADO_DTYPE_COMPLEX32:
-//					kernel_add_scalar_to_tensor(getPointer<std::complex<float>>(cMem), scalar, elements);
-//					break;
-//				case AVOCADO_DTYPE_COMPLEX64:
-//					kernel_add_scalar_to_tensor(getPointer<std::complex<double>>(cMem), scalar, elements);
-//					break;
+//			case AVOCADO_DTYPE_COMPLEX32:
+//				kernel_add_scalar_to_tensor(getPointer<std::complex<float>>(cMem), scalar, elements);
+//				break;
+//			case AVOCADO_DTYPE_COMPLEX64:
+//				kernel_add_scalar_to_tensor(getPointer<std::complex<double>>(cMem), scalar, elements);
+//				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
@@ -301,7 +349,50 @@ namespace SIMD_NAMESPACE
 			const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *beta,
 			const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, avActivationType_t activation)
 	{
-		return AVOCADO_STATUS_NOT_SUPPORTED;
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(cpu::getTensor(aDesc), cpu::getTensor(bDesc));
+		switch (cpu::getTensor(cDesc).dtype())
+		{
+//			case AVOCADO_DTYPE_UINT8:
+//				kernel_scale_tensor(cpu::getPointer<uint8_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT8:
+//				kernel_scale_tensor(cpu::getPointer<int8_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT16:
+//				kernel_scale_tensor(cpu::getPointer<int16_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT32:
+//				kernel_scale_tensor(cpu::getPointer<int32_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT64:
+//				kernel_scale_tensor(cpu::getPointer<int64_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+			case AVOCADO_DTYPE_FLOAT16:
+				return launcher_add_bias(cpu::getPointer<float16>(cMem), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1),
+						cpu::getPointer<float16>(aMem), cpu::getAlphaValue(alpha2), cpu::getPointer<float>(bMem), cpu::getBetaValue(beta), dimensions,
+						activation);
+			case AVOCADO_DTYPE_BFLOAT16:
+				return launcher_add_bias(cpu::getPointer<bfloat16>(cMem), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1),
+						cpu::getPointer<bfloat16>(aMem), cpu::getAlphaValue(alpha2), cpu::getPointer<float>(bMem), cpu::getBetaValue(beta), dimensions,
+						activation);
+			case AVOCADO_DTYPE_FLOAT32:
+				return launcher_add_bias(cpu::getPointer<float>(cMem), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1),
+						cpu::getPointer<float>(aMem), cpu::getAlphaValue(alpha2), cpu::getPointer<float>(bMem), cpu::getBetaValue(beta), dimensions,
+						activation);
+			case AVOCADO_DTYPE_FLOAT64:
+				return launcher_add_bias(cpu::getPointer<double>(cMem), cpu::getAlphaValue<double>(alpha3), cpu::getAlphaValue<double>(alpha1),
+						cpu::getPointer<double>(aMem), cpu::getAlphaValue<double>(alpha2), cpu::getPointer<double>(bMem),
+						cpu::getBetaValue<double>(beta), dimensions, activation);
+//			case AVOCADO_DTYPE_COMPLEX32:
+//				kernel_scale_tensor(cpu::getPointer<std::complex<float>>(cMem), cpu::getAlphaValue<std::complex<float>>(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_COMPLEX64:
+//				kernel_scale_tensor(cpu::getPointer<std::complex<double>>(cMem), cpu::getAlphaValue<std::complex<double>>(alpha), elements);
+//				break;
+			default:
+				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+		}
+		return AVOCADO_STATUS_SUCCESS;
 	}
 
 } /* namespace SIMD_NAMESPACE */

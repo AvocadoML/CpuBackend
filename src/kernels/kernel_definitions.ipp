@@ -24,11 +24,13 @@ avocado::backend::avStatus_t cpu_transpose(avocado::backend::avContextDescriptor
 		avocado::backend::avMemoryDescriptor_t cMem, const avocado::backend::avTensorDescriptor_t aDesc,
 		const avocado::backend::avMemoryDescriptor_t aMem, const int newDimOrder[]);
 
-avocado::backend::avStatus_t cpu_scaleTensor(avocado::backend::avContextDescriptor_t context, const avocado::backend::avTensorDescriptor_t cDesc,
-		avocado::backend::avMemoryDescriptor_t cMem, const void *alpha);
+avocado::backend::avStatus_t cpu_scaleTensor(avocado::backend::avContextDescriptor_t context, const avocado::backend::avTensorDescriptor_t aDesc,
+		const avocado::backend::avMemoryDescriptor_t aMem, const void *alpha, const avocado::backend::avTensorDescriptor_t cDesc,
+		avocado::backend::avMemoryDescriptor_t cMem);
 
 avocado::backend::avStatus_t cpu_addScalarToTensor(avocado::backend::avContextDescriptor_t context,
-		const avocado::backend::avTensorDescriptor_t cDesc, avocado::backend::avMemoryDescriptor_t cMem, const void *scalar);
+		const avocado::backend::avTensorDescriptor_t aDesc, const avocado::backend::avMemoryDescriptor_t aMem, const void *scalar,
+		const avocado::backend::avTensorDescriptor_t cDesc, avocado::backend::avMemoryDescriptor_t cMem);
 
 avocado::backend::avStatus_t cpu_binaryOp(avocado::backend::avContextDescriptor_t context, avocado::backend::avBinaryOp_t operation,
 		const void *alpha1, const avocado::backend::avTensorDescriptor_t aDesc, const avocado::backend::avMemoryDescriptor_t aMem, const void *alpha2,
