@@ -133,7 +133,7 @@ namespace
 	void kernel_add_bias(T *dst, U alpha3, U alpha1, const V *src, U alpha2, const U *bias, U beta, cpu::BroadcastedDimensions dims) noexcept
 	{
 		Activation activation;
-//#pragma omp parallel for
+#pragma omp parallel for
 		for (int i = 0; i < dims.first; i++)
 			for (int j = 0; j < dims.last; j += SIMD<T>::length)
 			{

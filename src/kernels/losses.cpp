@@ -35,14 +35,14 @@ namespace
 	{
 			SIMD<T> loss(SIMD<T> output, SIMD<T> target) const noexcept
 			{
-				return -target * log(SIMD<T>::epsilon() + output) + (SIMD<T>::one() - target) * log(SIMD<T>::epsilon() + SIMD<T>::one() - output);
+				return -target * log(SIMD<T>::epsilon() + output) - (SIMD<T>::one() - target) * log(SIMD<T>::epsilon() + SIMD<T>::one() - output);
 			}
 			SIMD<T> gradient(SIMD<T> output, SIMD<T> target) const noexcept
 			{
 				if (Fused)
 					return output - target;
 				else
-					return output - target / (SIMD<T>::epsilon() + output * (SIMD<T>::one() - output));
+					return (output - target) / (SIMD<T>::epsilon() + output * (SIMD<T>::one() - output));
 			}
 	};
 	template<typename T, bool Fused = false>
@@ -83,7 +83,7 @@ namespace
 		return horizontal_add(result);
 	}
 	template<class LossFunction, typename T>
-	void kernel_gradient(T *gradientMem, const T *outputMem, const T *targetMem, int elements, T inv_batch_size) noexcept
+	void kernel_gradient(T *gradientMem, const T *outputMem, const T *targetMem, int elements, T alpha, T beta) noexcept
 	{
 		LossFunction loss_function;
 #pragma omp parallel for
@@ -92,7 +92,12 @@ namespace
 			const int elements_left = std::min(elements - i, SIMD<T>::length);
 			SIMD<T> output(outputMem + i, elements_left);
 			SIMD<T> target(targetMem + i, elements_left);
-			SIMD<T> gradient = inv_batch_size * loss_function.gradient(output, target);
+			SIMD<T> gradient = alpha * loss_function.gradient(output, target);
+			if (beta != scalar::zero<T>())
+			{
+				SIMD<T> dst(gradientMem + i, elements_left);
+				gradient += beta * dst;
+			}
 			gradient.store(gradientMem + i, elements_left);
 		}
 	}
@@ -113,28 +118,28 @@ namespace
 		}
 	}
 	template<typename T>
-	void launcher_gradient(avLossType_t lossType, T *gradient, const T *output, const T *target, int elements, T inv_batch_size, bool fused)
+	void launcher_gradient(avLossType_t lossType, T *gradient, const T *output, const T *target, int elements, T alpha, T beta, bool fused)
 	noexcept
 	{
 		switch (lossType)
 		{
 			case AVOCADO_MEAN_SQUARE_LOSS:
-				kernel_gradient<LossMSE<T>, T>(gradient, output, target, elements, inv_batch_size);
+				kernel_gradient<LossMSE<T>, T>(gradient, output, target, elements, alpha, beta);
 				break;
 			case AVOCADO_CROSS_ENTROPY_LOSS:
 			{
 				if (fused)
-					kernel_gradient<LossCE<T, true>, T>(gradient, output, target, elements, inv_batch_size);
+					kernel_gradient<LossCE<T, true>, T>(gradient, output, target, elements, alpha, beta);
 				else
-					kernel_gradient<LossCE<T, false>, T>(gradient, output, target, elements, inv_batch_size);
+					kernel_gradient<LossCE<T, false>, T>(gradient, output, target, elements, alpha, beta);
 				break;
 			}
 			case AVOCADO_KL_DIVERGENCE_LOSS:
 			{
 				if (fused)
-					kernel_gradient<LossKLD<T, true>, T>(gradient, output, target, elements, inv_batch_size);
+					kernel_gradient<LossKLD<T, true>, T>(gradient, output, target, elements, alpha, beta);
 				else
-					kernel_gradient<LossKLD<T, false>, T>(gradient, output, target, elements, inv_batch_size);
+					kernel_gradient<LossKLD<T, false>, T>(gradient, output, target, elements, alpha, beta);
 				break;
 			}
 		}
@@ -161,7 +166,7 @@ namespace SIMD_NAMESPACE
 			case AVOCADO_DTYPE_FLOAT64:
 			{
 				double loss = launcher_loss(lossType, cpu::getPointer<double>(outputMem), cpu::getPointer<double>(targetMem), elements);
-				std::memcpy(result, &loss, sizeof(float));
+				std::memcpy(result, &loss, sizeof(double));
 				break;
 			}
 			default:
@@ -179,13 +184,13 @@ namespace SIMD_NAMESPACE
 			case AVOCADO_DTYPE_FLOAT32:
 			{
 				launcher_gradient(lossType, cpu::getPointer<float>(gradientMem), cpu::getPointer<float>(outputMem), cpu::getPointer<float>(targetMem),
-						elements, scalar::one<float>() / cpu::getTensor(outputDesc).firstDim(), isFused);
+						elements, cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), isFused);
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
 				launcher_gradient(lossType, cpu::getPointer<double>(gradientMem), cpu::getPointer<double>(outputMem),
-						cpu::getPointer<double>(targetMem), elements, scalar::one<double>() / cpu::getTensor(outputDesc).firstDim(), isFused);
+						cpu::getPointer<double>(targetMem), elements, cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), isFused);
 				break;
 			}
 			default:
