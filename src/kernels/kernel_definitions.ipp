@@ -165,9 +165,9 @@ avocado::backend::avStatus_t cpu_lossGradient(avocado::backend::avContextDescrip
 		const avocado::backend::avTensorDescriptor_t gradientDesc, avocado::backend::avMemoryDescriptor_t gradientMem, bool isFused);
 
 avocado::backend::avStatus_t cpu_optimizerLearn(avocado::backend::avContextDescriptor_t context,
-		const avocado::backend::avOptimizerDescriptor_t config, const avocado::backend::avTensorDescriptor_t wDesc,
-		avocado::backend::avMemoryDescriptor_t wMem, const avocado::backend::avTensorDescriptor_t dwDesc,
-		const avocado::backend::avTensorDescriptor_t dwMem, avocado::backend::avMemoryDescriptor_t workspace);
+		const avocado::backend::avOptimizerDescriptor_t config, const void *alpha, const avocado::backend::avTensorDescriptor_t dwDesc,
+		const avocado::backend::avTensorDescriptor_t dwMem, const void *beta, const avocado::backend::avTensorDescriptor_t wDesc,
+		avocado::backend::avMemoryDescriptor_t wMem, avocado::backend::avMemoryDescriptor_t workspace);
 
 avocado::backend::avStatus_t cpu_regularizerL2(avocado::backend::avContextDescriptor_t context,
 		const avocado::backend::avTensorDescriptor_t gradientDesc, avocado::backend::avMemoryDescriptor_t gradientMem,

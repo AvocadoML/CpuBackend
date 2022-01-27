@@ -222,64 +222,31 @@ namespace avocado
 		{
 			return cpu::destroy<cpu::OptimizerDescriptor>(desc);
 		}
-		avStatus_t cpuSetOptimizerSGD(avOptimizerDescriptor_t desc, double learningRate, bool useMomentum, bool useNesterov, double beta1)
+		avStatus_t cpuSetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t type, double learningRate, const double coefficients[],
+				const bool flags[])
 		{
 			try
 			{
-				cpu::getOptimizer(desc).set_sgd(learningRate, useMomentum, useNesterov, beta1);
+				cpu::getOptimizer(desc).set(type, learningRate, coefficients, flags);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t cpuGetOptimizerSGD(avOptimizerDescriptor_t desc, double *learningRate, bool *useMomentum, bool *useNesterov, double *beta1)
+		avStatus_t cpuGetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t *type, double *learningRate, double coefficients[],
+				bool flags[])
 		{
 			try
 			{
-				cpu::getOptimizer(desc).get_sgd(learningRate, useMomentum, useNesterov, beta1);
+				cpu::getOptimizer(desc).get(type, learningRate, coefficients, flags);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t cpuSetOptimizerADAM(avOptimizerDescriptor_t desc, double learningRate, double beta1, double beta2)
-		{
-			try
-			{
-				cpu::getOptimizer(desc).set_adam(learningRate, beta1, beta2);
-			} catch (std::exception &e)
-			{
-				return AVOCADO_STATUS_INTERNAL_ERROR;
-			}
-			return AVOCADO_STATUS_SUCCESS;
-		}
-		avStatus_t cpuGetOptimizerADAM(avOptimizerDescriptor_t desc, double *learningRate, double *beta1, double *beta2)
-		{
-			try
-			{
-				cpu::getOptimizer(desc).get_adam(learningRate, beta1, beta2);
-			} catch (std::exception &e)
-			{
-				return AVOCADO_STATUS_INTERNAL_ERROR;
-			}
-			return AVOCADO_STATUS_SUCCESS;
-		}
-		avStatus_t cpuGetOptimizerType(avOptimizerDescriptor_t desc, avOptimizerType_t *type)
-		{
-			if (type == nullptr)
-				return AVOCADO_STATUS_BAD_PARAM;
-			try
-			{
-				cpu::getOptimizer(desc).get_type(type);
-			} catch (std::exception &e)
-			{
-				return AVOCADO_STATUS_INTERNAL_ERROR;
-			}
-			return AVOCADO_STATUS_SUCCESS;
-		}
-		avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, int *result)
+		avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, avSize_t *result)
 		{
 			if (result == nullptr)
 				return AVOCADO_STATUS_BAD_PARAM;

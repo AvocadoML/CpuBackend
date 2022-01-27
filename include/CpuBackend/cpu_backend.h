@@ -285,52 +285,34 @@ namespace avocado
 		 * \brief Sets optimizer descriptor.
 		 *
 		 * \param[in] desc
+		 * \param[in] type
 		 * \param[in] learningRate
-		 * \param[in] useMomentum
-		 * \param[in] useNesterov
-		 * \param[in] beta1
+		 * \param[in] coefficients
+		 * \param[in] flags
 		 */
-		DLL_PUBLIC avStatus_t cpuSetOptimizerSGD(avOptimizerDescriptor_t desc, double learningRate, bool useMomentum, bool useNesterov, double beta1);
+		DLL_PUBLIC avStatus_t cpuSetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t type, double learningRate,
+				const double coefficients[], const bool flags[]);
 
 		/**
 		 * \brief Queries parameters of optimizer descriptor.
-		 *
-		 * \param[in] desc
-		 * \param[out] learningRate
-		 * \param[out] useMomentum
-		 * \param[out] useNesterov
-		 * \param[out] beta1
-		 */
-		DLL_PUBLIC avStatus_t cpuGetOptimizerSGD(avOptimizerDescriptor_t desc, double *learningRate, bool *useMomentum, bool *useNesterov,
-				double *beta1);
-
-		/**
-		 * \brief Sets optimizer descriptor.
-		 *
-		 * \param[in] desc
-		 * \param[in] learningRate
-		 * \param[in] beta1
-		 * \param[in] beta2
-		 */
-		DLL_PUBLIC avStatus_t cpuSetOptimizerADAM(avOptimizerDescriptor_t desc, double learningRate, double beta1, double beta2);
-
-		/**
-		 * \brief Queries parameters of optimizer descriptor.
-		 *
-		 * \param[in] desc
-		 * \param[out] learningRate
-		 * \param[out] beta1
-		 * \param[out] beta2
-		 */
-		DLL_PUBLIC avStatus_t cpuGetOptimizerADAM(avOptimizerDescriptor_t desc, double *learningRate, double *beta1, double *beta2);
-
-		/**
-		 * \brief Queries type of optimizer descriptor.
 		 *
 		 * \param[in] desc
 		 * \param[out] type
+		 * \param[out] learningRate
+		 * \param[out] coefficients
+		 * \param[out] flags
 		 */
-		DLL_PUBLIC avStatus_t cpuGetOptimizerType(avOptimizerDescriptor_t desc, avOptimizerType_t *type);
+		DLL_PUBLIC avStatus_t cpuGetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t *type, double *learningRate,
+				double coefficients[], bool flags[]);
+
+		/**
+		 * \brief Returns number of bytes needed for the workspace of given optimizer descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[in] wDesc
+		 * \param[out] result
+		 */
+		DLL_PUBLIC avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, avSize_t *result);
 
 		/**
 		 * \brief This routine is used to convert between data types.
@@ -926,15 +908,6 @@ namespace avocado
 				bool isFused);
 
 		/**
-		 * \brief Returns number of bytes needed for the workspace of given optimizer descriptor.
-		 *
-		 * \param[in] desc
-		 * \param[in] wDesc
-		 * \param[out] result
-		 */
-		DLL_PUBLIC avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, avSize_t *result);
-
-		/**
 		 * \param[in] context Context in which the operation is performed.
 		 * \param[in] config Optimizer descriptor.
 		 * \param[in] wDesc Tensor descriptor of the parameter to be updated.
@@ -943,15 +916,15 @@ namespace avocado
 		 * \param[in] dwMem Memory descriptor of the gradient.
 		 * \param[in] workspace Memory descriptor of some persistent workspace needed by the function.
 		 */
-		DLL_PUBLIC avStatus_t cpuOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const avTensorDescriptor_t wDesc,
-				avMemoryDescriptor_t wMem, const avTensorDescriptor_t dwDesc, const avTensorDescriptor_t dwMem, avMemoryDescriptor_t workspace);
+		DLL_PUBLIC avStatus_t cpuOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const void *alpha,
+				const avTensorDescriptor_t dwDesc, const avTensorDescriptor_t dwMem, const void *beta, const avTensorDescriptor_t wDesc,
+				avMemoryDescriptor_t wMem, avMemoryDescriptor_t workspace);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
 		 */
-		DLL_PUBLIC avStatus_t cpuRegularizerL2(avContextDescriptor_t context, const avTensorDescriptor_t gradientDesc,
-				avMemoryDescriptor_t gradientMem, const avTensorDescriptor_t weightDesc, const avMemoryDescriptor_t weightMem,
-				const void *coefficient, const void *offset, void *loss);
+		DLL_PUBLIC avStatus_t cpuRegularizerL2(avContextDescriptor_t context, const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem,
+				const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem, const void *coefficient, const void *offset, void *loss);
 
 #ifdef __cplusplus
 		}

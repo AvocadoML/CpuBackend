@@ -137,8 +137,8 @@ namespace avocado
 #endif
 		}
 
-		avStatus_t cpuScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
-				const void *alpha, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+		avStatus_t cpuScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *alpha,
+				const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -848,33 +848,29 @@ namespace avocado
 #endif
 		}
 
-		avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, avSize_t *result)
-		{
-			return AVOCADO_STATUS_NOT_SUPPORTED;
-		}
-
-		avStatus_t cpuOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const avTensorDescriptor_t wDesc,
-				avMemoryDescriptor_t wMem, const avTensorDescriptor_t dwDesc, const avTensorDescriptor_t dwMem, avMemoryDescriptor_t workspace)
+		avStatus_t cpuOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const void *alpha,
+				const avTensorDescriptor_t dwDesc, const avTensorDescriptor_t dwMem, const void *beta, const avTensorDescriptor_t wDesc,
+				avMemoryDescriptor_t wMem, avMemoryDescriptor_t workspace)
 		{
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+					return ns_avx2::cpu_optimizerLearn(context, config, alpha, dwDesc, dwMem, beta, wDesc, wMem, workspace);
 				case SimdLevel::AVX:
-					return ns_avx::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+					return ns_avx::cpu_optimizerLearn(context, config, alpha, dwDesc, dwMem, beta, wDesc, wMem, workspace);
 				case SimdLevel::SSE41:
-					return ns_sse41::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+					return ns_sse41::cpu_optimizerLearn(context, config, alpha, dwDesc, dwMem, beta, wDesc, wMem, workspace);
 				case SimdLevel::SSE2:
-					return ns_sse2::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+					return ns_sse2::cpu_optimizerLearn(context, config, alpha, dwDesc, dwMem, beta, wDesc, wMem, workspace);
 				case SimdLevel::NONE:
-					return ns_none::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+					return ns_none::cpu_optimizerLearn(context, config, alpha, dwDesc, dwMem, beta, wDesc, wMem, workspace);
 				default:
 					break;
 			}
 			return AVOCADO_STATUS_NOT_SUPPORTED;
 #else
-			return SIMD_NAMESPACE::cpu_optimizerLearn(context, config, wDesc, wMem, dwDesc, dwMem, workspace);
+			return SIMD_NAMESPACE::cpu_optimizerLearn(context, config, alpha, dwDesc, dwMem, beta, wDesc, wMem, workspace);
 #endif
 		}
 
