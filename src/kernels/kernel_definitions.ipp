@@ -169,10 +169,9 @@ avocado::backend::avStatus_t cpu_optimizerLearn(avocado::backend::avContextDescr
 		const avocado::backend::avTensorDescriptor_t dwMem, const void *beta, const avocado::backend::avTensorDescriptor_t wDesc,
 		avocado::backend::avMemoryDescriptor_t wMem, avocado::backend::avMemoryDescriptor_t workspace);
 
-avocado::backend::avStatus_t cpu_regularizerL2(avocado::backend::avContextDescriptor_t context,
-		const avocado::backend::avTensorDescriptor_t gradientDesc, avocado::backend::avMemoryDescriptor_t gradientMem,
-		const avocado::backend::avTensorDescriptor_t weightDesc, const avocado::backend::avMemoryDescriptor_t weightMem, const void *coefficient,
-		const void *offset, void *loss);
+avocado::backend::avStatus_t cpu_regularizerL2(avocado::backend::avContextDescriptor_t context, const avocado::backend::avTensorDescriptor_t dwDesc,
+		avocado::backend::avMemoryDescriptor_t dwMem, const avocado::backend::avTensorDescriptor_t wDesc,
+		const avocado::backend::avMemoryDescriptor_t wMem, const void *coefficient, const void *offset, void *loss);
 
 /*
  * Additional kernels that are not exposed in the main API
