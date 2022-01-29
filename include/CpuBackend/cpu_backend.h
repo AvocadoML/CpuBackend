@@ -249,8 +249,9 @@ namespace avocado
 		 * \param[in] groups Number of groups in the convolution. Must be greaten than 0.
 		 * \param[in] paddingValue Pointer to at least 16 bytes of memory with the value of tensor padding. This parameter is optional (can be null), a value of 0 will be used then.
 		 */
-		DLL_PUBLIC avStatus_t cpuSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t mode, int nbDims, const int padding[],
-				const int strides[], const int dilation[], int groups, const void *paddingValue);
+		DLL_PUBLIC avStatus_t cpuSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionAlgorithm_t algorithm,
+				avConvolutionMode_t mode, int nbDims, const int padding[], const int strides[], const int dilation[], int groups,
+				const void *paddingValue);
 
 		/**
 		 * \brief Queries parameters of convolution descriptor.
@@ -264,8 +265,8 @@ namespace avocado
 		 * \param[out] groups
 		 * \param[out] paddingValue Pointer to at least 16 bytes of memory with the value of tensor padding. This parameter is optional (can be null), will be ignored then.
 		 */
-		DLL_PUBLIC avStatus_t cpuGetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t *mode, int *nbDims, int padding[],
-				int strides[], int dilation[], int *groups, void *paddingValue);
+		DLL_PUBLIC avStatus_t cpuGetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionAlgorithm_t *algorithm,
+				avConvolutionMode_t *mode, int *nbDims, int padding[], int strides[], int dilation[], int *groups, void *paddingValue);
 
 		/**
 		 * \brief Creates new optimizer descriptor.
@@ -774,11 +775,10 @@ namespace avocado
 		 * \param[in] config Convolution descriptor.
 		 * \param[in] xDesc Descriptor of the input tensor.
 		 * \param[in] wDesc Descriptor of the weights tensor.
-		 * \param[in] bDesc Descriptor of the bias tensor.
 		 * \param[out] result Pointer to the integer with number of bytes required for the workspace.
 		 */
 		DLL_PUBLIC avStatus_t cpuGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
-				const avTensorDescriptor_t wDesc, const avTensorDescriptor_t bDesc, avSize_t *result);
+				const avTensorDescriptor_t wDesc, avSize_t *result);
 
 		/**
 		 * \brief Calculates convolution, adds bias and optionally some external data and applies activation function.

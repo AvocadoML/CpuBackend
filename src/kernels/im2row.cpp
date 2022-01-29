@@ -40,19 +40,24 @@ namespace
 		const int dtype_size = cpu::dataTypeSize(srcDesc.dtype());
 		const bool zero_padding = config.paddingWithZeros();
 
+		const int filter_size_in_bytes = input_filters * dtype_size;
+		const int row_size_in_bytes = filter_width * filter_size_in_bytes;
+
 		if (not zero_padding)
 		{
-			for (int i = 0; i < filter_width * input_filters * dtype_size; i += dtype_size)
+			for (int i = 0; i < row_size_in_bytes; i += dtype_size)
 				std::memcpy(workspace.data<uint8_t>() + i, config.padding_value.data(), dtype_size);
 		}
 
-		cpu::TensorDescriptor output_shape = getConvolutionOutputShape(config, srcDesc, filterDesc);
+		std::vector<int> output_shape = config.getOutputShape(srcDesc, filterDesc);
 
+#pragma omp parallel for
 		for (int b = 0; b < batch_size; b++)
-			for (int h = 0; h < output_shape.dimension(1); h++)
-				for (int w = 0; w < output_shape.dimension(2); w++)
+			for (int h = 0; h < output_shape[1]; h++)
+				for (int w = 0; w < output_shape[2]; w++)
 				{
-					int tile_idx = (b * output_shape.dimension(1) + h) * output_shape.dimension(2) + w;
+					int tile_idx = (b * output_shape[1] + h) * output_shape[2] + w;
+					uint8_t *dst_ptr = rowMem.data<uint8_t>() + rowDesc.getIndex( { tile_idx, 0 }) * dtype_size;
 					for (int i = 0; i < filter_height; i++)
 					{
 						int x, y;
@@ -67,24 +72,28 @@ namespace
 							y = padding_w + (filter_width - 1 - 0) * dilation_w + w * stride_w;
 						}
 
-						uint8_t *dst_ptr = rowMem.data<uint8_t>() + rowDesc.getIndex( { tile_idx, 0 });
-
 						if (x >= 0 and x < input_height)
 						{
 							const uint8_t *src_ptr = srcMem.data<uint8_t>();
 
-							if (x >= 0 and (x + filter_width) < input_width and config.mode == AVOCADO_CONVOLUTION_MODE and no_dilation)
+							if (y >= 0 and (y + filter_width) <= input_width and config.mode == AVOCADO_CONVOLUTION_MODE and no_dilation)
 							{ // copy entire row at once
-								std::memcpy(dst_ptr, src_ptr + srcDesc.getIndex( { b, x, y, 0 }) * dtype_size,
-										filter_width * input_filters * dtype_size);
-								dst_ptr += filter_width * input_filters * dtype_size;
+								std::memcpy(dst_ptr, src_ptr + srcDesc.getIndex( { b, x, y, 0 }) * dtype_size, row_size_in_bytes);
+								dst_ptr += row_size_in_bytes;
 							}
 							else
 							{ // copy each point separately
 								for (int j = 0; j < filter_width; j++)
 								{
-									std::memcpy(dst_ptr, src_ptr + srcDesc.getIndex( { b, x, y, 0 }) * dtype_size,
-											filter_width * input_filters * dtype_size);
+									if (y >= 0 and y < input_width)
+										std::memcpy(dst_ptr, src_ptr + srcDesc.getIndex( { b, x, y, 0 }) * dtype_size, filter_size_in_bytes);
+									else
+									{
+										if (zero_padding)
+											std::memset(dst_ptr, 0, filter_size_in_bytes);
+										else
+											std::memcpy(dst_ptr, workspace.data(), filter_size_in_bytes);
+									}
 									dst_ptr += input_filters * dtype_size;
 									if (config.mode == AVOCADO_CONVOLUTION_MODE)
 										y += dilation_w;
@@ -96,10 +105,10 @@ namespace
 						else
 						{ // set entire row with padding value
 							if (zero_padding)
-								std::memset(dst_ptr, 0, filter_width * input_filters * dtype_size);
+								std::memset(dst_ptr, 0, row_size_in_bytes);
 							else
-								std::memcpy(dst_ptr, workspace.data(), filter_width * input_filters * dtype_size);
-							dst_ptr += filter_width * input_filters * dtype_size;
+								std::memcpy(dst_ptr, workspace.data(), row_size_in_bytes);
+							dst_ptr += row_size_in_bytes;
 						}
 					}
 				}

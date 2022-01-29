@@ -695,8 +695,7 @@ namespace
 		}
 	}
 
-	int getWinogradWorkspace(int transformSize, const cpu::TensorDescriptor &xDesc, const cpu::TensorDescriptor &yDesc,
-			const cpu::TensorDescriptor &wDesc)
+	int getWinogradWorkspace(int transformSize, const cpu::TensorDescriptor &xDesc, const std::vector<int> &yDesc, const cpu::TensorDescriptor &wDesc)
 	{
 		assert(wDesc.dimension(1) == wDesc.dimension(2));
 		assert(wDesc.nbDims() == 3 || wDesc.nbDims() == 4 || wDesc.nbDims() == 5);
@@ -709,7 +708,7 @@ namespace
 
 		int weight_matrix_size = cpu::dataTypeSize(wDesc.dtype()) * wDesc.firstDim() * wDesc.lastDim();
 		int input_matrix_size = cpu::dataTypeSize(xDesc.dtype()) * nb_of_tiles * xDesc.lastDim();
-		int output_matrix_size = cpu::dataTypeSize(yDesc.dtype()) * nb_of_tiles * yDesc.lastDim();
+		int output_matrix_size = cpu::dataTypeSize(xDesc.dtype()) * nb_of_tiles * yDesc.back();
 
 		return nb_of_matrices * (weight_matrix_size + input_matrix_size + output_matrix_size);
 	}
@@ -840,29 +839,35 @@ namespace avocado
 {
 	namespace backend
 	{
-		avSize_t winogradGetWorkspaceSize(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &xDesc,
-				const cpu::TensorDescriptor &yDesc, const cpu::TensorDescriptor &wDesc)
+		avStatus_t cpuGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
+				const avTensorDescriptor_t wDesc, avSize_t *result)
 		{
-			if (config.algorithm == AVOCADO_CONVOLUTION_ALGORITHM_WINOGRAD)
+			if (result == nullptr)
+				return AVOCADO_STATUS_BAD_PARAM;
+			const cpu::TensorDescriptor &input = cpu::getTensor(xDesc);
+			const cpu::TensorDescriptor &filter = cpu::getTensor(wDesc);
+			std::vector<int> output_shape = cpu::getConvolution(config).getOutputShape(input, filter);
+			result[0] = 0;
+			if (cpu::getConvolution(config).algorithm == AVOCADO_CONVOLUTION_ALGORITHM_WINOGRAD_NON_FUSED)
 			{
-				switch (wDesc.dtype())
+				switch (filter.dtype())
 				{
 					case AVOCADO_DTYPE_FLOAT16:
 					case AVOCADO_DTYPE_BFLOAT16:
 					case AVOCADO_DTYPE_FLOAT32:
 					case AVOCADO_DTYPE_FLOAT64:
 					{
-						if (is_conv(3, wDesc))
-							return getWinogradWorkspace(4, xDesc, yDesc, wDesc);
-						if (is_conv(5, wDesc))
-							return getWinogradWorkspace(2, xDesc, yDesc, wDesc);
-						return 0;
+						if (is_conv(3, filter))
+							result[0] = getWinogradWorkspace(4, input, output_shape, filter);
+						if (is_conv(5, filter))
+							result[0] = getWinogradWorkspace(2, input, output_shape, filter);
+						break;
 					}
 					default:
-						return 0;
+						break;
 				}
 			}
-			return 0;
+			return AVOCADO_STATUS_SUCCESS;
 		}
 	} /* namespace backend */
 } /* namespace avocado */
