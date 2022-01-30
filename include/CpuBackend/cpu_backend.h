@@ -725,7 +725,7 @@ namespace avocado
 		 * \param[in] states
 		 */
 		DLL_PUBLIC avStatus_t cpuDropoutBackward(avContextDescriptor_t context, const avDropoutDescriptor_t config, const avTensorDescriptor_t dyDesc,
-				const avMemoryDescriptor_t dyMem, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avTensorDescriptor_t states);
+				const avMemoryDescriptor_t dyMem, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avMemoryDescriptor_t states);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
@@ -825,7 +825,7 @@ namespace avocado
 		 */
 		DLL_PUBLIC avStatus_t cpuConvolutionForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
-				const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem);
+				const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, avMemoryDescriptor_t workspace);
 
 		/**
 		 * \brief Simplified version of the above method.
@@ -861,7 +861,8 @@ namespace avocado
 		 */
 		DLL_PUBLIC avStatus_t cpuConvolutionUpdate(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc,
-				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem);
+				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem,
+				avMemoryDescriptor_t workspace);
 
 		/**
 		 * \brief Computes chosen metric function, averaged over entire batch.
