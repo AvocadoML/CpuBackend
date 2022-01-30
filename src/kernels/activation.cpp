@@ -163,43 +163,42 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_activationForward(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
-			const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
-			avMemoryDescriptor_t yMem)
+	avStatus_t cpu_activationForward(const ContextDescriptor &context, avActivationType_t activation, const void *alpha,
+			const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem)
 	{
-		const int elements = cpu::getTensor(xDesc).volume();
-		switch (cpu::getTensor(xDesc).dtype())
+		const int elements = xDesc.volume();
+		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				return launcher_activation_forward<float16, float>(activation, cpu::getAlphaValue(alpha), cpu::getPointer<float16>(xMem),
-						cpu::getBetaValue(beta), cpu::getPointer<float16>(yMem), elements);
+				return launcher_activation_forward<float16, float>(activation, cpu::getAlphaValue(alpha), xMem.data<float16>(),
+						cpu::getBetaValue(beta), yMem.data<float16>(), elements);
 			case AVOCADO_DTYPE_BFLOAT16:
-				return launcher_activation_forward<bfloat16, float>(activation, cpu::getAlphaValue(alpha), cpu::getPointer<bfloat16>(xMem),
-						cpu::getBetaValue(beta), cpu::getPointer<bfloat16>(yMem), elements);
+				return launcher_activation_forward<bfloat16, float>(activation, cpu::getAlphaValue(alpha), xMem.data<bfloat16>(),
+						cpu::getBetaValue(beta), yMem.data<bfloat16>(), elements);
 			case AVOCADO_DTYPE_FLOAT32:
-				return launcher_activation_forward<float>(activation, cpu::getAlphaValue(alpha), cpu::getPointer<float>(xMem),
-						cpu::getBetaValue(beta), cpu::getPointer<float>(yMem), elements);
+				return launcher_activation_forward<float>(activation, cpu::getAlphaValue(alpha), xMem.data<float>(), cpu::getBetaValue(beta),
+						yMem.data<float>(), elements);
 			case AVOCADO_DTYPE_FLOAT64:
-				return launcher_activation_forward<double>(activation, cpu::getAlphaValue<double>(alpha), cpu::getPointer<double>(xMem),
-						cpu::getBetaValue<double>(beta), cpu::getPointer<double>(yMem), elements);
+				return launcher_activation_forward<double>(activation, cpu::getAlphaValue<double>(alpha), xMem.data<double>(),
+						cpu::getBetaValue<double>(beta), yMem.data<double>(), elements);
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
 	}
 
-	avStatus_t cpu_activationBackward(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
-			const avTensorDescriptor_t yDesc, const avMemoryDescriptor_t yMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem,
-			const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
+	avStatus_t cpu_activationBackward(const ContextDescriptor &context, avActivationType_t activation, const void *alpha,
+			const TensorDescriptor &yDesc, const MemoryDescriptor &yMem, const TensorDescriptor &dyDesc, const MemoryDescriptor &dyMem,
+			const void *beta, const TensorDescriptor &dxDesc, MemoryDescriptor &dxMem)
 	{
-		const int elements = cpu::getTensor(yDesc).volume();
-		switch (cpu::getTensor(yDesc).dtype())
+		const int elements = yDesc.volume();
+		switch (yDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
-				return launcher_activation_backward<float>(activation, cpu::getAlphaValue(alpha), cpu::getPointer<float>(dxMem),
-						cpu::getBetaValue(beta), cpu::getPointer<float>(dyMem), cpu::getPointer<float>(yMem), elements);
+				return launcher_activation_backward<float>(activation, cpu::getAlphaValue(alpha), dxMem.data<float>(), cpu::getBetaValue(beta),
+						dyMem.data<float>(), yMem.data<float>(), elements);
 			case AVOCADO_DTYPE_FLOAT64:
-				return launcher_activation_backward<double>(activation, cpu::getAlphaValue<double>(alpha), cpu::getPointer<double>(dxMem),
-						cpu::getBetaValue<double>(beta), cpu::getPointer<double>(dyMem), cpu::getPointer<double>(yMem), elements);
+				return launcher_activation_backward<double>(activation, cpu::getAlphaValue<double>(alpha), dxMem.data<double>(),
+						cpu::getBetaValue<double>(beta), dyMem.data<double>(), yMem.data<double>(), elements);
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}

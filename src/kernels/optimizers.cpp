@@ -27,6 +27,8 @@ namespace
 	template<typename T, bool UseMomentum, bool UseNesterov>
 	void kernel_learn_sgd(T *wMem, const T *dwMem, T *momentumMem, int elements, T learning_rate, T beta1, T alpha, T beta)
 	{
+		assert(wMem != nullptr);
+		assert(dwMem != nullptr);
 #pragma omp parallel for
 		for (int i = 0; i < elements; i += SIMD<T>::length)
 		{
@@ -60,6 +62,10 @@ namespace
 	template<typename T>
 	void kernel_learn_adam(T *wMem, const T *dwMem, T *momentumMem, T *varianceMem, int elements, T learning_rate, T beta1, T beta2, T alpha, T beta)
 	{
+		assert(wMem != nullptr);
+		assert(dwMem != nullptr);
+		assert(momentumMem != nullptr);
+		assert(varianceMem != nullptr);
 #pragma omp parallel for
 		for (int i = 0; i < elements; i += SIMD<T>::length)
 		{
@@ -136,18 +142,18 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_optimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const void *alpha,
-			const avTensorDescriptor_t dwDesc, const avTensorDescriptor_t dwMem, const void *beta, const avTensorDescriptor_t wDesc,
-			avMemoryDescriptor_t wMem, avMemoryDescriptor_t workspace)
+	avStatus_t cpu_optimizerLearn(const ContextDescriptor &context, const OptimizerDescriptor &config, const void *alpha,
+			const TensorDescriptor &dwDesc, const MemoryDescriptor &dwMem, const void *beta, const TensorDescriptor &wDesc, MemoryDescriptor &wMem,
+			MemoryDescriptor &workspace)
 	{
-		switch (cpu::getTensor(wDesc).dtype())
+		switch (wDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
-				return launcher_optimizer(cpu::getOptimizer(config), cpu::getTensor(wDesc), cpu::getPointer<float>(wMem),
-						cpu::getPointer<float>(dwMem), cpu::getMemory(workspace), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta));
+				return launcher_optimizer(config, wDesc, wMem.data<float>(), dwMem.data<float>(), workspace, cpu::getAlphaValue(alpha),
+						cpu::getBetaValue(beta));
 			case AVOCADO_DTYPE_FLOAT64:
-				return launcher_optimizer(cpu::getOptimizer(config), cpu::getTensor(wDesc), cpu::getPointer<double>(wMem),
-						cpu::getPointer<double>(dwMem), cpu::getMemory(workspace), cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta));
+				return launcher_optimizer(config, wDesc, wMem.data<double>(), dwMem.data<double>(), workspace, cpu::getAlphaValue<double>(alpha),
+						cpu::getBetaValue<double>(beta));
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}

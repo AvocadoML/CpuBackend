@@ -24,6 +24,11 @@ namespace
 	void kernel_affine_forward(U alpha, U beta, const T *xMem, T *yMem, const T *wMem, const T *bMem, cpu::BroadcastedDimensions dims,
 			avActivationType_t activation)
 	{
+		assert(xMem != nullptr);
+		assert(yMem != nullptr);
+		assert(wMem != nullptr);
+		assert(bMem != nullptr);
+
 #pragma omp parallel for
 		for (int i = 0; i < dims.first; i++)
 			for (int j = 0; j < dims.last; j++)
@@ -47,6 +52,11 @@ namespace
 	template<typename T>
 	void prepare_scaling_factors(T *workspace, const T *scaleMem, const T *biasMem, const T *meanMem, const T *varianceMem, int last_dim, T epsilon)
 	{
+		assert(workspace != nullptr);
+		assert(scaleMem != nullptr);
+		assert(biasMem != nullptr);
+		assert(meanMem != nullptr);
+		assert(varianceMem != nullptr);
 		for (int j = 0; j < last_dim; j += SIMD<T>::length)
 		{
 			const int elements_left = std::min(last_dim - j, SIMD<T>::length);
@@ -67,6 +77,14 @@ namespace
 	void kernel_batchnorm_inference(T alpha, T beta, const T *xMem, T *yMem, const T *scaleMem, const T *biasMem, const T *meanMem,
 			const T *varianceMem, T epsilon, cpu::BroadcastedDimensions dims, avActivationType_t activation, T *workspace)
 	{
+		assert(xMem != nullptr);
+		assert(yMem != nullptr);
+		assert(scaleMem != nullptr);
+		assert(biasMem != nullptr);
+		assert(meanMem != nullptr);
+		assert(varianceMem != nullptr);
+		assert(workspace != nullptr);
+
 		prepare_scaling_factors(workspace, scaleMem, biasMem, meanMem, varianceMem, dims.last, epsilon);
 #pragma omp parallel for
 		for (int i = 0; i < dims.first; i++)
@@ -251,29 +269,28 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_affineForward(avContextDescriptor_t context, avActivationType_t activation, const avTensorDescriptor_t wDesc,
-			const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha,
-			const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
-			avMemoryDescriptor_t yMem)
+	avStatus_t cpu_affineForward(const ContextDescriptor &context, avActivationType_t activation, const TensorDescriptor &wDesc,
+			const MemoryDescriptor &wMem, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *alpha,
+			const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem)
 	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(cpu::getTensor(yDesc), cpu::getTensor(xDesc));
-		switch (cpu::getTensor(xDesc).dtype())
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(yDesc, xDesc);
+		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				kernel_affine_forward<float16>(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), cpu::getPointer<float16>(xMem),
-						cpu::getPointer<float16>(yMem), cpu::getPointer<float16>(wMem), cpu::getPointer<float16>(bMem), dimensions, activation);
+				kernel_affine_forward(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<float16>(), yMem.data<float16>(),
+						wMem.data<float16>(), bMem.data<float16>(), dimensions, activation);
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				kernel_affine_forward(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), cpu::getPointer<bfloat16>(xMem),
-						cpu::getPointer<bfloat16>(yMem), cpu::getPointer<bfloat16>(wMem), cpu::getPointer<bfloat16>(bMem), dimensions, activation);
+				kernel_affine_forward(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<bfloat16>(), yMem.data<bfloat16>(),
+						wMem.data<bfloat16>(), bMem.data<bfloat16>(), dimensions, activation);
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				kernel_affine_forward(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), cpu::getPointer<float>(xMem), cpu::getPointer<float>(yMem),
-						cpu::getPointer<float>(wMem), cpu::getPointer<float>(bMem), dimensions, activation);
+				kernel_affine_forward(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<float>(), yMem.data<float>(), wMem.data<float>(),
+						bMem.data<float>(), dimensions, activation);
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				kernel_affine_forward(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), cpu::getPointer<double>(xMem),
-						cpu::getPointer<double>(yMem), cpu::getPointer<double>(wMem), cpu::getPointer<double>(bMem), dimensions, activation);
+				kernel_affine_forward(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), xMem.data<double>(), yMem.data<double>(),
+						wMem.data<double>(), bMem.data<double>(), dimensions, activation);
 				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
@@ -281,68 +298,31 @@ namespace SIMD_NAMESPACE
 		return AVOCADO_STATUS_SUCCESS;
 	}
 
-	avStatus_t cpu_batchNormInference(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
-			const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
-			avMemoryDescriptor_t yMem, const avTensorDescriptor_t scaleBiasMeanVarDesc, const avMemoryDescriptor_t scaleMem,
-			const avMemoryDescriptor_t biasMem, const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, double epsilon)
+	avStatus_t cpu_batchNormInference(const ContextDescriptor &context, avActivationType_t activation, const void *alpha,
+			const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem,
+			const TensorDescriptor &scaleBiasMeanVarDesc, const MemoryDescriptor &scaleMem, const MemoryDescriptor &biasMem,
+			const MemoryDescriptor &meanMem, const MemoryDescriptor &varianceMem, double epsilon)
 	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(cpu::getTensor(xDesc), cpu::getTensor(scaleBiasMeanVarDesc));
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(xDesc, scaleBiasMeanVarDesc);
 
-		const int required_workspace_size = 2 * dimensions.last * cpu::dataTypeSize(cpu::getTensor(xDesc).dtype());
-		if (cpu::getContext(context).getWorkspace().size() < required_workspace_size)
+		const int required_workspace_size = 2 * dimensions.last * cpu::dataTypeSize(xDesc.dtype());
+		if (context.getWorkspace().size() < required_workspace_size)
 			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
-		switch (cpu::getTensor(xDesc).dtype())
+		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				kernel_batchnorm_inference<float>(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), cpu::getPointer<float>(xMem),
-						cpu::getPointer<float>(yMem), cpu::getPointer<float>(scaleMem), cpu::getPointer<float>(biasMem),
-						cpu::getPointer<float>(meanMem), cpu::getPointer<float>(varianceMem), epsilon, dimensions, activation,
-						cpu::getContext(context).getWorkspace().data<float>());
+				kernel_batchnorm_inference<float>(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<float>(), yMem.data<float>(),
+						scaleMem.data<float>(), biasMem.data<float>(), meanMem.data<float>(), varianceMem.data<float>(), epsilon, dimensions,
+						activation, context.getWorkspace().data<float>());
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				kernel_batchnorm_inference<double>(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), cpu::getPointer<double>(xMem),
-						cpu::getPointer<double>(yMem), cpu::getPointer<double>(scaleMem), cpu::getPointer<double>(biasMem),
-						cpu::getPointer<double>(meanMem), cpu::getPointer<double>(varianceMem), epsilon, dimensions, activation,
-						cpu::getContext(context).getWorkspace().data<double>());
-				break;
-			}
-			default:
-				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
-		}
-		return AVOCADO_STATUS_SUCCESS;
-	}
-
-	avStatus_t cpu_batchNormForward(avContextDescriptor_t context, avActivationType_t activation, const void *alpha, const avTensorDescriptor_t xDesc,
-			const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem,
-			const avTensorDescriptor_t scaleBiasMeanVarDesc, const avMemoryDescriptor_t scaleMem, const avMemoryDescriptor_t biasMem,
-			avMemoryDescriptor_t meanMem, avMemoryDescriptor_t varianceMem, double epsilon)
-	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(cpu::getTensor(xDesc), cpu::getTensor(scaleBiasMeanVarDesc));
-
-		const int required_workspace_size = std::min(2, cpuGetNumberOfThreads()) * dimensions.last * cpu::dataTypeSize(cpu::getTensor(xDesc).dtype());
-		if (cpu::getContext(context).getWorkspace().size() < required_workspace_size)
-			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
-
-		switch (cpu::getTensor(xDesc).dtype())
-		{
-			case AVOCADO_DTYPE_FLOAT32:
-			{
-				kernel_batchnorm_forward<float>(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), cpu::getPointer<float>(xMem),
-						cpu::getPointer<float>(yMem), cpu::getPointer<float>(scaleMem), cpu::getPointer<float>(biasMem),
-						cpu::getPointer<float>(meanMem), cpu::getPointer<float>(varianceMem), epsilon, dimensions, activation,
-						cpu::getContext(context).getWorkspace().data<float>());
-				break;
-			}
-			case AVOCADO_DTYPE_FLOAT64:
-			{
-				kernel_batchnorm_forward<double>(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), cpu::getPointer<double>(xMem),
-						cpu::getPointer<double>(yMem), cpu::getPointer<double>(scaleMem), cpu::getPointer<double>(biasMem),
-						cpu::getPointer<double>(meanMem), cpu::getPointer<double>(varianceMem), epsilon, dimensions, activation,
-						cpu::getContext(context).getWorkspace().data<double>());
+				kernel_batchnorm_inference<double>(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), xMem.data<double>(),
+						yMem.data<double>(), scaleMem.data<double>(), biasMem.data<double>(), meanMem.data<double>(), varianceMem.data<double>(),
+						epsilon, dimensions, activation, context.getWorkspace().data<double>());
 				break;
 			}
 			default:
@@ -351,36 +331,67 @@ namespace SIMD_NAMESPACE
 		return AVOCADO_STATUS_SUCCESS;
 	}
 
-	avStatus_t cpu_batchNormBackward(avContextDescriptor_t context, avActivationType_t activation, const void *alpha,
-			const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t yDesc, const avMemoryDescriptor_t yMem,
-			const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avTensorDescriptor_t dyDesc,
-			avMemoryDescriptor_t dyMem, const avTensorDescriptor_t scaleMeanVarDesc, const avMemoryDescriptor_t scaleMem,
-			const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, const void *alpha2, const void *beta2,
-			avMemoryDescriptor_t scaleUpdateMem, avMemoryDescriptor_t biasUpdateMem, double epsilon)
+	avStatus_t cpu_batchNormForward(const ContextDescriptor &context, avActivationType_t activation, const void *alpha, const TensorDescriptor &xDesc,
+			const MemoryDescriptor &xMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem,
+			const TensorDescriptor &scaleBiasMeanVarDesc, const MemoryDescriptor &scaleMem, const MemoryDescriptor &biasMem,
+			MemoryDescriptor &meanMem, MemoryDescriptor &varianceMem, double epsilon)
 	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(cpu::getTensor(xDesc), cpu::getTensor(scaleMeanVarDesc));
-		const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * 2 * dimensions.last * cpu::dataTypeSize(cpu::getTensor(xDesc).dtype());
-		if (cpu::getContext(context).getWorkspace().size() < required_workspace_size)
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(xDesc, scaleBiasMeanVarDesc);
+
+		const int required_workspace_size = std::min(2, cpuGetNumberOfThreads()) * dimensions.last * cpu::dataTypeSize(xDesc.dtype());
+		if (context.getWorkspace().size() < required_workspace_size)
 			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
-		switch (cpu::getTensor(xDesc).dtype())
+		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				kernel_batchnorm_backward<float>(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), cpu::getPointer<float>(xMem),
-						cpu::getPointer<float>(yMem), cpu::getPointer<float>(dxMem), cpu::getPointer<float>(dyMem), cpu::getPointer<float>(scaleMem),
-						cpu::getPointer<float>(meanMem), cpu::getPointer<float>(varianceMem), epsilon, dimensions, cpu::getAlphaValue(alpha2),
-						cpu::getBetaValue(beta2), cpu::getPointer<float>(scaleUpdateMem), cpu::getPointer<float>(biasUpdateMem), activation,
-						cpu::getContext(context).getWorkspace().data<float>());
+				kernel_batchnorm_forward<float>(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<float>(), yMem.data<float>(),
+						scaleMem.data<float>(), biasMem.data<float>(), meanMem.data<float>(), varianceMem.data<float>(), epsilon, dimensions,
+						activation, context.getWorkspace().data<float>());
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				kernel_batchnorm_backward<double>(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), cpu::getPointer<double>(xMem),
-						cpu::getPointer<double>(yMem), cpu::getPointer<double>(dxMem), cpu::getPointer<double>(dyMem),
-						cpu::getPointer<double>(scaleMem), cpu::getPointer<double>(meanMem), cpu::getPointer<double>(varianceMem), epsilon,
-						dimensions, cpu::getAlphaValue<double>(alpha2), cpu::getBetaValue<double>(beta2), cpu::getPointer<double>(scaleUpdateMem),
-						cpu::getPointer<double>(biasUpdateMem), activation, cpu::getContext(context).getWorkspace().data<double>());
+				kernel_batchnorm_forward<double>(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), xMem.data<double>(),
+						yMem.data<double>(), scaleMem.data<double>(), biasMem.data<double>(), meanMem.data<double>(), varianceMem.data<double>(),
+						epsilon, dimensions, activation, context.getWorkspace().data<double>());
+				break;
+			}
+			default:
+				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+		}
+		return AVOCADO_STATUS_SUCCESS;
+	}
+
+	avStatus_t cpu_batchNormBackward(const ContextDescriptor &context, avActivationType_t activation, const void *alpha,
+			const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const TensorDescriptor &yDesc, const MemoryDescriptor &yMem,
+			const void *beta, const TensorDescriptor &dxDesc, MemoryDescriptor &dxMem, const TensorDescriptor &dyDesc, MemoryDescriptor &dyMem,
+			const TensorDescriptor &scaleMeanVarDesc, const MemoryDescriptor &scaleMem, const MemoryDescriptor &meanMem,
+			const MemoryDescriptor &varianceMem, const void *alpha2, const void *beta2, MemoryDescriptor &scaleUpdateMem,
+			MemoryDescriptor &biasUpdateMem, double epsilon)
+	{
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(xDesc, scaleMeanVarDesc);
+		const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * 2 * dimensions.last * cpu::dataTypeSize(xDesc.dtype());
+		if (context.getWorkspace().size() < required_workspace_size)
+			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
+
+		switch (xDesc.dtype())
+		{
+			case AVOCADO_DTYPE_FLOAT32:
+			{
+				kernel_batchnorm_backward<float>(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<float>(), yMem.data<float>(),
+						dxMem.data<float>(), dyMem.data<float>(), scaleMem.data<float>(), meanMem.data<float>(), varianceMem.data<float>(), epsilon,
+						dimensions, cpu::getAlphaValue(alpha2), cpu::getBetaValue(beta2), scaleUpdateMem.data<float>(), biasUpdateMem.data<float>(),
+						activation, context.getWorkspace().data<float>());
+				break;
+			}
+			case AVOCADO_DTYPE_FLOAT64:
+			{
+				kernel_batchnorm_backward<double>(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), xMem.data<double>(),
+						yMem.data<double>(), dxMem.data<double>(), dyMem.data<double>(), scaleMem.data<double>(), meanMem.data<double>(),
+						varianceMem.data<double>(), epsilon, dimensions, cpu::getAlphaValue<double>(alpha2), cpu::getBetaValue<double>(beta2),
+						scaleUpdateMem.data<double>(), biasUpdateMem.data<double>(), activation, context.getWorkspace().data<double>());
 				break;
 			}
 			default:

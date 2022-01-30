@@ -62,6 +62,8 @@ namespace
 	template<class LossFunction, typename T>
 	T kernel_loss(const T *outputMem, const T *targetMem, int elements) noexcept
 	{
+		assert(outputMem != nullptr);
+		assert(targetMem != nullptr);
 		LossFunction loss_function;
 		SIMD<T> result = SIMD<T>::zero();
 #pragma omp parallel
@@ -85,6 +87,9 @@ namespace
 	template<class LossFunction, typename T>
 	void kernel_gradient(T *gradientMem, const T *outputMem, const T *targetMem, int elements, T alpha, T beta) noexcept
 	{
+		assert(gradientMem != nullptr);
+		assert(targetMem != nullptr);
+		assert(outputMem != nullptr);
 		LossFunction loss_function;
 #pragma omp parallel for
 		for (int i = 0; i < elements; i += SIMD<T>::length)
@@ -151,21 +156,21 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_lossFunction(avContextDescriptor_t context, avLossType_t lossType, const avTensorDescriptor_t outputDesc,
-			const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, void *result)
+	avStatus_t cpu_lossFunction(const ContextDescriptor &context, avLossType_t lossType, const TensorDescriptor &outputDesc,
+			const MemoryDescriptor &outputMem, const TensorDescriptor &targetDesc, const MemoryDescriptor &targetMem, void *result)
 	{
-		const int elements = cpu::getTensor(outputDesc).volume();
-		switch (cpu::getTensor(outputDesc).dtype())
+		const int elements = outputDesc.volume();
+		switch (outputDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				float loss = launcher_loss(lossType, cpu::getPointer<float>(outputMem), cpu::getPointer<float>(targetMem), elements);
+				float loss = launcher_loss(lossType, outputMem.data<float>(), targetMem.data<float>(), elements);
 				std::memcpy(result, &loss, sizeof(float));
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				double loss = launcher_loss(lossType, cpu::getPointer<double>(outputMem), cpu::getPointer<double>(targetMem), elements);
+				double loss = launcher_loss(lossType, outputMem.data<double>(), targetMem.data<double>(), elements);
 				std::memcpy(result, &loss, sizeof(double));
 				break;
 			}
@@ -174,23 +179,23 @@ namespace SIMD_NAMESPACE
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t cpu_lossGradient(avContextDescriptor_t context, avLossType_t lossType, const void *alpha, const avTensorDescriptor_t outputDesc,
-			const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, const void *beta,
-			const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem, bool isFused)
+	avStatus_t cpu_lossGradient(const ContextDescriptor &context, avLossType_t lossType, const void *alpha, const TensorDescriptor &outputDesc,
+			const MemoryDescriptor &outputMem, const TensorDescriptor &targetDesc, const MemoryDescriptor &targetMem, const void *beta,
+			const TensorDescriptor &gradientDesc, MemoryDescriptor &gradientMem, bool isFused)
 	{
-		const int elements = cpu::getTensor(outputDesc).volume();
-		switch (cpu::getTensor(outputDesc).dtype())
+		const int elements = outputDesc.volume();
+		switch (outputDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				launcher_gradient(lossType, cpu::getPointer<float>(gradientMem), cpu::getPointer<float>(outputMem), cpu::getPointer<float>(targetMem),
-						elements, cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), isFused);
+				launcher_gradient(lossType, gradientMem.data<float>(), outputMem.data<float>(), targetMem.data<float>(), elements,
+						cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), isFused);
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				launcher_gradient(lossType, cpu::getPointer<double>(gradientMem), cpu::getPointer<double>(outputMem),
-						cpu::getPointer<double>(targetMem), elements, cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), isFused);
+				launcher_gradient(lossType, gradientMem.data<double>(), outputMem.data<double>(), targetMem.data<double>(), elements,
+						cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), isFused);
 				break;
 			}
 			default:

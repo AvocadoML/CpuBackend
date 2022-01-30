@@ -230,6 +230,9 @@ namespace
 	template<class Op, typename T, typename U>
 	void kernel_reduce_tensor(T *dst, const T *src, U alpha, U beta, cpu::BroadcastedDimensions dimensions, T *workspace) noexcept
 	{
+		assert(dst != nullptr);
+		assert(src != nullptr);
+
 		Op reduction;
 		if (dimensions.last == 1) // reduce into single element
 		{
@@ -343,6 +346,12 @@ namespace
 			case AVOCADO_REDUCE_MUL_NO_ZEROS:
 				kernel_reduce_tensor<ReduceMulNoZeros<T>, T, U>(dst, src, alpha, beta, dimensions, workspace);
 				break;
+			case AVOCADO_REDUCE_LOGICAL_OR:
+				// TODO
+				break;
+			case AVOCADO_REDUCE_LOGICAL_AND:
+				// TODO
+				break;
 		}
 	}
 }
@@ -351,16 +360,16 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_reduceTensor(avContextDescriptor_t context, avReduceOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
-			const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+	avStatus_t cpu_reduceTensor(const ContextDescriptor &context, avReduceOp_t operation, const void *alpha, const TensorDescriptor &aDesc,
+			const MemoryDescriptor &aMem, const void *beta, const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
 	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(cpu::getTensor(aDesc), cpu::getTensor(cDesc));
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(aDesc, cDesc);
 
-		const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * dimensions.last * cpu::dataTypeSize(cpu::getTensor(aDesc).dtype());
-		if (cpu::getContext(context).getWorkspace().size() < required_workspace_size)
+		const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * dimensions.last * cpu::dataTypeSize(aDesc.dtype());
+		if (context.getWorkspace().size() < required_workspace_size)
 			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
-		switch (cpu::getTensor(aDesc).dtype())
+		switch (aDesc.dtype())
 		{
 //			case AVOCADO_DTYPE_FLOAT16:
 //				launcher_tensor_reduction(getPointer<float16>(cMem), cpu::getPointer<float16>(aMem), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), dimensions,
@@ -371,12 +380,12 @@ namespace SIMD_NAMESPACE
 //						dimensions, operation, cpu::getContext(context).getWorkspace().data<bfloat16>());
 //				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				launcher_tensor_reduction(cpu::getPointer<float>(cMem), cpu::getPointer<float>(aMem), cpu::getAlphaValue(alpha),
-						cpu::getBetaValue(beta), dimensions, operation, cpu::getContext(context).getWorkspace().data<float>());
+				launcher_tensor_reduction(cMem.data<float>(), aMem.data<float>(), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), dimensions,
+						operation, context.getWorkspace().data<float>());
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				launcher_tensor_reduction(cpu::getPointer<double>(cMem), cpu::getPointer<double>(aMem), cpu::getAlphaValue<double>(alpha),
-						cpu::getBetaValue<double>(beta), dimensions, operation, cpu::getContext(context).getWorkspace().data<double>());
+				launcher_tensor_reduction(cMem.data<double>(), aMem.data<double>(), cpu::getAlphaValue<double>(alpha),
+						cpu::getBetaValue<double>(beta), dimensions, operation, context.getWorkspace().data<double>());
 				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

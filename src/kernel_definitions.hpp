@@ -9,6 +9,7 @@
 #define KERNELS_KERNEL_DEFINITIONS_HPP_
 
 #include <CpuBackend/cpu_backend.h>
+#include "backend_descriptors.hpp"
 
 #include "vectors/simd_macros.hpp"
 #include "utils.hpp"
@@ -44,5 +45,22 @@ namespace SIMD_NAMESPACE
 }
 
 #endif /* DYNAMIC_ARCH */
+
+namespace avocado
+{
+	namespace backend
+	{
+		avStatus_t cpu_gemm(const cpu::ContextDescriptor &context, avGemmOperation_t aOp, avGemmOperation_t bOp, const void *alpha,
+				const cpu::TensorDescriptor &aDesc, const cpu::MemoryDescriptor &aMem, const cpu::TensorDescriptor &bDesc,
+				const cpu::MemoryDescriptor &bMem, const void *beta, const cpu::TensorDescriptor &cDesc, cpu::MemoryDescriptor &cMem);
+
+		avStatus_t cpu_gemmBatched(const cpu::ContextDescriptor &context, avGemmOperation_t aOp, avGemmOperation_t bOp, const void *alpha,
+				const cpu::TensorDescriptor &aDesc, const cpu::MemoryDescriptor &aMem, const cpu::TensorDescriptor &bDesc,
+				const cpu::MemoryDescriptor &bMem, const void *beta, const cpu::TensorDescriptor &cDesc, cpu::MemoryDescriptor &cMem);
+
+		avStatus_t cpu_getConvolutionWorkspaceSize(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &xDesc,
+				const cpu::TensorDescriptor &wDesc, avSize_t *result);
+	} /* namespace backend */
+} /* namespace avocado */
 
 #endif /* KERNELS_KERNEL_DEFINITIONS_HPP_ */

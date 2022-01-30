@@ -137,6 +137,9 @@ namespace
 	template<class Op, typename T, typename U, bool ZeroBeta, bool LogicalOp = false>
 	void kernel_unary_op(T *dst, const T *src, U alpha, U beta, int elements) noexcept
 	{
+		assert(dst != nullptr);
+		assert(src != nullptr);
+
 		Op operation;
 #pragma omp parallel for
 		for (int i = 0; i < elements; i += SIMD<T>::length)
@@ -220,27 +223,25 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_unaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
-			const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+	avStatus_t cpu_unaryOp(const ContextDescriptor &context, avUnaryOp_t operation, const void *alpha, const TensorDescriptor &aDesc,
+			const MemoryDescriptor &aMem, const void *beta, const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
 	{
-		const avSize_t elements = cpu::getTensor(aDesc).volume();
-		switch (cpu::getTensor(cDesc).dtype())
+		const avSize_t elements = aDesc.volume();
+		switch (cDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				helper_unary_op(cpu::getPointer<float16>(cMem), cpu::getPointer<float16>(aMem), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta),
-						elements, operation);
+				helper_unary_op(cMem.data<float16>(), aMem.data<float16>(), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), elements, operation);
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				helper_unary_op(cpu::getPointer<bfloat16>(cMem), cpu::getPointer<bfloat16>(aMem), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta),
-						elements, operation);
+				helper_unary_op(cMem.data<bfloat16>(), aMem.data<bfloat16>(), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), elements,
+						operation);
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				helper_unary_op(cpu::getPointer<float>(cMem), cpu::getPointer<float>(aMem), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta),
-						elements, operation);
+				helper_unary_op(cMem.data<float>(), aMem.data<float>(), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), elements, operation);
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				helper_unary_op(cpu::getPointer<double>(cMem), cpu::getPointer<double>(aMem), cpu::getAlphaValue<double>(alpha),
-						cpu::getBetaValue<double>(beta), elements, operation);
+				helper_unary_op(cMem.data<double>(), aMem.data<double>(), cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta),
+						elements, operation);
 				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

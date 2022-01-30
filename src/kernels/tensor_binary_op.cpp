@@ -164,6 +164,9 @@ namespace
 	template<class Op, typename T, typename U, bool ZeroBeta, bool LogicalOp = false>
 	void kernel_binary_op(T *dst, const T *src1, const T *src2, U alpha1, U alpha2, U beta, cpu::BroadcastedDimensions dimensions) noexcept
 	{
+		assert(dst != nullptr);
+		assert(src1 != nullptr);
+		assert(src2 != nullptr);
 		Op operation;
 		if (dimensions.first == 1) // both src1 and src2 have the same shape
 		{
@@ -324,29 +327,28 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_binaryOp(avContextDescriptor_t context, avBinaryOp_t operation, const void *alpha1, const avTensorDescriptor_t aDesc,
-			const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *beta,
-			const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+	avStatus_t cpu_binaryOp(const ContextDescriptor &context, avBinaryOp_t operation, const void *alpha1, const TensorDescriptor &aDesc,
+			const MemoryDescriptor &aMem, const void *alpha2, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *beta,
+			const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
 	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(cpu::getTensor(aDesc), cpu::getTensor(bDesc));
-		switch (cpu::getTensor(cDesc).dtype())
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(aDesc, bDesc);
+		switch (cDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				helper_binary_op(cpu::getPointer<float16>(cMem), cpu::getPointer<float16>(aMem), cpu::getPointer<float16>(bMem),
-						cpu::getAlphaValue(alpha1), cpu::getAlphaValue(alpha2), cpu::getBetaValue(beta), dimensions, operation);
-				break;
-			case AVOCADO_DTYPE_BFLOAT16:
-				helper_binary_op(cpu::getPointer<bfloat16>(cMem), cpu::getPointer<bfloat16>(aMem), cpu::getPointer<bfloat16>(bMem),
-						cpu::getAlphaValue(alpha1), cpu::getAlphaValue(alpha2), cpu::getBetaValue(beta), dimensions, operation);
-				break;
-			case AVOCADO_DTYPE_FLOAT32:
-				helper_binary_op(cpu::getPointer<float>(cMem), cpu::getPointer<float>(aMem), cpu::getPointer<float>(bMem), cpu::getAlphaValue(alpha1),
+				helper_binary_op(cMem.data<float16>(), aMem.data<float16>(), bMem.data<float16>(), cpu::getAlphaValue(alpha1),
 						cpu::getAlphaValue(alpha2), cpu::getBetaValue(beta), dimensions, operation);
 				break;
+			case AVOCADO_DTYPE_BFLOAT16:
+				helper_binary_op(cMem.data<bfloat16>(), aMem.data<bfloat16>(), bMem.data<bfloat16>(), cpu::getAlphaValue(alpha1),
+						cpu::getAlphaValue(alpha2), cpu::getBetaValue(beta), dimensions, operation);
+				break;
+			case AVOCADO_DTYPE_FLOAT32:
+				helper_binary_op(cMem.data<float>(), aMem.data<float>(), bMem.data<float>(), cpu::getAlphaValue(alpha1), cpu::getAlphaValue(alpha2),
+						cpu::getBetaValue(beta), dimensions, operation);
+				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				helper_binary_op(cpu::getPointer<double>(cMem), cpu::getPointer<double>(aMem), cpu::getPointer<double>(bMem),
-						cpu::getAlphaValue<double>(alpha1), cpu::getAlphaValue<double>(alpha2), cpu::getBetaValue<double>(beta), dimensions,
-						operation);
+				helper_binary_op(cMem.data<double>(), aMem.data<double>(), bMem.data<double>(), cpu::getAlphaValue<double>(alpha1),
+						cpu::getAlphaValue<double>(alpha2), cpu::getBetaValue<double>(beta), dimensions, operation);
 				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

@@ -18,6 +18,9 @@ namespace
 			const cpu::TensorDescriptor &srcDesc, const cpu::MemoryDescriptor &srcMem, const cpu::TensorDescriptor &filterDesc,
 			cpu::MemoryDescriptor &workspace)
 	{
+		assert(rowMem.data() != nullptr);
+		assert(srcMem.data() != nullptr);
+
 		const int batch_size = srcDesc.dimension(0);
 		const int input_height = srcDesc.dimension(1);
 		const int input_width = srcDesc.dimension(2);
@@ -120,18 +123,16 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_im2row(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const avTensorDescriptor_t filterDesc,
-			const avTensorDescriptor_t srcDesc, const avMemoryDescriptor_t srcMem, const avTensorDescriptor_t rowDesc, avMemoryDescriptor_t rowMem)
+	avStatus_t cpu_im2row(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &filterDesc,
+			const TensorDescriptor &srcDesc, const MemoryDescriptor &srcMem, const TensorDescriptor &rowDesc, MemoryDescriptor &rowMem)
 	{
-		switch (cpu::getTensor(filterDesc).nbDims())
+		switch (filterDesc.nbDims())
 		{
 //			case 3: // 1D convolution
-//				kernel_im2row_1d(getConvolution(config), getTensor(rowDesc), getMemory(rowMem), getTensor(srcDesc), getMemory(srcMem),
-//						getTensor(filterDesc), getContext(context).getWorkspace());
+//				kernel_im2row_2d(config, rowDesc, rowMem, srcDesc, srcMem, filterDesc, context.getWorkspace());
 //				return AVOCADO_STATUS_SUCCESS;
 			case 4: // 2D convolution
-				kernel_im2row_2d(cpu::getConvolution(config), cpu::getTensor(rowDesc), cpu::getMemory(rowMem), cpu::getTensor(srcDesc),
-						cpu::getMemory(srcMem), cpu::getTensor(filterDesc), cpu::getContext(context).getWorkspace());
+				kernel_im2row_2d(config, rowDesc, rowMem, srcDesc, srcMem, filterDesc, context.getWorkspace());
 				return AVOCADO_STATUS_SUCCESS;
 			case 5: // 3D convolution
 				return AVOCADO_STATUS_NOT_SUPPORTED; // TODO

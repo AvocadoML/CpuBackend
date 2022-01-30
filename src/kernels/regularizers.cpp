@@ -21,6 +21,8 @@ namespace
 	template<typename T>
 	void kernel_regularizer_l2(T *gradient, const T *param, T coefficient, T offset, int elements)
 	{
+		assert(gradient != nullptr);
+		assert(param != nullptr);
 #pragma omp parallel for
 		for (int i = 0; i < elements; i += SIMD<T>::length)
 		{
@@ -35,6 +37,7 @@ namespace
 	template<typename T>
 	T kernel_loss_l2(const T *param, T coefficient, T offset, int elements)
 	{
+		assert(param != nullptr);
 		SIMD<T> result = SIMD<T>::zero();
 #pragma omp parallel
 		{
@@ -61,33 +64,32 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_regularizerL2(avContextDescriptor_t context, const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem,
-			const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem, const void *coefficient, const void *offset, void *loss)
+	avStatus_t cpu_regularizerL2(const ContextDescriptor &context, const TensorDescriptor &dwDesc, MemoryDescriptor &dwMem,
+			const TensorDescriptor &wDesc, const MemoryDescriptor &wMem, const void *coefficient, const void *offset, void *loss)
 	{
-		const int elements = cpu::getTensor(dwDesc).volume();
-		switch (cpu::getTensor(dwDesc).dtype())
+		const int elements = dwDesc.volume();
+		switch (dwDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				kernel_regularizer_l2(cpu::getPointer<float>(dwMem), cpu::getPointer<float>(wMem), cpu::getScalarValue<float>(coefficient),
+				kernel_regularizer_l2(dwMem.data<float>(), wMem.data<float>(), cpu::getScalarValue<float>(coefficient),
 						cpu::getScalarValue<float>(offset), elements);
 				if (loss != nullptr)
 				{
-					float l2_loss = kernel_loss_l2(cpu::getPointer<float>(wMem), cpu::getScalarValue<float>(coefficient),
-							cpu::getScalarValue<float>(offset), elements);
+					float l2_loss = kernel_loss_l2(wMem.data<float>(), cpu::getScalarValue<float>(coefficient), cpu::getScalarValue<float>(offset),
+							elements);
 					cpu::setScalarValue(loss, l2_loss);
 				}
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				kernel_regularizer_l2(cpu::getPointer<double>(dwMem), cpu::getPointer<double>(wMem), cpu::getScalarValue<double>(coefficient),
+				kernel_regularizer_l2(dwMem.data<double>(), wMem.data<double>(), cpu::getScalarValue<double>(coefficient),
 						cpu::getScalarValue<double>(offset), elements);
 				if (loss != nullptr)
 				{
-					double l2_loss = kernel_loss_l2(cpu::getPointer<double>(wMem), cpu::getScalarValue<double>(coefficient),
+					double l2_loss = kernel_loss_l2(wMem.data<double>(), cpu::getScalarValue<double>(coefficient),
 							cpu::getScalarValue<double>(offset), elements);
-					std::cout << "loss = " << l2_loss << '\n';
 					cpu::setScalarValue(loss, l2_loss);
 				}
 				break;

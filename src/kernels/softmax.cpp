@@ -37,6 +37,8 @@ namespace
 	template<typename T, typename U = T>
 	void kernel_softmax_forward(U alpha, const T *input, U beta, T *output, int first_dim, int last_dim, T *workspace)
 	{
+		assert(input != nullptr);
+		assert(output != nullptr);
 #pragma omp parallel
 		{
 			T *thread_workspace = workspace + omp_get_thread_num() * last_dim;
@@ -123,42 +125,42 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_softmaxForward(avContextDescriptor_t context, avSoftmaxMode_t mode, const void *alpha, const avTensorDescriptor_t xDesc,
-			const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem)
+	avStatus_t cpu_softmaxForward(const ContextDescriptor &context, avSoftmaxMode_t mode, const void *alpha, const TensorDescriptor &xDesc,
+			const MemoryDescriptor &xMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem)
 	{
 		int first_dim, last_dim;
 		if (mode == AVOCADO_SOFTMAX_MODE_CHANNEL)
 		{
-			first_dim = cpu::getTensor(xDesc).volumeWithoutLastDim();
-			last_dim = cpu::getTensor(xDesc).lastDim();
+			first_dim = xDesc.volumeWithoutLastDim();
+			last_dim = xDesc.lastDim();
 		}
 		else
 		{
-			first_dim = cpu::getTensor(xDesc).firstDim();
-			last_dim = cpu::getTensor(xDesc).volumeWithoutFirstDim();
+			first_dim = xDesc.firstDim();
+			last_dim = xDesc.volumeWithoutFirstDim();
 		}
 
-		const int required_workspace_size = cpuGetNumberOfThreads() * last_dim * cpu::dataTypeSize(cpu::getTensor(xDesc).dtype());
-		if (cpu::getContext(context).getWorkspace().size() < required_workspace_size)
+		const int required_workspace_size = cpuGetNumberOfThreads() * last_dim * cpu::dataTypeSize(xDesc.dtype());
+		if (context.getWorkspace().size() < required_workspace_size)
 			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
-		switch (cpu::getTensor(xDesc).dtype())
+		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				kernel_softmax_forward(cpu::getAlphaValue(alpha), cpu::getPointer<float16>(xMem), cpu::getBetaValue(beta),
-						cpu::getPointer<float16>(yMem), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<float16>());
+				kernel_softmax_forward(cpu::getAlphaValue(alpha), xMem.data<float16>(), cpu::getBetaValue(beta), yMem.data<float16>(), first_dim,
+						last_dim, context.getWorkspace().data<float16>());
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				kernel_softmax_forward(cpu::getAlphaValue(alpha), cpu::getPointer<bfloat16>(xMem), cpu::getBetaValue(beta),
-						cpu::getPointer<bfloat16>(yMem), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<bfloat16>());
+				kernel_softmax_forward(cpu::getAlphaValue(alpha), xMem.data<bfloat16>(), cpu::getBetaValue(beta), yMem.data<bfloat16>(), first_dim,
+						last_dim, context.getWorkspace().data<bfloat16>());
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				kernel_softmax_forward(cpu::getAlphaValue(alpha), cpu::getPointer<float>(xMem), cpu::getBetaValue(beta),
-						cpu::getPointer<float>(yMem), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<float>());
+				kernel_softmax_forward(cpu::getAlphaValue(alpha), xMem.data<float>(), cpu::getBetaValue(beta), yMem.data<float>(), first_dim,
+						last_dim, context.getWorkspace().data<float>());
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				kernel_softmax_forward(cpu::getAlphaValue<double>(alpha), cpu::getPointer<double>(xMem), cpu::getBetaValue<double>(beta),
-						cpu::getPointer<double>(yMem), first_dim, last_dim, cpu::getContext(context).getWorkspace().data<double>());
+				kernel_softmax_forward(cpu::getAlphaValue<double>(alpha), xMem.data<double>(), cpu::getBetaValue<double>(beta), yMem.data<double>(),
+						first_dim, last_dim, context.getWorkspace().data<double>());
 				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
@@ -166,9 +168,9 @@ namespace SIMD_NAMESPACE
 		return AVOCADO_STATUS_SUCCESS;
 	}
 
-	avStatus_t cpu_softmaxBackward(avContextDescriptor_t context, avSoftmaxMode_t mode, const void *alpha, const avTensorDescriptor_t yDesc,
-			const avMemoryDescriptor_t yMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta,
-			const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
+	avStatus_t cpu_softmaxBackward(const ContextDescriptor &context, avSoftmaxMode_t mode, const void *alpha, const TensorDescriptor &yDesc,
+			const MemoryDescriptor &yMem, const TensorDescriptor &dyDesc, const MemoryDescriptor &dyMem, const void *beta,
+			const TensorDescriptor &dxDesc, MemoryDescriptor &dxMem)
 	{
 		return SIMD_NAMESPACE::cpu_activationBackward(context, AVOCADO_ACTIVATION_SIGMOID, alpha, yDesc, yMem, dyDesc, dyMem, beta, dxDesc, dxMem);
 	}

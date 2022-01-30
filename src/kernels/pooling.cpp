@@ -20,15 +20,15 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_poolingForward(avContextDescriptor_t context, const avPoolingDescriptor_t config, const void *alpha, const avTensorDescriptor_t xDesc,
-			const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem)
+	avStatus_t cpu_poolingForward(const ContextDescriptor &context, const PoolingDescriptor &config, const void *alpha, const TensorDescriptor &xDesc,
+			const MemoryDescriptor &xMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem)
 	{
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}
 
-	avStatus_t cpu_poolingBackward(avContextDescriptor_t context, const avPoolingDescriptor_t config, const void *alpha, const avTensorDescriptor_t xDesc,
-			const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta,
-			const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
+	avStatus_t cpu_poolingBackward(const ContextDescriptor &context, const PoolingDescriptor &config, const void *alpha,
+			const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const TensorDescriptor &dyDesc, const MemoryDescriptor &dyMem,
+			const void *beta, const TensorDescriptor &dxDesc, MemoryDescriptor &dxMem)
 	{
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}

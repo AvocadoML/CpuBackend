@@ -24,49 +24,51 @@ namespace
 			int x, y, z, w;
 	};
 
-	void kernel_concat_tensors(const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, const avTensorDescriptor_t aDesc[],
-			const avMemoryDescriptor_t aMem[], int nbTensors)
+	void kernel_concat_tensors(const TensorDescriptor &cDesc, MemoryDescriptor &cMem, const std::vector<const TensorDescriptor*> &aDesc,
+			const std::vector<const MemoryDescriptor*> &aMem)
 	{
-		const int dtype_size = cpu::dataTypeSize(cpu::getTensor(cDesc).dtype());
-		const int first_dim = cpu::getTensor(cDesc).volumeWithoutLastDim();
+		const int dtype_size = cpu::dataTypeSize(cDesc.dtype());
+		const int first_dim = cDesc.volumeWithoutLastDim();
 
-		const int dst_last_dim = cpu::getTensor(cDesc).lastDim() * dtype_size;
+		const int dst_last_dim = cDesc.lastDim() * dtype_size;
 
 #pragma omp parallel
 		{
 			int last_dim_offset = 0;
-			for (int k = 0; k < nbTensors; k++)
+			for (size_t k = 0; k < aMem.size(); k++)
 			{
-				const int src_last_dim = cpu::getTensor(aDesc[k]).lastDim() * dtype_size;
+				assert(aDesc[k] != nullptr);
+				assert(aMem[k] != nullptr);
+				const int src_last_dim = aDesc[k]->lastDim() * dtype_size;
 
 #pragma omp for nowait
 				for (int i = 0; i < first_dim; i++)
-					std::memcpy(cpu::getPointer<uint8_t>(cMem) + i * dst_last_dim + last_dim_offset,
-							cpu::getPointer<uint8_t>(aMem[k]) + i * src_last_dim, src_last_dim);
+					std::memcpy(cMem.data<uint8_t>() + i * dst_last_dim + last_dim_offset, aMem[k]->data<uint8_t>() + i * src_last_dim, src_last_dim);
 				last_dim_offset += src_last_dim;
 			}
 		}
 	}
 
-	void kernel_split_tensors(const avTensorDescriptor_t cDesc[], avMemoryDescriptor_t cMem[], const avTensorDescriptor_t aDesc,
-			const avMemoryDescriptor_t aMem, int nbTensors)
+	void kernel_split_tensors(const std::vector<const TensorDescriptor*> &cDesc, const std::vector<MemoryDescriptor*> &cMem,
+			const TensorDescriptor &aDesc, const MemoryDescriptor &aMem)
 	{
-		const int dtype_size = cpu::dataTypeSize(cpu::getTensor(aDesc).dtype());
-		const int first_dim = cpu::getTensor(aDesc).volumeWithoutLastDim();
+		const int dtype_size = cpu::dataTypeSize(aDesc.dtype());
+		const int first_dim = aDesc.volumeWithoutLastDim();
 
-		const int src_last_dim = cpu::getTensor(aDesc).lastDim() * dtype_size;
+		const int src_last_dim = aDesc.lastDim() * dtype_size;
 
 #pragma omp parallel
 		{
 			int last_dim_offset = 0;
-			for (int k = 0; k < nbTensors; k++)
+			for (size_t k = 0; k < cDesc.size(); k++)
 			{
-				const int dst_last_dim = cpu::getTensor(cDesc[k]).lastDim() * dtype_size;
+				assert(cDesc[k] != nullptr);
+				assert(cDesc[k] != nullptr);
+				const int dst_last_dim = cDesc[k]->lastDim() * dtype_size;
 
 #pragma omp for nowait
 				for (int i = 0; i < first_dim; i++)
-					std::memcpy(cpu::getPointer<uint8_t>(cMem[k]) + i * dst_last_dim,
-							cpu::getPointer<uint8_t>(aMem) + i * src_last_dim + last_dim_offset, dst_last_dim);
+					std::memcpy(cMem[k]->data<uint8_t>() + i * dst_last_dim, aMem.data<uint8_t>() + i * src_last_dim + last_dim_offset, dst_last_dim);
 				last_dim_offset += dst_last_dim;
 			}
 		}
@@ -75,6 +77,9 @@ namespace
 	template<typename T>
 	void kernel_transpose(T *dst, const T *src, const cpu::TensorDescriptor &src_shape, const int ordering[])
 	{
+		assert(dst != nullptr);
+		assert(src != nullptr);
+		assert(ordering != nullptr);
 		const int src_volume = src_shape.volume();
 		const int dimension = src_shape.nbDims();
 
@@ -107,6 +112,8 @@ namespace
 	template<typename T, typename U>
 	void kernel_scale_tensor(T *dst, const T *src, U value, int elements) noexcept
 	{
+		assert(dst != nullptr);
+		assert(src != nullptr);
 #pragma omp parallel for
 		for (int i = 0; i < elements; i += SIMD<T>::length)
 		{
@@ -119,6 +126,8 @@ namespace
 	template<typename T, typename U>
 	void kernel_add_scalar_to_tensor(T *dst, const T *src, U scalar, int elements) noexcept
 	{
+		assert(dst != nullptr);
+		assert(src != nullptr);
 #pragma omp parallel for
 		for (int i = 0; i < elements; i += SIMD<T>::length)
 		{
@@ -132,6 +141,9 @@ namespace
 	template<class Activation, typename T, typename U, typename V>
 	void kernel_add_bias(T *dst, U alpha3, U alpha1, const V *src, U alpha2, const U *bias, U beta, cpu::BroadcastedDimensions dims) noexcept
 	{
+		assert(dst != nullptr);
+		assert(src != nullptr);
+		assert(bias != nullptr);
 		Activation activation;
 #pragma omp parallel for
 		for (int i = 0; i < dims.first; i++)
@@ -194,69 +206,69 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_concatTensors(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
-			const avTensorDescriptor_t aDesc[], const avMemoryDescriptor_t aMem[], int nbTensors)
+	avStatus_t cpu_concatTensors(const ContextDescriptor &context, const TensorDescriptor &cDesc, MemoryDescriptor &cMem,
+			const std::vector<const TensorDescriptor*> &aDesc, const std::vector<const MemoryDescriptor*> &aMem)
 	{
-		switch (cpu::dataTypeSize(cpu::getTensor(cDesc).dtype()))
+		switch (cpu::dataTypeSize(cDesc.dtype()))
 		{
 			case 1:
 			case 2:
 			case 4:
 			case 8:
 			case 16:
-				kernel_concat_tensors(cDesc, cMem, aDesc, aMem, nbTensors);
+				kernel_concat_tensors(cDesc, cMem, aDesc, aMem);
 				return AVOCADO_STATUS_SUCCESS;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
 	}
 
-	avStatus_t cpu_splitTensors(avContextDescriptor_t context, const avTensorDescriptor_t cDesc[], avMemoryDescriptor_t cMem[],
-			const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, int nbTensors)
+	avStatus_t cpu_splitTensors(const ContextDescriptor &context, const std::vector<const TensorDescriptor*> &cDesc,
+			std::vector<MemoryDescriptor*> &cMem, const TensorDescriptor &aDesc, const MemoryDescriptor &aMem)
 	{
-		switch (cpu::dataTypeSize(cpu::getTensor(aDesc).dtype()))
+		switch (cpu::dataTypeSize(aDesc.dtype()))
 		{
 			case 1:
 			case 2:
 			case 4:
 			case 8:
 			case 16:
-				kernel_split_tensors(cDesc, cMem, aDesc, aMem, nbTensors);
+				kernel_split_tensors(cDesc, cMem, aDesc, aMem);
 				return AVOCADO_STATUS_SUCCESS;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
 	}
 
-	avStatus_t cpu_transpose(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
-			const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const int newDimOrder[])
+	avStatus_t cpu_transpose(const ContextDescriptor &context, const TensorDescriptor &cDesc, MemoryDescriptor &cMem, const TensorDescriptor &aDesc,
+			const MemoryDescriptor &aMem, const int newDimOrder[])
 	{
-		switch (cpu::dataTypeSize(cpu::getTensor(aDesc).dtype()))
+		switch (cpu::dataTypeSize(aDesc.dtype()))
 		{
 			case 1:
-				kernel_transpose<int8_t>(cpu::getPointer<int8_t>(cMem), cpu::getPointer<int8_t>(aMem), cpu::getTensor(aDesc), newDimOrder);
+				kernel_transpose(cMem.data<int8_t>(), aMem.data<int8_t>(), aDesc, newDimOrder);
 				break;
 			case 2:
-				kernel_transpose<int16_t>(cpu::getPointer<int16_t>(cMem), cpu::getPointer<int16_t>(aMem), cpu::getTensor(aDesc), newDimOrder);
+				kernel_transpose(cMem.data<int16_t>(), aMem.data<int16_t>(), aDesc, newDimOrder);
 				break;
 			case 4:
-				kernel_transpose<int32_t>(cpu::getPointer<int32_t>(cMem), cpu::getPointer<int32_t>(aMem), cpu::getTensor(aDesc), newDimOrder);
+				kernel_transpose(cMem.data<int32_t>(), aMem.data<int32_t>(), aDesc, newDimOrder);
 				break;
 			case 8:
-				kernel_transpose<int64_t>(cpu::getPointer<int64_t>(cMem), cpu::getPointer<int64_t>(aMem), cpu::getTensor(aDesc), newDimOrder);
+				kernel_transpose(cMem.data<int64_t>(), aMem.data<int64_t>(), aDesc, newDimOrder);
 				break;
 			case 16:
-				kernel_transpose<int4>(cpu::getPointer<int4>(cMem), cpu::getPointer<int4>(aMem), cpu::getTensor(aDesc), newDimOrder);
+				kernel_transpose(cMem.data<int4>(), aMem.data<int4>(), aDesc, newDimOrder);
 				break;
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
 
-	avStatus_t cpu_scaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *alpha,
-			const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+	avStatus_t cpu_scaleTensor(const ContextDescriptor &context, const TensorDescriptor &aDesc, const MemoryDescriptor &aMem, const void *alpha,
+			const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
 	{
-		const avSize_t elements = cpu::getTensor(cDesc).volume();
-		switch (cpu::getTensor(cDesc).dtype())
+		const avSize_t elements = cDesc.volume();
+		switch (cDesc.dtype())
 		{
 //			case AVOCADO_DTYPE_UINT8:
 //				kernel_scale_tensor(cpu::getPointer<uint8_t>(cMem), cpu::getAlphaValue(alpha), elements);
@@ -274,16 +286,16 @@ namespace SIMD_NAMESPACE
 //				kernel_scale_tensor(cpu::getPointer<int64_t>(cMem), cpu::getAlphaValue(alpha), elements);
 //				break;
 			case AVOCADO_DTYPE_FLOAT16:
-				kernel_scale_tensor(cpu::getPointer<float16>(cMem), cpu::getPointer<float16>(aMem), cpu::getAlphaValue(alpha), elements);
+				kernel_scale_tensor(cMem.data<float16>(), aMem.data<float16>(), cpu::getAlphaValue(alpha), elements);
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				kernel_scale_tensor(cpu::getPointer<bfloat16>(cMem), cpu::getPointer<bfloat16>(aMem), cpu::getAlphaValue(alpha), elements);
+				kernel_scale_tensor(cMem.data<bfloat16>(), aMem.data<bfloat16>(), cpu::getAlphaValue(alpha), elements);
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				kernel_scale_tensor(cpu::getPointer<float>(cMem), cpu::getPointer<float>(aMem), cpu::getAlphaValue(alpha), elements);
+				kernel_scale_tensor(cMem.data<float>(), aMem.data<float>(), cpu::getAlphaValue(alpha), elements);
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				kernel_scale_tensor(cpu::getPointer<double>(cMem), cpu::getPointer<double>(aMem), cpu::getAlphaValue<double>(alpha), elements);
+				kernel_scale_tensor(cMem.data<double>(), aMem.data<double>(), cpu::getAlphaValue<double>(alpha), elements);
 				break;
 //			case AVOCADO_DTYPE_COMPLEX32:
 //				kernel_scale_tensor(cpu::getPointer<std::complex<float>>(cMem), cpu::getAlphaValue<std::complex<float>>(alpha), elements);
@@ -297,11 +309,11 @@ namespace SIMD_NAMESPACE
 		return AVOCADO_STATUS_SUCCESS;
 	}
 
-	avStatus_t cpu_addScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
-			const void *scalar, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+	avStatus_t cpu_addScalarToTensor(const ContextDescriptor &context, const TensorDescriptor &aDesc, const MemoryDescriptor &aMem,
+			const void *scalar, const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
 	{
-		const avSize_t elements = cpu::getTensor(cDesc).volume();
-		switch (cpu::getTensor(cDesc).dtype())
+		const avSize_t elements = cDesc.volume();
+		switch (cDesc.dtype())
 		{
 //			case AVOCADO_DTYPE_UINT8:
 //				kernel_add_scalar_to_tensor(getPointer<uint8_t>(cMem), scalar, elements);
@@ -319,19 +331,16 @@ namespace SIMD_NAMESPACE
 //				kernel_add_scalar_to_tensor(getPointer<int64_t>(cMem), scalar, elements);
 //				break;
 			case AVOCADO_DTYPE_FLOAT16:
-				kernel_add_scalar_to_tensor(cpu::getPointer<float16>(cMem), cpu::getPointer<float16>(aMem), cpu::getScalarValue<float>(scalar),
-						elements);
+				kernel_add_scalar_to_tensor(cMem.data<float16>(), aMem.data<float16>(), cpu::getScalarValue<float>(scalar), elements);
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				kernel_add_scalar_to_tensor(cpu::getPointer<bfloat16>(cMem), cpu::getPointer<bfloat16>(aMem), cpu::getScalarValue<float>(scalar),
-						elements);
+				kernel_add_scalar_to_tensor(cMem.data<bfloat16>(), aMem.data<bfloat16>(), cpu::getScalarValue<float>(scalar), elements);
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				kernel_add_scalar_to_tensor(cpu::getPointer<float>(cMem), cpu::getPointer<float>(aMem), cpu::getScalarValue<float>(scalar), elements);
+				kernel_add_scalar_to_tensor(cMem.data<float>(), aMem.data<float>(), cpu::getScalarValue<float>(scalar), elements);
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				kernel_add_scalar_to_tensor(cpu::getPointer<double>(cMem), cpu::getPointer<double>(aMem), cpu::getScalarValue<double>(scalar),
-						elements);
+				kernel_add_scalar_to_tensor(cMem.data<double>(), aMem.data<double>(), cpu::getScalarValue<double>(scalar), elements);
 				break;
 //			case AVOCADO_DTYPE_COMPLEX32:
 //				kernel_add_scalar_to_tensor(getPointer<std::complex<float>>(cMem), scalar, elements);
@@ -345,12 +354,12 @@ namespace SIMD_NAMESPACE
 		return AVOCADO_STATUS_SUCCESS;
 	}
 
-	avStatus_t cpu_addBias(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t aDesc,
-			const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *beta,
-			const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, avActivationType_t activation)
+	avStatus_t cpu_addBias(const ContextDescriptor &context, const void *alpha3, const void *alpha1, const TensorDescriptor &aDesc,
+			const MemoryDescriptor &aMem, const void *alpha2, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *beta,
+			const TensorDescriptor &cDesc, MemoryDescriptor &cMem, avActivationType_t activation)
 	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(cpu::getTensor(aDesc), cpu::getTensor(bDesc));
-		switch (cpu::getTensor(cDesc).dtype())
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(aDesc, bDesc);
+		switch (cDesc.dtype())
 		{
 //			case AVOCADO_DTYPE_UINT8:
 //				kernel_scale_tensor(cpu::getPointer<uint8_t>(cMem), cpu::getAlphaValue(alpha), elements);
@@ -368,21 +377,18 @@ namespace SIMD_NAMESPACE
 //				kernel_scale_tensor(cpu::getPointer<int64_t>(cMem), cpu::getAlphaValue(alpha), elements);
 //				break;
 			case AVOCADO_DTYPE_FLOAT16:
-				return launcher_add_bias(cpu::getPointer<float16>(cMem), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1),
-						cpu::getPointer<float16>(aMem), cpu::getAlphaValue(alpha2), cpu::getPointer<float>(bMem), cpu::getBetaValue(beta), dimensions,
-						activation);
+				return launcher_add_bias(cMem.data<float16>(), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1), aMem.data<float16>(),
+						cpu::getAlphaValue(alpha2), bMem.data<float>(), cpu::getBetaValue(beta), dimensions, activation);
 			case AVOCADO_DTYPE_BFLOAT16:
-				return launcher_add_bias(cpu::getPointer<bfloat16>(cMem), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1),
-						cpu::getPointer<bfloat16>(aMem), cpu::getAlphaValue(alpha2), cpu::getPointer<float>(bMem), cpu::getBetaValue(beta), dimensions,
-						activation);
+				return launcher_add_bias(cMem.data<bfloat16>(), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1), aMem.data<bfloat16>(),
+						cpu::getAlphaValue(alpha2), bMem.data<float>(), cpu::getBetaValue(beta), dimensions, activation);
 			case AVOCADO_DTYPE_FLOAT32:
-				return launcher_add_bias(cpu::getPointer<float>(cMem), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1),
-						cpu::getPointer<float>(aMem), cpu::getAlphaValue(alpha2), cpu::getPointer<float>(bMem), cpu::getBetaValue(beta), dimensions,
-						activation);
+				return launcher_add_bias(cMem.data<float>(), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1), aMem.data<float>(),
+						cpu::getAlphaValue(alpha2), bMem.data<float>(), cpu::getBetaValue(beta), dimensions, activation);
 			case AVOCADO_DTYPE_FLOAT64:
-				return launcher_add_bias(cpu::getPointer<double>(cMem), cpu::getAlphaValue<double>(alpha3), cpu::getAlphaValue<double>(alpha1),
-						cpu::getPointer<double>(aMem), cpu::getAlphaValue<double>(alpha2), cpu::getPointer<double>(bMem),
-						cpu::getBetaValue<double>(beta), dimensions, activation);
+				return launcher_add_bias(cMem.data<double>(), cpu::getAlphaValue<double>(alpha3), cpu::getAlphaValue<double>(alpha1),
+						aMem.data<double>(), cpu::getAlphaValue<double>(alpha2), bMem.data<double>(), cpu::getBetaValue<double>(beta), dimensions,
+						activation);
 //			case AVOCADO_DTYPE_COMPLEX32:
 //				kernel_scale_tensor(cpu::getPointer<std::complex<float>>(cMem), cpu::getAlphaValue<std::complex<float>>(alpha), elements);
 //				break;

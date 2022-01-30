@@ -20,11 +20,10 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_winogradFusedForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
-			const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
-			const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2, const avTensorDescriptor_t zDesc,
-			const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem,
-			const avActivationType_t activation)
+	avStatus_t cpu_winogradFusedForward(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha1,
+			const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const TensorDescriptor &wDesc, const MemoryDescriptor &wMem,
+			const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *alpha2, const TensorDescriptor &zDesc, const MemoryDescriptor &zMem,
+			const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem, avActivationType_t activation)
 	{
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}

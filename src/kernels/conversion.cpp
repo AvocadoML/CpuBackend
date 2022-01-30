@@ -146,15 +146,15 @@ namespace
 	template<typename T, typename U>
 	void kernel_convert(T *dst, const U *src, avSize_t elements) noexcept
 	{
+		assert(dst != nullptr);
+		assert(src != nullptr);
+
 		for (avSize_t i = 0; i < elements; i++)
 			dst[i] = Converter<T, U>::convert(src[i]);
 	}
 	template<typename T>
 	void convert_helper(T *dst, const void *src, avSize_t elements, avDataType_t srcType)
 	{
-		assert(dst != nullptr);
-		assert(src != nullptr);
-
 		switch (srcType)
 		{
 			case AVOCADO_DTYPE_UINT8:
@@ -200,9 +200,13 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_changeTypeHost(avContextDescriptor_t context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
+	avStatus_t cpu_changeTypeHost(const ContextDescriptor &context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
 			avSize_t elements)
 	{
+		if (dst == nullptr or src == nullptr)
+			return AVOCADO_STATUS_BAD_PARAM;
+		if (dst == src and cpu::dataTypeSize(dstType) != cpu::dataTypeSize(srcType))
+			return AVOCADO_STATUS_BAD_PARAM;
 		switch (dstType)
 		{
 			case AVOCADO_DTYPE_UINT8:
@@ -244,10 +248,10 @@ namespace SIMD_NAMESPACE
 		return AVOCADO_STATUS_SUCCESS;
 	}
 
-	avStatus_t cpu_changeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType, const avMemoryDescriptor_t src,
+	avStatus_t cpu_changeType(const ContextDescriptor &context, MemoryDescriptor &dst, avDataType_t dstType, const MemoryDescriptor &src,
 			avDataType_t srcType, avSize_t elements)
 	{
-		return cpu_changeTypeHost(context, cpu::getPointer(dst), dstType, cpu::getPointer(src), srcType, elements);
+		return cpu_changeTypeHost(context, dst.data(), dstType, src.data(), srcType, elements);
 	}
 } /* namespace SIMD_NAMESPACE */
 
