@@ -85,6 +85,8 @@ namespace
 
 		std::array<int, AVOCADO_MAX_TENSOR_DIMENSIONS> src_stride;
 		std::array<int, AVOCADO_MAX_TENSOR_DIMENSIONS> dst_stride;
+		src_stride.fill(0);
+		dst_stride.fill(0);
 
 		int tmp_src = 1, tmp_dst = 1;
 		for (int i = dimension - 1; i >= 0; i--)
@@ -139,61 +141,62 @@ namespace
 	}
 
 	template<class Activation, typename T, typename U, typename V>
-	void kernel_add_bias(T *dst, U alpha3, U alpha1, const V *src, U alpha2, const U *bias, U beta, cpu::BroadcastedDimensions dims) noexcept
+	void kernel_add_bias(T *yMem, U alpha3, U alpha1, const V *xMem, U alpha2, const U *bMem, const T *zMem, U beta1, U beta2,
+			cpu::BroadcastedDimensions dims) noexcept
 	{
-		assert(dst != nullptr);
-		assert(src != nullptr);
-		assert(bias != nullptr);
 		Activation activation;
 #pragma omp parallel for
 		for (int i = 0; i < dims.first; i++)
 			for (int j = 0; j < dims.last; j += SIMD<T>::length)
 			{
 				const int elements_left = std::min(dims.last - j, SIMD<T>::length);
-				SIMD<T> lhs(src + i * dims.last + j, elements_left);
-				SIMD<T> rhs(bias + j, elements_left);
-				SIMD<T> result = alpha3 * activation.forward(lhs * alpha1 + rhs * alpha2);
-				if (beta != scalar::zero<U>())
+				SIMD<T> input(xMem + i * dims.last + j, elements_left);
+				SIMD<T> bias(bMem + j, elements_left);
+
+				SIMD<T> tmp = alpha1 * input + alpha2 * bias;
+				if (beta1 != scalar::zero<U>() or beta2 != scalar::zero<U>())
 				{
-					SIMD<T> tmp(dst + i * dims.last + j, elements_left);
-					result += beta * tmp;
+					SIMD<T> ext(zMem + i * dims.last + j, elements_left);
+					tmp = alpha3 * activation.forward(tmp + beta1 * ext) + beta2 * ext;
 				}
-				result.store(dst + i * dims.last + j, elements_left);
+				else
+					tmp = alpha3 * activation.forward(tmp);
+				tmp.store(yMem + i * dims.last + j, elements_left);
 			}
 	}
 
 	template<typename T, typename U, typename V>
-	avStatus_t launcher_add_bias(T *dst, U alpha3, U alpha1, const V *src, U alpha2, const U *bias, U beta, cpu::BroadcastedDimensions dims,
-			avActivationType_t activation) noexcept
+	avStatus_t launcher_add_bias(T *yMem, U alpha3, U alpha1, const V *xMem, U alpha2, const U *bMem, const T *zMem, U beta1, U beta2,
+			cpu::BroadcastedDimensions dims, avActivationType_t activation) noexcept
 	{
 		switch (activation)
 		{
 			case AVOCADO_ACTIVATION_LINEAR:
-				kernel_add_bias<ActivationLinear<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				kernel_add_bias<ActivationLinear<U>, T, U, V>(yMem, alpha3, alpha1, xMem, alpha2, bMem, zMem, beta1, beta2, dims);
 				break;
 			case AVOCADO_ACTIVATION_SIGMOID:
-				kernel_add_bias<ActivationSigmoid<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				kernel_add_bias<ActivationSigmoid<U>, T, U, V>(yMem, alpha3, alpha1, xMem, alpha2, bMem, zMem, beta1, beta2, dims);
 				break;
 			case AVOCADO_ACTIVATION_TANH:
-				kernel_add_bias<ActivationTanh<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				kernel_add_bias<ActivationTanh<U>, T, U, V>(yMem, alpha3, alpha1, xMem, alpha2, bMem, zMem, beta1, beta2, dims);
 				break;
 			case AVOCADO_ACTIVATION_RELU:
-				kernel_add_bias<ActivationRelu<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				kernel_add_bias<ActivationRelu<U>, T, U, V>(yMem, alpha3, alpha1, xMem, alpha2, bMem, zMem, beta1, beta2, dims);
 				break;
 			case AVOCADO_ACTIVATION_SELU:
-				kernel_add_bias<ActivationSelu<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				kernel_add_bias<ActivationSelu<U>, T, U, V>(yMem, alpha3, alpha1, xMem, alpha2, bMem, zMem, beta1, beta2, dims);
 				break;
 			case AVOCADO_ACTIVATION_ELU:
-				kernel_add_bias<ActivationElu<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				kernel_add_bias<ActivationElu<U>, T, U, V>(yMem, alpha3, alpha1, xMem, alpha2, bMem, zMem, beta1, beta2, dims);
 				break;
 			case AVOCADO_ACTIVATION_EXPONENTIAL:
-				kernel_add_bias<ActivationExponential<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				kernel_add_bias<ActivationExponential<U>, T, U, V>(yMem, alpha3, alpha1, xMem, alpha2, bMem, zMem, beta1, beta2, dims);
 				break;
 			case AVOCADO_ACTIVATION_SOFTPLUS:
-				kernel_add_bias<ActivationSoftplus<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				kernel_add_bias<ActivationSoftplus<U>, T, U, V>(yMem, alpha3, alpha1, xMem, alpha2, bMem, zMem, beta1, beta2, dims);
 				break;
 			case AVOCADO_ACTIVATION_SOFTSIGN:
-				kernel_add_bias<ActivationSoftsign<U>, T, U, V>(dst, alpha3, alpha1, src, alpha2, bias, beta, dims);
+				kernel_add_bias<ActivationSoftsign<U>, T, U, V>(yMem, alpha3, alpha1, xMem, alpha2, bMem, zMem, beta1, beta2, dims);
 				break;
 			default:
 				return AVOCADO_STATUS_BAD_PARAM;
@@ -354,12 +357,13 @@ namespace SIMD_NAMESPACE
 		return AVOCADO_STATUS_SUCCESS;
 	}
 
-	avStatus_t cpu_addBias(const ContextDescriptor &context, const void *alpha3, const void *alpha1, const TensorDescriptor &aDesc,
-			const MemoryDescriptor &aMem, const void *alpha2, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *beta,
-			const TensorDescriptor &cDesc, MemoryDescriptor &cMem, avActivationType_t activation)
+	avStatus_t cpu_addBias(const ContextDescriptor &context, const void *alpha3, const void *alpha1, const TensorDescriptor &xDesc,
+			const MemoryDescriptor &xMem, const void *alpha2, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem,
+			const TensorDescriptor &yDesc, MemoryDescriptor &yMem, const void *beta1, const void *beta2, const MemoryDescriptor &zMem,
+			avActivationType_t activation)
 	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(aDesc, bDesc);
-		switch (cDesc.dtype())
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(xDesc, bDesc);
+		switch (yDesc.dtype())
 		{
 //			case AVOCADO_DTYPE_UINT8:
 //				kernel_scale_tensor(cpu::getPointer<uint8_t>(cMem), cpu::getAlphaValue(alpha), elements);
@@ -377,18 +381,21 @@ namespace SIMD_NAMESPACE
 //				kernel_scale_tensor(cpu::getPointer<int64_t>(cMem), cpu::getAlphaValue(alpha), elements);
 //				break;
 			case AVOCADO_DTYPE_FLOAT16:
-				return launcher_add_bias(cMem.data<float16>(), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1), aMem.data<float16>(),
-						cpu::getAlphaValue(alpha2), bMem.data<float>(), cpu::getBetaValue(beta), dimensions, activation);
+				return launcher_add_bias(yMem.data<float16>(), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1), xMem.data<float16>(),
+						cpu::getAlphaValue(alpha2), bMem.data<float>(), zMem.data<float16>(), cpu::getBetaValue(beta1), cpu::getBetaValue(beta2),
+						dimensions, activation);
 			case AVOCADO_DTYPE_BFLOAT16:
-				return launcher_add_bias(cMem.data<bfloat16>(), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1), aMem.data<bfloat16>(),
-						cpu::getAlphaValue(alpha2), bMem.data<float>(), cpu::getBetaValue(beta), dimensions, activation);
+				return launcher_add_bias(yMem.data<bfloat16>(), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1), xMem.data<bfloat16>(),
+						cpu::getAlphaValue(alpha2), bMem.data<float>(), zMem.data<bfloat16>(), cpu::getBetaValue(beta1), cpu::getBetaValue(beta2),
+						dimensions, activation);
 			case AVOCADO_DTYPE_FLOAT32:
-				return launcher_add_bias(cMem.data<float>(), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1), aMem.data<float>(),
-						cpu::getAlphaValue(alpha2), bMem.data<float>(), cpu::getBetaValue(beta), dimensions, activation);
+				return launcher_add_bias(yMem.data<float>(), cpu::getAlphaValue(alpha3), cpu::getAlphaValue(alpha1), xMem.data<float>(),
+						cpu::getAlphaValue(alpha2), bMem.data<float>(), zMem.data<float>(), cpu::getBetaValue(beta1), cpu::getBetaValue(beta2),
+						dimensions, activation);
 			case AVOCADO_DTYPE_FLOAT64:
-				return launcher_add_bias(cMem.data<double>(), cpu::getAlphaValue<double>(alpha3), cpu::getAlphaValue<double>(alpha1),
-						aMem.data<double>(), cpu::getAlphaValue<double>(alpha2), bMem.data<double>(), cpu::getBetaValue<double>(beta), dimensions,
-						activation);
+				return launcher_add_bias(yMem.data<double>(), cpu::getAlphaValue<double>(alpha3), cpu::getAlphaValue<double>(alpha1),
+						xMem.data<double>(), cpu::getAlphaValue<double>(alpha2), bMem.data<double>(), zMem.data<double>(),
+						cpu::getBetaValue<double>(beta1), cpu::getBetaValue<double>(beta2), dimensions, activation);
 //			case AVOCADO_DTYPE_COMPLEX32:
 //				kernel_scale_tensor(cpu::getPointer<std::complex<float>>(cMem), cpu::getAlphaValue<std::complex<float>>(alpha), elements);
 //				break;
