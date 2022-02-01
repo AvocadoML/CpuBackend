@@ -78,8 +78,8 @@ namespace SIMD_NAMESPACE
 	}
 	static inline __m128i float_to_bfloat16(__m128 x) noexcept
 	{
-		__m128i tmp = _mm_srli_epi32(_mm_castps_si128(x), 16); // shift right by 16 bits while shifting in zeros
 #  if SUPPORTS_SSE41
+		__m128i tmp = _mm_srli_epi32(_mm_castps_si128(x), 16); // shift right by 16 bits while shifting in zeros
 		return _mm_packus_epi32(tmp, _mm_setzero_si128()); // pack 32 bits into 16 bits
 #else
 		return _mm_setzero_si128();
