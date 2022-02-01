@@ -397,7 +397,7 @@ namespace
 	}
 	template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
 	void kernel_input_transform(const cpu::TensorDescriptor &xDesc, const T *xMem, const cpu::TensorDescriptor &mDesc, T *mMem,
-			std::array<int, 3> padding, T *workspace)
+			std::array<int, 3> padding, T *workspace, T padding_value)
 	{
 		const int batch_size = xDesc.dimension(0);
 		const int height = xDesc.dimension(1);
@@ -410,7 +410,8 @@ namespace
 		const int nb_of_tiles = batch_size * tiles_per_image;
 
 		T *zero_line = workspace;
-		std::memset(zero_line, 0, sizeof(T) * filters);
+		for (int i = 0; i < filters; i++)
+			zero_line[i] = padding_value;
 
 #pragma omp parallel
 		{
@@ -593,7 +594,7 @@ namespace
 		{
 			const T *ptr_in[TileSize * TileSize];
 			T *ptr_out[TileSize * TileSize];
-			SIMD<T> storage[TileSize * TileSize];
+			SIMD<T> storage[TileSize * TransformSize];
 #pragma omp for
 			for (int tile_idx = 0; tile_idx < nb_of_tiles; tile_idx++)
 			{
@@ -602,23 +603,24 @@ namespace
 				int tile_y = ((tile_idx % tiles_per_image) % tiles_w);
 
 				int matrix_idx = 0;
-				for (int i = 0; i < TileSize; i++)
-					for (int j = 0; j < TileSize; j++, matrix_idx++)
+				for (int i = 0; i < TransformSize; i++)
+					for (int j = 0; j < TransformSize; j++, matrix_idx++)
 					{
 						int x = TransformSize * tile_x + i;
 						int y = TransformSize * tile_y + j;
-						ptr_out[matrix_idx] = mMem + mDesc.getIndex( { matrix_idx, tile_idx, 0 });
 						if (x < height and y < width)
 							ptr_in[matrix_idx] = dyMem + dyDesc.getIndex( { batch, x, y, 0 });
 						else
 							ptr_in[matrix_idx] = zero_line;
 					}
+				for (int k = 0; k < TileSize * TileSize; k++)
+					ptr_out[k] = mMem + mDesc.getIndex( { k, tile_idx, 0 });
 
 				GradientTransform<T, TransformSize, KernelSize> transform;
 				for (int out = 0; out < filters; out += SIMD<T>::length)
 				{
 					const int elements_left = std::min(filters - out, SIMD<T>::length);
-					for (int col = 0; col < TileSize; col++)
+					for (int col = 0; col < TransformSize; col++)
 					{
 						Line<T, TransformSize> column;
 						column.load_column(ptr_in, col, out, elements_left, TransformSize);
@@ -683,7 +685,7 @@ namespace
 						if (beta != scalar::zero<T>())
 						{
 							Line<T, KernelSize> dst_line;
-							dst_line.load_row(ptr_out, col, out, elements_left, KernelSize);
+							dst_line.load_row(ptr_out, col, in, elements_left, KernelSize);
 							for (int i = 0; i < transformed.length(); i++)
 								transformed[i] = mul_add(beta, dst_line[i], transformed[i]);
 						}
@@ -715,6 +717,7 @@ namespace
 	avStatus_t launch_input_transform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &xDesc,
 			const MemoryDescriptor &xMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, const TensorDescriptor &wDesc)
 	{
+		const T padding_value = config.getPaddingValue<T>();
 		const int input_filters = wDesc.lastDim();
 		if (context.getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters)
 			return AVOCADO_STATUS_INTERNAL_ERROR;
@@ -722,13 +725,13 @@ namespace
 		if (is_conv(3, wDesc))
 		{
 			kernel_input_transform<T, 4, 3>(xDesc, xMem.data<T>(), matricesDesc, matricesMem.data<T>(), config.padding,
-					context.getWorkspace().data<T>());
+					context.getWorkspace().data<T>(), padding_value);
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		if (is_conv(5, wDesc))
 		{
 			kernel_input_transform<T, 2, 5>(xDesc, xMem.data<T>(), matricesDesc, matricesMem.data<T>(), config.padding,
-					context.getWorkspace().data<T>());
+					context.getWorkspace().data<T>(), padding_value);
 			return AVOCADO_STATUS_SUCCESS;
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
