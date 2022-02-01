@@ -9,7 +9,7 @@
 #define KERNELS_KERNEL_DEFINITIONS_HPP_
 
 #include <CpuBackend/cpu_backend.h>
-#include "backend_descriptors.hpp"
+#include <backend_descriptors.hpp>
 
 #include "vectors/simd_macros.hpp"
 #include "utils.hpp"
@@ -59,7 +59,22 @@ namespace avocado
 				const cpu::MemoryDescriptor &bMem, const void *beta, const cpu::TensorDescriptor &cDesc, cpu::MemoryDescriptor &cMem);
 
 		avStatus_t cpu_getConvolutionWorkspaceSize(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &xDesc,
-				const cpu::TensorDescriptor &wDesc, avSize_t *result);
+				const cpu::TensorDescriptor &wDesc, bool inferenceOnly, avSize_t *result);
+
+		/*
+		 *
+		 */
+
+		bool is_conv(int expectedSize, const cpu::TensorDescriptor &wDesc) noexcept;
+		cpu::ConvolutionDescriptor getBackwardConfig(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &wDesc);
+		avConvolutionAlgorithm_t getConvolutionAlgorithm(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &xDesc,
+				const cpu::TensorDescriptor &wDesc);
+		int getWinogradTransformSize(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &xDesc,
+				const cpu::TensorDescriptor &wDesc);
+		std::array<cpu::TensorDescriptor, 3> getWinogradMatricesShape(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &xDesc,
+				const cpu::TensorDescriptor &wDesc, int transformSize);
+		cpu::TensorDescriptor getExplicitGemmMatrixShape(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &xDesc,
+				const cpu::TensorDescriptor &wDesc);
 	} /* namespace backend */
 } /* namespace avocado */
 

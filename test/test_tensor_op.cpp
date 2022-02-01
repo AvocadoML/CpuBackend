@@ -119,8 +119,9 @@ namespace avocado
 			float alpha1 = 1.1f;
 			float alpha2 = 1.2f;
 			float alpha3 = 1.3f;
-			float beta = 0.1f;
-			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta), 1.0e-3);
+			float beta1 = 0.1f;
+			float beta2 = 0.2f;
+			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta1, &beta2), 1.0e-3);
 		}
 		TEST(TestTensorOp, bfloat16_add_bias)
 		{
@@ -130,8 +131,9 @@ namespace avocado
 			float alpha1 = 1.1f;
 			float alpha2 = 1.2f;
 			float alpha3 = 1.3f;
-			float beta = 0.1f;
-			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta), 1.0e-3);
+			float beta1 = 0.1f;
+			float beta2 = 0.2f;
+			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta1, &beta2), 1.0e-2);
 		}
 		TEST(TestTensorOp, float32_add_bias)
 		{
@@ -141,8 +143,9 @@ namespace avocado
 			float alpha1 = 1.1f;
 			float alpha2 = 1.2f;
 			float alpha3 = 1.3f;
-			float beta = 0.1f;
-			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta), 1.0e-4);
+			float beta1 = 0.1f;
+			float beta2 = 0.2f;
+			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta1, &beta2), 1.0e-4);
 		}
 		TEST(TestTensorOp, float64_add_bias)
 		{
@@ -152,8 +155,9 @@ namespace avocado
 			double alpha1 = 1.1;
 			double alpha2 = 1.2;
 			double alpha3 = 1.3;
-			double beta = 0.1;
-			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta), 1.0e-4);
+			double beta1 = 0.1;
+			double beta2 = 0.2;
+			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta1, &beta2), 1.0e-4);
 		}
 
 	} /* namespace backend */

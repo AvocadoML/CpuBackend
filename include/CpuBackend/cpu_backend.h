@@ -400,6 +400,40 @@ namespace avocado
 				const void *scalar, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem);
 
 		/**
+		 *
+		 * y = alpha3 * activation(alpha1 * x + alpha2 * b + beta1 * z) + beta2 * z
+		 *
+		 * Supported data type configurations:
+		 *  cdDesc dtype | aDesc dtype | bDesc dtype
+		 * --------------|-------------|------------
+		 *  INT8         | INT8        | FLOAT32
+		 *  INT32        | INT8        | FLOAT32
+		 *  FLOAT16      | FLOAT16     | FLOAT32
+		 *  BFLOAT16     | BFLOAT16    | FLOAT32
+		 *  FLOAT32      | FLOAT32     | FLOAT32
+		 *  FLOAT64      | FLOAT64     | FLOAT64
+		 *
+		 * \param[in] context Context in which the operation is performed.
+		 * \param[in] alpha3
+		 * \param[in] alpha1
+		 * \param[in] xDesc
+		 * \param[in] xMem
+		 * \param[in] alpha2
+		 * \param[in] bDesc
+		 * \param[in] bMem
+		 * \param[in] yDesc
+		 * \param[out] yMem
+		 * \param[in] beta1
+		 * \param[in] beta2
+		 * \param[in] zMem
+		 * \param[in] activation
+		 */
+		DLL_PUBLIC avStatus_t cpuAddBias(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t xDesc,
+				const avMemoryDescriptor_t xMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
+				const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, const void *beta1, const void *beta2, const avMemoryDescriptor_t zMem,
+				avActivationType_t activation);
+
+		/**
 		 * \param[in] context Context in which the operation is performed.
 		 * \param[in] operation
 		 * \param[in] alpha1
@@ -442,37 +476,6 @@ namespace avocado
 		DLL_PUBLIC avStatus_t cpuReduceTensor(avContextDescriptor_t context, avReduceOp_t operation, const void *alpha,
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc,
 				avMemoryDescriptor_t cMem);
-
-		/**
-		 *
-		 * C = alpha3 * activation(alpha1 * A + alpha2 * B) + beta1 * C
-		 *
-		 * Supported data type configurations:
-		 *  cDesc dtype | aDesc dtype | bDesc dtype
-		 * -------------|-------------|------------
-		 *  INT8        | INT8        | FLOAT32
-		 *  INT32       | INT8        | FLOAT32
-		 *  FLOAT16     | FLOAT16     | FLOAT32
-		 *  BFLOAT16    | BFLOAT16    | FLOAT32
-		 *  FLOAT32     | FLOAT32     | FLOAT32
-		 *  FLOAT64     | FLOAT64     | FLOAT64
-		 *
-		 * \param[in] context Context in which the operation is performed.
-		 * \param[in] alpha3
-		 * \param[in] alpha1
-		 * \param[in] aDesc
-		 * \param[in] aMem
-		 * \param[in] alpha2
-		 * \param[in] bDesc
-		 * \param[in] bMem
-		 * \param[in] beta
-		 * \param[in] cDesc
-		 * \param[out] cMem
-		 * \param[in] activation
-		 */
-		DLL_PUBLIC avStatus_t cpuAddBias(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t aDesc,
-				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
-				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, avActivationType_t activation);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
@@ -775,10 +778,11 @@ namespace avocado
 		 * \param[in] config Convolution descriptor.
 		 * \param[in] xDesc Descriptor of the input tensor.
 		 * \param[in] wDesc Descriptor of the weights tensor.
+		 * \param[in] inferenceOnly If true, only workspace size required for inference will be calculated (may be too small for training).
 		 * \param[out] result Pointer to the integer with number of bytes required for the workspace.
 		 */
 		DLL_PUBLIC avStatus_t cpuGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
-				const avTensorDescriptor_t wDesc, avSize_t *result);
+				const avTensorDescriptor_t wDesc, bool inferenceOnly, avSize_t *result);
 
 		/**
 		 * \brief Calculates convolution, adds bias and optionally some external data and applies activation function.

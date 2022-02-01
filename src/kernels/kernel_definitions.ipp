@@ -45,9 +45,9 @@ avStatus_t cpu_scaleTensor(const ContextDescriptor &context, const TensorDescrip
 avStatus_t cpu_addScalarToTensor(const ContextDescriptor &context, const TensorDescriptor &aDesc, const MemoryDescriptor &aMem, const void *scalar,
 		const TensorDescriptor &cDesc, MemoryDescriptor &cMem);
 
-avStatus_t cpu_addBias(const ContextDescriptor &context, const void *alpha3, const void *alpha1, const TensorDescriptor &aDesc,
-		const MemoryDescriptor &aMem, const void *alpha2, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *beta,
-		const TensorDescriptor &cDesc, MemoryDescriptor &cMem, avActivationType_t activation);
+avStatus_t cpu_addBias(const ContextDescriptor &context, const void *alpha3, const void *alpha1, const TensorDescriptor &xDesc,
+		const MemoryDescriptor &xMem, const void *alpha2, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const TensorDescriptor &yDesc,
+		MemoryDescriptor &yMem, const void *beta1, const void *beta2, const MemoryDescriptor &zMem, avActivationType_t activation);
 
 avStatus_t cpu_binaryOp(const ContextDescriptor &context, avBinaryOp_t operation, const void *alpha1, const TensorDescriptor &aDesc,
 		const MemoryDescriptor &aMem, const void *alpha2, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *beta,
@@ -151,18 +151,23 @@ avStatus_t cpu_convForwardImplicitGemm(const ContextDescriptor &context, const C
 		const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *alpha2, const TensorDescriptor &zDesc, const MemoryDescriptor &zMem,
 		const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem, avActivationType_t activation);
 
-avStatus_t cpu_convForwardWinogradNonFused(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha1,
-		const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const TensorDescriptor &wDesc, const MemoryDescriptor &wMem,
+avStatus_t cpu_winogradWeightTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &wDesc,
+		const MemoryDescriptor &wMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem);
+
+avStatus_t cpu_winogradInputTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &xDesc,
+		const MemoryDescriptor &xMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, const TensorDescriptor &wDesc);
+
+avStatus_t cpu_winogradOutputTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha1,
+		const TensorDescriptor &matricesDesc, const MemoryDescriptor &matricesMem, const TensorDescriptor &yDesc, MemoryDescriptor &yMem,
 		const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *alpha2, const TensorDescriptor &zDesc, const MemoryDescriptor &zMem,
-		const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem, avActivationType_t activation, MemoryDescriptor &workspaceMem);
+		const void *beta, avActivationType_t activation, const TensorDescriptor &wDesc);
 
-avStatus_t cpu_convBackwardWinogradNonFused(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha,
-		const TensorDescriptor &dxDesc, MemoryDescriptor &dxMem, const TensorDescriptor &wDesc, const MemoryDescriptor &wMem, const void *beta,
-		const TensorDescriptor &dyDesc, const MemoryDescriptor &dyMem, MemoryDescriptor &workspaceMem);
+avStatus_t cpu_winogradGradientTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &dyDesc,
+		const MemoryDescriptor &dyMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, const TensorDescriptor &wDesc);
 
-avStatus_t cpu_convUpdateWinogradNonFused(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha,
-		const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const TensorDescriptor &dyDesc, const MemoryDescriptor &dyMem, const void *beta,
-		const TensorDescriptor &dwDesc, MemoryDescriptor &dwMem, MemoryDescriptor &workspaceMem);
+avStatus_t cpu_winogradUpdateTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha,
+		const TensorDescriptor &matricesDesc, const MemoryDescriptor &matricesMem, const void *beta, const TensorDescriptor &dwDesc,
+		MemoryDescriptor &dwMem);
 
 avStatus_t cpu_convForwardWinogradFused(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha1,
 		const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const TensorDescriptor &wDesc, const MemoryDescriptor &wMem,

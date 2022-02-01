@@ -117,8 +117,8 @@ namespace
 				result[0] = line[0];
 				result[1] = mul_add(c23, line[0] + line[2], c23 * line[1]);
 				result[2] = mul_sub(c23, line[0] + line[2], c23 * line[1]);
-				result[3] = mul_add(c13, line[0] + line[2], c23 * line[1]);
-				result[4] = mul_sub(c13, line[0] + line[2], c23 * line[1]);
+				result[3] = mul_add(c13, line[0] + line[2], c23 * line[1]) + line[2];
+				result[4] = mul_sub(c13, line[0] + line[2], c23 * line[1]) + line[2];
 				result[5] = c2 * line[2];
 				return result;
 			}
@@ -534,7 +534,7 @@ namespace
 						transformed.store_column(storage, col, TileSize);
 					}
 
-					for (int col = 0; col < TileSize; col++)
+					for (int col = 0; col < TransformSize; col++)
 					{
 						Line<T, TileSize> column;
 						column.load_row(storage, col, TileSize);
@@ -695,19 +695,10 @@ namespace
 		}
 	}
 
-	bool is_conv(int expectedSize, const cpu::TensorDescriptor &wDesc)
-	{
-		for (int i = 0; i < wDesc.nbDims() - 2; i++)
-			if (wDesc.dimension(1 + i) != expectedSize)
-				return false;
-		return true;
-	}
-
 	template<typename T>
 	avStatus_t launch_weight_transform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &wDesc,
-			const MemoryDescriptor &wMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem)
+			const MemoryDescriptor &wMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, bool invert)
 	{
-		bool invert = (config.mode == AVOCADO_CROSS_CORRELATION_MODE);
 		if (is_conv(3, wDesc))
 		{
 			kernel_weight_transform<T, 4, 3>(wDesc, wMem.data<T>(), matricesDesc, matricesMem.data<T>(), invert);
@@ -744,7 +735,7 @@ namespace
 	}
 	template<typename T, typename U = T>
 	avStatus_t launch_output_transform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha1,
-			const TensorDescriptor &matricesDesc, const MemoryDescriptor &matricesMem, const TensorDescriptor & yDesc, MemoryDescriptor &yMem,
+			const TensorDescriptor &matricesDesc, const MemoryDescriptor &matricesMem, const TensorDescriptor &yDesc, MemoryDescriptor &yMem,
 			const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *alpha2, const TensorDescriptor &zDesc,
 			const MemoryDescriptor &zMem, const void *beta, const avActivationType_t activation, const TensorDescriptor &wDesc)
 	{
@@ -816,16 +807,17 @@ namespace SIMD_NAMESPACE
 	avStatus_t cpu_winogradWeightTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &wDesc,
 			const MemoryDescriptor &wMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem)
 	{
+		const bool invert = (config.mode == AVOCADO_CROSS_CORRELATION_MODE);
 		switch (wDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				return launch_weight_transform<float16>(context, config, wDesc, wMem, matricesDesc, matricesMem);
+				return launch_weight_transform<float16>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert);
 			case AVOCADO_DTYPE_BFLOAT16:
-				return launch_weight_transform<bfloat16>(context, config, wDesc, wMem, matricesDesc, matricesMem);
+				return launch_weight_transform<bfloat16>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert);
 			case AVOCADO_DTYPE_FLOAT32:
-				return launch_weight_transform<float>(context, config, wDesc, wMem, matricesDesc, matricesMem);
+				return launch_weight_transform<float>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert);
 			case AVOCADO_DTYPE_FLOAT64:
-				return launch_weight_transform<double>(context, config, wDesc, wMem, matricesDesc, matricesMem);
+				return launch_weight_transform<double>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert);
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}

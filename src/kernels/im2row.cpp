@@ -52,14 +52,14 @@ namespace
 				std::memcpy(workspace.data<uint8_t>() + i, config.padding_value.data(), dtype_size);
 		}
 
-		std::vector<int> output_shape = config.getOutputShape(srcDesc, filterDesc);
+		cpu::TensorDescriptor output_shape = config.getOutputShape(srcDesc, filterDesc);
 
 #pragma omp parallel for
 		for (int b = 0; b < batch_size; b++)
-			for (int h = 0; h < output_shape[1]; h++)
-				for (int w = 0; w < output_shape[2]; w++)
+			for (int h = 0; h < output_shape.dimension(1); h++)
+				for (int w = 0; w < output_shape.dimension(2); w++)
 				{
-					int tile_idx = (b * output_shape[1] + h) * output_shape[2] + w;
+					int tile_idx = (b * output_shape.dimension(1) + h) * output_shape.dimension(2) + w;
 					uint8_t *dst_ptr = rowMem.data<uint8_t>() + rowDesc.getIndex( { tile_idx, 0 }) * dtype_size;
 					for (int i = 0; i < filter_height; i++)
 					{

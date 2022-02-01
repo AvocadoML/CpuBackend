@@ -224,37 +224,44 @@ namespace avocado
 #endif
 		}
 
-		avStatus_t cpuAddBias(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t aDesc,
-				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
-				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem, avActivationType_t activation)
+		avStatus_t cpuAddBias(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t xDesc,
+				const avMemoryDescriptor_t xMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
+				const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, const void *beta1, const void *beta2, const avMemoryDescriptor_t zMem,
+				avActivationType_t activation)
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_aDesc = cpu::const_getTensor(aDesc);
-			const cpu::MemoryDescriptor &cpu_aMem = cpu::const_getMemory(aMem);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
 			const cpu::TensorDescriptor &cpu_bDesc = cpu::const_getTensor(bDesc);
 			const cpu::MemoryDescriptor &cpu_bMem = cpu::const_getMemory(bMem);
-			const cpu::TensorDescriptor &cpu_cDesc = cpu::const_getTensor(cDesc);
-			cpu::MemoryDescriptor &cpu_cMem = cpu::getMemory(cMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
+			const cpu::MemoryDescriptor &cpu_zMem = cpu::const_getMemory(zMem);
 
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::cpu_addBias(cpu_context, alpha3, alpha1, cpu_aDesc, cpu_aMem, alpha2, cpu_bDesc, cpu_bMem, beta, cpu_cDesc, cpu_cMem, activation);
+					return ns_avx2::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
+							beta1, beta2, cpu_zMem, activation);
 				case SimdLevel::AVX:
-					return ns_avx::cpu_addBias(cpu_context, alpha3, alpha1, cpu_aDesc, cpu_aMem, alpha2, cpu_bDesc, cpu_bMem, beta, cpu_cDesc, cpu_cMem, activation);
+					return ns_avx::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
+							beta1, beta2, cpu_zMem, activation);
 				case SimdLevel::SSE41:
-					return ns_sse41::cpu_addBias(cpu_context, alpha3, alpha1, cpu_aDesc, cpu_aMem, alpha2, cpu_bDesc, cpu_bMem, beta, cpu_cDesc, cpu_cMem, activation);
+					return ns_sse41::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
+							beta1, beta2, cpu_zMem, activation);
 				case SimdLevel::SSE2:
-					return ns_sse2::cpu_addBias(cpu_context, alpha3, alpha1, cpu_aDesc, cpu_aMem, alpha2, cpu_bDesc, cpu_bMem, beta, cpu_cDesc, cpu_cMem, activation);
+					return ns_sse2::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
+							beta1, beta2, cpu_zMem, activation);
 				case SimdLevel::NONE:
-					return ns_none::cpu_addBias(cpu_context, alpha3, alpha1, cpu_aDesc, cpu_aMem, alpha2, cpu_bDesc, cpu_bMem, beta, cpu_cDesc, cpu_cMem, activation);
+					return ns_none::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
+							beta1, beta2, cpu_zMem, activation);
 				default:
 					return AVOCADO_STATUS_NOT_SUPPORTED;
 			}
 #else
-			return SIMD_NAMESPACE::cpu_addBias(cpu_context, alpha3, alpha1, cpu_aDesc, cpu_aMem, alpha2, cpu_bDesc, cpu_bMem, beta, cpu_cDesc,
-					cpu_cMem, activation);
+			return SIMD_NAMESPACE::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
+					beta1, beta2, cpu_zMem, activation);
 #endif
 		}
 
@@ -843,13 +850,13 @@ namespace avocado
 		}
 
 		avStatus_t cpuGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
-				const avTensorDescriptor_t wDesc, avSize_t *result)
+				const avTensorDescriptor_t wDesc, bool inferenceOnly, avSize_t *result)
 		{
 			const cpu::ConvolutionDescriptor &cpu_config = cpu::const_getConvolution(config);
 			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
 			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
 
-			return cpu_getConvolutionWorkspaceSize(cpu_config, cpu_xDesc, cpu_wDesc, result);
+			return cpu_getConvolutionWorkspaceSize(cpu_config, cpu_xDesc, cpu_wDesc, inferenceOnly, result);
 		}
 
 		avStatus_t cpuConvolutionBiasActivationForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha1,
