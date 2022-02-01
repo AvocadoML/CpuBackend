@@ -44,7 +44,7 @@ namespace SIMD_NAMESPACE
 				_mm_store_sd(ptr, reg);
 				break;
 			case 2:
-				_mm_store_pd(ptr, reg);
+				_mm_storeu_pd(ptr, reg);
 				break;
 		}
 	}
@@ -60,10 +60,10 @@ namespace SIMD_NAMESPACE
 			case 1:
 				return _mm_load_ss(ptr);
 			case 2:
-				return _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const double*>(ptr)));
+				return _mm_castsi128_ps(_mm_loadu_si64(ptr));
 			case 3:
 			{
-				__m128 tmp1 = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const double*>(ptr)));
+				__m128 tmp1 = _mm_castsi128_ps(_mm_loadu_si64(ptr));
 				__m128 tmp2 = _mm_load_ss(ptr + 2);
 				return _mm_movelh_ps(tmp1, tmp2);
 			}
@@ -80,11 +80,11 @@ namespace SIMD_NAMESPACE
 				_mm_store_ss(ptr, reg);
 				break;
 			case 2:
-				_mm_store_sd(reinterpret_cast<double*>(ptr), _mm_castps_pd(reg));
+				_mm_storeu_si64(ptr, _mm_castps_si128(reg));
 				break;
 			case 3:
 			{
-				_mm_store_sd(reinterpret_cast<double*>(ptr), _mm_castps_pd(reg));
+				_mm_storeu_si64(ptr, _mm_castps_si128(reg));
 				__m128 tmp = _mm_movehl_ps(reg, reg);
 				_mm_store_ss(ptr + 2, tmp);
 				break;
@@ -95,8 +95,6 @@ namespace SIMD_NAMESPACE
 		}
 	}
 
-#endif
-#if SUPPORTS_SSE2 // _mm_castps_si128() requires sse2
 	static inline __m128i partial_load(const void *ptr, const int bytes) noexcept
 	{
 		assert(bytes >= 0 && bytes <= 16);
