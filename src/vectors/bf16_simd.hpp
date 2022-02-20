@@ -198,7 +198,7 @@ namespace SIMD_NAMESPACE
 			}
 			static constexpr bfloat16 scalar_epsilon() noexcept
 			{
-				return bfloat16 { 0x0800u };
+				return bfloat16 { 0x0800u }; // FIXME this is not correct
 			}
 
 			static SIMD<bfloat16> zero() noexcept

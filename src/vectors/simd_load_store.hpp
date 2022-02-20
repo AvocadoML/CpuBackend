@@ -231,31 +231,114 @@ namespace SIMD_NAMESPACE
 				ptr[0] = _mm_extract_epi16(reg, 0);
 				break;
 			case 2:
+				ptr[0] = _mm_extract_epi16(reg, 0);
+				ptr[1] = _mm_extract_epi16(reg, 1);
+				break;
 			case 3:
-				_mm_store_ss(reinterpret_cast<float*>(ptr), _mm_castsi128_ps(reg));
-				if (num == 3)
-					ptr[2] = _mm_extract_epi16(reg, 2);
-				break;
-			case 4:
-			case 5:
-				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
-				if (num == 5)
-					ptr[4] = _mm_extract_epi16(reg, 4);
-				break;
-			case 6:
-			case 7:
 			{
-				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
-				__m128 tmp = _mm_movehl_ps(_mm_castsi128_ps(reg), _mm_castsi128_ps(reg));
-				_mm_store_ss(reinterpret_cast<float*>(ptr) + 2, tmp);
-				if (num == 7)
-					ptr[6] = _mm_extract_epi16(reg, 6);
+				ptr[0] = _mm_extract_epi16(reg, 0);
+				ptr[1] = _mm_extract_epi16(reg, 1);
+				ptr[2] = _mm_extract_epi16(reg, 2);
+//				int16_t tmp[8];
+//				_mm_storeu_si128((__m128i*) tmp, reg);
+//				for (int i = 0; i < num; i++)
+//					ptr[i] = tmp[i];
 				break;
 			}
+			case 4:
+				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+				break;
+			case 5:
+				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+				ptr[4] = _mm_extract_epi16(reg, 4);
+				break;
+			case 6:
+				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+				ptr[4] = _mm_extract_epi16(reg, 4);
+				ptr[5] = _mm_extract_epi16(reg, 5);
+				break;
+			case 7:
+				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+				ptr[4] = _mm_extract_epi16(reg, 4);
+				ptr[5] = _mm_extract_epi16(reg, 5);
+				ptr[6] = _mm_extract_epi16(reg, 6);
+				break;
+//			{
+//				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+//				int16_t tmp[8];
+//				_mm_storeu_si128((__m128i*) tmp, reg);
+//				for (int i = 4; i < num; i++)
+//					ptr[i] = tmp[i];
+//				break;
+//			}
 			case 8:
 				_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), reg);
 				break;
 		}
+
+//		switch (num)
+//		{
+//			case 0:
+//				break;
+//			case 1:
+//				_mm_maskmoveu_si128(reg, _mm_setr_epi32(0xFFFF0000u, 0x00000000u, 0x00000000u, 0x00000000u), reinterpret_cast<char*>(ptr));
+//				break;
+//			case 2:
+//				_mm_maskmoveu_si128(reg, _mm_setr_epi32(0xFFFFFFFFu, 0x00000000u, 0x00000000u, 0x00000000u), reinterpret_cast<char*>(ptr));
+//				break;
+//			case 3:
+//				_mm_maskmoveu_si128(reg, _mm_setr_epi32(0xFFFFFFFFu, 0xFFFF0000u, 0x00000000u, 0x00000000u), reinterpret_cast<char*>(ptr));
+//				break;
+//			case 4:
+//				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+//				break;
+//			case 5:
+//				_mm_maskmoveu_si128(reg, _mm_setr_epi32(0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFF0000u, 0x00000000u), reinterpret_cast<char*>(ptr));
+//				break;
+//			case 6:
+//				_mm_maskmoveu_si128(reg, _mm_setr_epi32(0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0x00000000u), reinterpret_cast<char*>(ptr));
+//				break;
+//			case 7:
+//				_mm_maskmoveu_si128(reg, _mm_setr_epi32(0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFF0000u), reinterpret_cast<char*>(ptr));
+//				break;
+//			case 8:
+//				_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), reg);
+//				break;
+//		}
+
+//		switch (num)
+//		{
+//			case 0:
+//				break;
+//			case 1:
+//				ptr[0] = _mm_extract_epi16(reg, 0);
+//				break;
+//			case 2:
+//			case 3:
+//				_mm_store_ss(reinterpret_cast<float*>(ptr), _mm_castsi128_ps(reg));
+//				if (num == 3)
+//					ptr[2] = _mm_extract_epi16(reg, 2);
+//				break;
+//			case 4:
+//			case 5:
+//				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+//				if (num == 5)
+//					ptr[4] = _mm_extract_epi16(reg, 4);
+//				break;
+//			case 6:
+//			case 7:
+//			{
+//				_mm_storeu_si64(reinterpret_cast<__m128i*>(ptr), reg);
+//				__m128 tmp = _mm_movehl_ps(_mm_castsi128_ps(reg), _mm_castsi128_ps(reg));
+//				_mm_store_ss(reinterpret_cast<float*>(ptr) + 2, tmp);
+//				if (num == 7)
+//					ptr[6] = _mm_extract_epi16(reg, 6);
+//				break;
+//			}
+//			case 8:
+//				_mm_storeu_si128(reinterpret_cast<__m128i*>(ptr), reg);
+//				break;
+//		}
 	}
 	static inline void partial_store(__m128i reg, int32_t *ptr, const int num) noexcept
 	{
