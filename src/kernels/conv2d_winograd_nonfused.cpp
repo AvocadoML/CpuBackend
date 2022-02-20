@@ -1,5 +1,5 @@
 /*
- * winograd_nonfused.cpp
+ * conv2d_winograd_nonfused.cpp
  *
  *  Created on: Jan 3, 2022
  *      Author: Maciej Kozarzewski
@@ -137,8 +137,8 @@ namespace
 				result[0] = line[0];
 				result[1] = c23 * (line[0] + line[1] + line[2] + line[3] + line[4]);
 				result[2] = c23 * (line[0] - line[1] + line[2] - line[3] + line[4]);
-				result[3] = c16 * line[0] + mul_add(c13, line[1] + line[3], line[3]) + mul_add(c13, line[2] + line[4], c2 * line[4]);
-				result[4] = c16 * line[0] - mul_add(c13, line[1] + line[3], line[3]) + mul_add(c13, line[2] + line[4], c2 * line[4]);
+				result[3] = c16 * line[0] + mul_add(c13, line[1] + line[3], line[3]) + mul_add(c23, line[2] + line[4], c2 * line[4]);
+				result[4] = c16 * line[0] - mul_add(c13, line[1] + line[3], line[3]) + mul_add(c23, line[2] + line[4], c2 * line[4]);
 				result[5] = c2 * line[4];
 				return result;
 			}
@@ -699,23 +699,35 @@ namespace
 
 	template<typename T>
 	avStatus_t launch_weight_transform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &wDesc,
-			const MemoryDescriptor &wMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, bool invert)
+			const MemoryDescriptor &wMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, bool invert, int transformSize)
 	{
 		if (is_conv(3, wDesc))
 		{
-			kernel_weight_transform<T, 4, 3>(wDesc, wMem.data<T>(), matricesDesc, matricesMem.data<T>(), invert);
-			return AVOCADO_STATUS_SUCCESS;
+			switch (transformSize)
+			{
+				case 2:
+					kernel_weight_transform<T, 2, 3>(wDesc, wMem.data<T>(), matricesDesc, matricesMem.data<T>(), invert);
+					return AVOCADO_STATUS_SUCCESS;
+				case 4:
+					kernel_weight_transform<T, 4, 3>(wDesc, wMem.data<T>(), matricesDesc, matricesMem.data<T>(), invert);
+					return AVOCADO_STATUS_SUCCESS;
+			}
 		}
 		if (is_conv(5, wDesc))
 		{
-			kernel_weight_transform<T, 2, 5>(wDesc, wMem.data<T>(), matricesDesc, matricesMem.data<T>(), invert);
-			return AVOCADO_STATUS_SUCCESS;
+			switch (transformSize)
+			{
+				case 2:
+					kernel_weight_transform<T, 2, 5>(wDesc, wMem.data<T>(), matricesDesc, matricesMem.data<T>(), invert);
+					return AVOCADO_STATUS_SUCCESS;
+			}
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}
 	template<typename T>
 	avStatus_t launch_input_transform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &xDesc,
-			const MemoryDescriptor &xMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, const TensorDescriptor &wDesc)
+			const MemoryDescriptor &xMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, const TensorDescriptor &wDesc,
+			int transformSize)
 	{
 		const T padding_value = config.getPaddingValue<T>();
 		const int input_filters = wDesc.lastDim();
@@ -724,15 +736,27 @@ namespace
 
 		if (is_conv(3, wDesc))
 		{
-			kernel_input_transform<T, 4, 3>(xDesc, xMem.data<T>(), matricesDesc, matricesMem.data<T>(), config.padding,
-					context.getWorkspace().data<T>(), padding_value);
-			return AVOCADO_STATUS_SUCCESS;
+			switch (transformSize)
+			{
+				case 2:
+					kernel_input_transform<T, 2, 3>(xDesc, xMem.data<T>(), matricesDesc, matricesMem.data<T>(), config.padding,
+							context.getWorkspace().data<T>(), padding_value);
+					return AVOCADO_STATUS_SUCCESS;
+				case 4:
+					kernel_input_transform<T, 4, 3>(xDesc, xMem.data<T>(), matricesDesc, matricesMem.data<T>(), config.padding,
+							context.getWorkspace().data<T>(), padding_value);
+					return AVOCADO_STATUS_SUCCESS;
+			}
 		}
 		if (is_conv(5, wDesc))
 		{
-			kernel_input_transform<T, 2, 5>(xDesc, xMem.data<T>(), matricesDesc, matricesMem.data<T>(), config.padding,
-					context.getWorkspace().data<T>(), padding_value);
-			return AVOCADO_STATUS_SUCCESS;
+			switch (transformSize)
+			{
+				case 2:
+					kernel_input_transform<T, 2, 5>(xDesc, xMem.data<T>(), matricesDesc, matricesMem.data<T>(), config.padding,
+							context.getWorkspace().data<T>(), padding_value);
+					return AVOCADO_STATUS_SUCCESS;
+			}
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}
@@ -740,7 +764,7 @@ namespace
 	avStatus_t launch_output_transform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha1,
 			const TensorDescriptor &matricesDesc, const MemoryDescriptor &matricesMem, const TensorDescriptor &yDesc, MemoryDescriptor &yMem,
 			const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *alpha2, const TensorDescriptor &zDesc,
-			const MemoryDescriptor &zMem, const void *beta, const avActivationType_t activation, const TensorDescriptor &wDesc)
+			const MemoryDescriptor &zMem, const void *beta, const avActivationType_t activation, const TensorDescriptor &wDesc, int transformSize)
 	{
 		const int input_filters = wDesc.lastDim();
 		if (context.getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters * (1 + cpuGetNumberOfThreads()))
@@ -748,23 +772,37 @@ namespace
 
 		if (is_conv(3, wDesc))
 		{
-			kernel_output_transform<T, U, 4, 3>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<T>(), zMem.data<T>(),
-					activation, cpu::getAlphaValue<U>(alpha1), cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta),
-					context.getWorkspace().data<T>());
-			return AVOCADO_STATUS_SUCCESS;
+			switch (transformSize)
+			{
+				case 2:
+					kernel_output_transform<T, U, 2, 3>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<T>(), zMem.data<T>(),
+							activation, cpu::getAlphaValue<U>(alpha1), cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta),
+							context.getWorkspace().data<T>());
+					return AVOCADO_STATUS_SUCCESS;
+				case 4:
+					kernel_output_transform<T, U, 4, 3>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<T>(), zMem.data<T>(),
+							activation, cpu::getAlphaValue<U>(alpha1), cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta),
+							context.getWorkspace().data<T>());
+					return AVOCADO_STATUS_SUCCESS;
+			}
 		}
 		if (is_conv(5, wDesc))
 		{
-			kernel_output_transform<T, U, 2, 5>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<T>(), zMem.data<T>(),
-					activation, cpu::getAlphaValue<U>(alpha1), cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta),
-					context.getWorkspace().data<T>());
-			return AVOCADO_STATUS_SUCCESS;
+			switch (transformSize)
+			{
+				case 2:
+					kernel_output_transform<T, U, 2, 5>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<T>(), zMem.data<T>(),
+							activation, cpu::getAlphaValue<U>(alpha1), cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta),
+							context.getWorkspace().data<T>());
+					return AVOCADO_STATUS_SUCCESS;
+			}
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}
 	template<typename T>
 	avStatus_t launch_gradient_transform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &dyDesc,
-			const MemoryDescriptor &dyMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, const TensorDescriptor &wDesc)
+			const MemoryDescriptor &dyMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, const TensorDescriptor &wDesc,
+			int transformSize)
 	{
 		const int input_filters = wDesc.lastDim();
 		if (context.getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters)
@@ -772,32 +810,60 @@ namespace
 
 		if (is_conv(3, wDesc))
 		{
-			kernel_gradient_transform<T, 4, 3>(dyDesc, dyMem.data<T>(), matricesDesc, matricesMem.data<T>(), context.getWorkspace().data<T>());
-			return AVOCADO_STATUS_SUCCESS;
+			switch (transformSize)
+			{
+				case 2:
+					kernel_gradient_transform<T, 2, 3>(dyDesc, dyMem.data<T>(), matricesDesc, matricesMem.data<T>(),
+							context.getWorkspace().data<T>());
+					return AVOCADO_STATUS_SUCCESS;
+				case 4:
+					kernel_gradient_transform<T, 4, 3>(dyDesc, dyMem.data<T>(), matricesDesc, matricesMem.data<T>(),
+							context.getWorkspace().data<T>());
+					return AVOCADO_STATUS_SUCCESS;
+			}
 		}
 		if (is_conv(5, wDesc))
 		{
-			kernel_gradient_transform<T, 2, 5>(dyDesc, dyMem.data<T>(), matricesDesc, matricesMem.data<T>(), context.getWorkspace().data<T>());
-			return AVOCADO_STATUS_SUCCESS;
+			switch (transformSize)
+			{
+				case 2:
+					kernel_gradient_transform<T, 2, 5>(dyDesc, dyMem.data<T>(), matricesDesc, matricesMem.data<T>(),
+							context.getWorkspace().data<T>());
+					return AVOCADO_STATUS_SUCCESS;
+			}
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}
 	template<typename T>
 	avStatus_t launch_update_transform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha,
 			const TensorDescriptor &matricesDesc, const MemoryDescriptor &matricesMem, const void *beta, const TensorDescriptor &dwDesc,
-			MemoryDescriptor &dwMem)
+			MemoryDescriptor &dwMem, int transformSize)
 	{
 		if (is_conv(3, dwDesc))
 		{
-			kernel_update_transform<T, 4, 3>(dwDesc, dwMem.data<T>(), matricesDesc, matricesMem.data<T>(), cpu::getAlphaValue<T>(alpha),
-					cpu::getBetaValue<T>(beta));
-			return AVOCADO_STATUS_SUCCESS;
+			switch (transformSize)
+			{
+				case 2:
+					kernel_update_transform<T, 2, 3>(dwDesc, dwMem.data<T>(), matricesDesc, matricesMem.data<T>(), cpu::getAlphaValue<T>(alpha),
+							cpu::getBetaValue<T>(beta));
+					return AVOCADO_STATUS_SUCCESS;
+				case 4:
+					kernel_update_transform<T, 4, 3>(dwDesc, dwMem.data<T>(), matricesDesc, matricesMem.data<T>(), cpu::getAlphaValue<T>(alpha),
+							cpu::getBetaValue<T>(beta));
+					return AVOCADO_STATUS_SUCCESS;
+			}
 		}
 		if (is_conv(5, dwDesc))
 		{
-			kernel_update_transform<T, 2, 5>(dwDesc, dwMem.data<T>(), matricesDesc, matricesMem.data<T>(), cpu::getAlphaValue<T>(alpha),
-					cpu::getBetaValue<T>(beta));
-			return AVOCADO_STATUS_SUCCESS;
+			switch (transformSize)
+			{
+				case 2:
+					kernel_update_transform<T, 2, 5>(dwDesc, dwMem.data<T>(), matricesDesc, matricesMem.data<T>(), cpu::getAlphaValue<T>(alpha),
+							cpu::getBetaValue<T>(beta));
+					return AVOCADO_STATUS_SUCCESS;
+				default:
+					return AVOCADO_STATUS_NOT_SUPPORTED;
+			}
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}
@@ -807,91 +873,93 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_winogradWeightTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &wDesc,
-			const MemoryDescriptor &wMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem)
+	avStatus_t cpu_winogradWeightTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, int transformSize,
+			const TensorDescriptor &wDesc, const MemoryDescriptor &wMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem)
 	{
 		const bool invert = (config.mode == AVOCADO_CROSS_CORRELATION_MODE);
 		switch (wDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				return launch_weight_transform<float16>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert);
+				return launch_weight_transform<float16>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert, transformSize);
 			case AVOCADO_DTYPE_BFLOAT16:
-				return launch_weight_transform<bfloat16>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert);
+				return launch_weight_transform<bfloat16>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert, transformSize);
 			case AVOCADO_DTYPE_FLOAT32:
-				return launch_weight_transform<float>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert);
+				return launch_weight_transform<float>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert, transformSize);
 			case AVOCADO_DTYPE_FLOAT64:
-				return launch_weight_transform<double>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert);
+				return launch_weight_transform<double>(context, config, wDesc, wMem, matricesDesc, matricesMem, invert, transformSize);
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}
-	avStatus_t cpu_winogradInputTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &xDesc,
-			const MemoryDescriptor &xMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, const TensorDescriptor &wDesc)
+	avStatus_t cpu_winogradInputTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, int transformSize,
+			const TensorDescriptor &wDesc, const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const TensorDescriptor &matricesDesc,
+			MemoryDescriptor &matricesMem)
 	{
 		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				return launch_input_transform<float16>(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+				return launch_input_transform<float16>(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc, transformSize);
 			case AVOCADO_DTYPE_BFLOAT16:
-				return launch_input_transform<bfloat16>(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+				return launch_input_transform<bfloat16>(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc, transformSize);
 			case AVOCADO_DTYPE_FLOAT32:
-				return launch_input_transform<float>(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+				return launch_input_transform<float>(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc, transformSize);
 			case AVOCADO_DTYPE_FLOAT64:
-				return launch_input_transform<double>(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc);
+				return launch_input_transform<double>(context, config, xDesc, xMem, matricesDesc, matricesMem, wDesc, transformSize);
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t cpu_winogradOutputTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha1,
-			const TensorDescriptor &matricesDesc, const MemoryDescriptor &matricesMem, const TensorDescriptor &yDesc, MemoryDescriptor &yMem,
-			const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *alpha2, const TensorDescriptor &zDesc,
-			const MemoryDescriptor &zMem, const void *beta, avActivationType_t activation, const TensorDescriptor &wDesc)
+	avStatus_t cpu_winogradOutputTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, int transformSize,
+			const TensorDescriptor &wDesc, const void *alpha1, const TensorDescriptor &matricesDesc, const MemoryDescriptor &matricesMem,
+			const TensorDescriptor &yDesc, MemoryDescriptor &yMem, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *alpha2,
+			const TensorDescriptor &zDesc, const MemoryDescriptor &zMem, const void *beta, avActivationType_t activation)
 	{
 		switch (yDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
 				return launch_output_transform<float16, float>(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2,
-						zDesc, zMem, beta, activation, wDesc);
+						zDesc, zMem, beta, activation, wDesc, transformSize);
 			case AVOCADO_DTYPE_BFLOAT16:
 				return launch_output_transform<bfloat16, float>(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2,
-						zDesc, zMem, beta, activation, wDesc);
+						zDesc, zMem, beta, activation, wDesc, transformSize);
 			case AVOCADO_DTYPE_FLOAT32:
 				return launch_output_transform<float>(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc,
-						zMem, beta, activation, wDesc);
+						zMem, beta, activation, wDesc, transformSize);
 			case AVOCADO_DTYPE_FLOAT64:
 				return launch_output_transform<double>(context, config, alpha1, matricesDesc, matricesMem, yDesc, yMem, bDesc, bMem, alpha2, zDesc,
-						zMem, beta, activation, wDesc);
+						zMem, beta, activation, wDesc, transformSize);
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t cpu_winogradGradientTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &dyDesc,
-			const MemoryDescriptor &dyMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem, const TensorDescriptor &wDesc)
+	avStatus_t cpu_winogradGradientTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, int transformSize,
+			const TensorDescriptor &wDesc, const TensorDescriptor &dyDesc, const MemoryDescriptor &dyMem, const TensorDescriptor &matricesDesc,
+			MemoryDescriptor &matricesMem)
 	{
 		switch (dyDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
-				return launch_gradient_transform<float>(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+				return launch_gradient_transform<float>(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc, transformSize);
 			case AVOCADO_DTYPE_FLOAT64:
-				return launch_gradient_transform<double>(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc);
+				return launch_gradient_transform<double>(context, config, dyDesc, dyMem, matricesDesc, matricesMem, wDesc, transformSize);
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
 		return AVOCADO_STATUS_SUCCESS;
 	}
-	avStatus_t cpu_winogradUpdateTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha,
-			const TensorDescriptor &matricesDesc, const MemoryDescriptor &matricesMem, const void *beta, const TensorDescriptor &dwDesc,
-			MemoryDescriptor &dwMem)
+	avStatus_t cpu_winogradUpdateTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, int transformSize,
+			const void *alpha, const TensorDescriptor &matricesDesc, const MemoryDescriptor &matricesMem, const void *beta,
+			const TensorDescriptor &dwDesc, MemoryDescriptor &dwMem)
 	{
 		switch (dwDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
-				return launch_update_transform<float>(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+				return launch_update_transform<float>(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem, transformSize);
 			case AVOCADO_DTYPE_FLOAT64:
-				return launch_update_transform<double>(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem);
+				return launch_update_transform<double>(context, config, alpha, matricesDesc, matricesMem, beta, dwDesc, dwMem, transformSize);
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}

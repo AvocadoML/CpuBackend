@@ -33,12 +33,6 @@ namespace
 {
 	using namespace avocado::backend;
 	thread_local int number_of_threads = omp_get_num_procs();
-
-	bool isDefault(avContextDescriptor_t context)
-	{
-		auto idx = cpu::get_descriptor_index(context);
-		return idx == 0;
-	}
 }
 
 namespace avocado
@@ -127,7 +121,7 @@ namespace avocado
 		}
 		avStatus_t cpuDestroyContextDescriptor(avContextDescriptor_t desc)
 		{
-			if (isDefault(desc))
+			if (cpu::isDefault(desc))
 				return AVOCADO_STATUS_BAD_PARAM;
 			return cpu::destroy<cpu::ContextDescriptor>(desc);
 		}
@@ -189,24 +183,24 @@ namespace avocado
 		{
 			return cpu::destroy<cpu::ConvolutionDescriptor>(desc);
 		}
-		avStatus_t cpuSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionAlgorithm_t algorithm, avConvolutionMode_t mode,
-				int nbDims, const int padding[], const int strides[], const int dilation[], int groups, const void *paddingValue)
+		avStatus_t cpuSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t mode, int nbDims, const int padding[],
+				const int strides[], const int dilation[], int groups, const void *paddingValue)
 		{
 			try
 			{
-				cpu::getConvolution(desc).set(algorithm, mode, nbDims, padding, strides, dilation, groups, paddingValue);
+				cpu::getConvolution(desc).set(mode, nbDims, padding, strides, dilation, groups, paddingValue);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t cpuGetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionAlgorithm_t *algorithm, avConvolutionMode_t *mode,
-				int *nbDims, int padding[], int strides[], int dilation[], int *groups, void *paddingValue)
+		avStatus_t cpuGetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t *mode, int *nbDims, int padding[], int strides[],
+				int dilation[], int *groups, void *paddingValue)
 		{
 			try
 			{
-				cpu::getConvolution(desc).get(algorithm, mode, nbDims, padding, strides, dilation, groups, paddingValue);
+				cpu::getConvolution(desc).get(mode, nbDims, padding, strides, dilation, groups, paddingValue);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;

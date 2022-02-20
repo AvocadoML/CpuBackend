@@ -55,6 +55,8 @@ endif()
 set(kernelsrc 	src/kernels/activation.cpp
 				src/kernels/batchnorm.cpp
 				src/kernels/conv2d_implicit_gemm.cpp
+				src/kernels/conv2d_winograd_fused.cpp
+				src/kernels/conv2d_winograd_nonfused.cpp
 				src/kernels/conversion.cpp
 				src/kernels/convolution.cpp
 				src/kernels/dropout.cpp
@@ -68,9 +70,7 @@ set(kernelsrc 	src/kernels/activation.cpp
 				src/kernels/tensor_binary_op.cpp
 				src/kernels/tensor_op.cpp
 				src/kernels/tensor_reduction.cpp
-				src/kernels/tensor_unary_op.cpp
-				src/kernels/winograd_fused.cpp
-				src/kernels/winograd_nonfused.cpp)
+				src/kernels/tensor_unary_op.cpp)
 				
 if(DYNAMIC_ARCH)
 	target_compile_definitions(${LIBRARY_NAME} PRIVATE DYNAMIC_ARCH=1)

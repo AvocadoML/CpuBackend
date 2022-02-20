@@ -70,6 +70,12 @@ namespace avocado
 		 */
 		DLL_PUBLIC int cpuGetNumberOfThreads();
 
+		/*
+		 *
+		 * Context descriptor functions.
+		 *
+		 */
+
 		/**
 		 * \brief Creates new context.
 		 *
@@ -115,6 +121,12 @@ namespace avocado
 		 * \retval AVOCADO_STATUS_BAD_PARAM The result pointer is null.
 		 */
 		DLL_PUBLIC avStatus_t cpuIsContextReady(avContextDescriptor_t context, bool *result);
+
+		/*
+		 *
+		 * Memory descriptor functions.
+		 *
+		 */
 
 		/**
 		 * \brief Allocates new memory block and creates its descriptor.
@@ -189,6 +201,12 @@ namespace avocado
 		 */
 		DLL_PUBLIC void* cpuGetMemoryPointer(avMemoryDescriptor_t mem);
 
+		/*
+		 *
+		 * Tensor descriptor functions.
+		 *
+		 */
+
 		/**
 		 * \brief Creates new tensor descriptor.
 		 *
@@ -223,97 +241,11 @@ namespace avocado
 		 */
 		DLL_PUBLIC avStatus_t cpuGetTensorDescriptor(avTensorDescriptor_t desc, avDataType_t *dtype, int *nbDims, int dimensions[]);
 
-		/**
-		 * \brief Creates new convolution descriptor.
+		/*
 		 *
-		 * \param[out] result
-		 */
-		DLL_PUBLIC avStatus_t cpuCreateConvolutionDescriptor(avConvolutionDescriptor_t *result);
-
-		/**
-		 * \brief Deletes convolution descriptor.
+		 * Tensor operations.
 		 *
-		 * \param[in] desc
 		 */
-		DLL_PUBLIC avStatus_t cpuDestroyConvolutionDescriptor(avConvolutionDescriptor_t desc);
-
-		/**
-		 * \brief Sets convolution descriptor.
-		 *
-		 * \param[in] desc
-		 * \param[in] mode
-		 * \param[in] nbDims Dimensionality of the convolution. Its value must be 1, 2 or 3.
-		 * \param[in] padding Array with padding offsets. This parameter is optional (can be null), a value of 0 will be used for all dimensions.
-		 * \param[in] strides Array with strides. This parameter is optional (can be null), a value of 1 will be used for all dimensions.
-		 * \param[in] dilation Array with dilation factors. This parameter is optional (can be null), a value of 1 will be used for all dimensions.
-		 * \param[in] groups Number of groups in the convolution. Must be greaten than 0.
-		 * \param[in] paddingValue Pointer to at least 16 bytes of memory with the value of tensor padding. This parameter is optional (can be null), a value of 0 will be used then.
-		 */
-		DLL_PUBLIC avStatus_t cpuSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionAlgorithm_t algorithm,
-				avConvolutionMode_t mode, int nbDims, const int padding[], const int strides[], const int dilation[], int groups,
-				const void *paddingValue);
-
-		/**
-		 * \brief Queries parameters of convolution descriptor.
-		 *
-		 * \param[in] desc
-		 * \param[out] mode
-		 * \param[out] nbDims
-		 * \param[out] padding
-		 * \param[out] strides
-		 * \param[out] dilation
-		 * \param[out] groups
-		 * \param[out] paddingValue Pointer to at least 16 bytes of memory with the value of tensor padding. This parameter is optional (can be null), will be ignored then.
-		 */
-		DLL_PUBLIC avStatus_t cpuGetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionAlgorithm_t *algorithm,
-				avConvolutionMode_t *mode, int *nbDims, int padding[], int strides[], int dilation[], int *groups, void *paddingValue);
-
-		/**
-		 * \brief Creates new optimizer descriptor.
-		 *
-		 * \param[out] result
-		 */
-		DLL_PUBLIC avStatus_t cpuCreateOptimizerDescriptor(avOptimizerDescriptor_t *result);
-
-		/**
-		 * \brief Deletes optimizer descriptor.
-		 *
-		 * \param[in] desc Optimizer descriptor to be deleted.
-		 */
-		DLL_PUBLIC avStatus_t cpuDestroyOptimizerDescriptor(avOptimizerDescriptor_t desc);
-
-		/**
-		 * \brief Sets optimizer descriptor.
-		 *
-		 * \param[in] desc
-		 * \param[in] type
-		 * \param[in] learningRate
-		 * \param[in] coefficients
-		 * \param[in] flags
-		 */
-		DLL_PUBLIC avStatus_t cpuSetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t type, double learningRate,
-				const double coefficients[], const bool flags[]);
-
-		/**
-		 * \brief Queries parameters of optimizer descriptor.
-		 *
-		 * \param[in] desc
-		 * \param[out] type
-		 * \param[out] learningRate
-		 * \param[out] coefficients
-		 * \param[out] flags
-		 */
-		DLL_PUBLIC avStatus_t cpuGetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t *type, double *learningRate,
-				double coefficients[], bool flags[]);
-
-		/**
-		 * \brief Returns number of bytes needed for the workspace of given optimizer descriptor.
-		 *
-		 * \param[in] desc
-		 * \param[in] wDesc
-		 * \param[out] result
-		 */
-		DLL_PUBLIC avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, avSize_t *result);
 
 		/**
 		 * \brief This routine is used to convert between data types.
@@ -513,6 +445,12 @@ namespace avocado
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem);
 
+		/*
+		 *
+		 * Activation functions
+		 *
+		 */
+
 		/**
 		 * \brief This routine applies a specified neuron activation function element-wise over each input value.
 		 * In-place operation is allowed for this routine - input and output tensor pointers may be equal.
@@ -615,6 +553,12 @@ namespace avocado
 				const avTensorDescriptor_t yDesc, const avMemoryDescriptor_t yMem, const avTensorDescriptor_t dyDesc,
 				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem);
 
+		/*
+		 *
+		 * Batch normalization and affine transform.
+		 *
+		 */
+
 		/**
 		 * \param[in] context Context in which the operation is performed.
 		 * \param[in] activation
@@ -706,6 +650,12 @@ namespace avocado
 				const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, const void *alpha2, const void *beta2,
 				avMemoryDescriptor_t scaleUpdateMem, avMemoryDescriptor_t biasUpdateMem, double epsilon);
 
+		/*
+		 *
+		 * Dropout functions.
+		 *
+		 */
+
 		/**
 		 * \param[in] context Context in which the operation is performed.
 		 * \param[in] config
@@ -729,6 +679,12 @@ namespace avocado
 		 */
 		DLL_PUBLIC avStatus_t cpuDropoutBackward(avContextDescriptor_t context, const avDropoutDescriptor_t config, const avTensorDescriptor_t dyDesc,
 				const avMemoryDescriptor_t dyMem, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avMemoryDescriptor_t states);
+
+		/*
+		 *
+		 * Pooling functions.
+		 *
+		 */
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
@@ -758,6 +714,56 @@ namespace avocado
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc,
 				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem);
 
+		/*
+		 *
+		 * Convolution functions.
+		 *
+		 */
+
+		/**
+		 * \brief Creates new convolution descriptor.
+		 *
+		 * \param[out] result
+		 */
+		DLL_PUBLIC avStatus_t cpuCreateConvolutionDescriptor(avConvolutionDescriptor_t *result);
+
+		/**
+		 * \brief Deletes convolution descriptor.
+		 *
+		 * \param[in] desc
+		 */
+		DLL_PUBLIC avStatus_t cpuDestroyConvolutionDescriptor(avConvolutionDescriptor_t desc);
+
+		/**
+		 * \brief Sets convolution descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[in] mode
+		 * \param[in] nbDims Dimensionality of the convolution. Its value must be 1, 2 or 3.
+		 * \param[in] padding Array with padding offsets. This parameter is optional (can be null), a value of 0 will be used for all dimensions.
+		 * \param[in] strides Array with strides. This parameter is optional (can be null), a value of 1 will be used for all dimensions.
+		 * \param[in] dilation Array with dilation factors. This parameter is optional (can be null), a value of 1 will be used for all dimensions.
+		 * \param[in] groups Number of groups in the convolution. Must be greaten than 0.
+		 * \param[in] paddingValue Pointer to at least 16 bytes of memory with the value of tensor padding. This parameter is optional (can be null), a value of 0 will be used then.
+		 */
+		DLL_PUBLIC avStatus_t cpuSetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t mode, int nbDims, const int padding[],
+				const int strides[], const int dilation[], int groups, const void *paddingValue);
+
+		/**
+		 * \brief Queries parameters of convolution descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[out] mode
+		 * \param[out] nbDims
+		 * \param[out] padding
+		 * \param[out] strides
+		 * \param[out] dilation
+		 * \param[out] groups
+		 * \param[out] paddingValue Pointer to at least 16 bytes of memory with the value of tensor padding. This parameter is optional (can be null), will be ignored then.
+		 */
+		DLL_PUBLIC avStatus_t cpuGetConvolutionDescriptor(avConvolutionDescriptor_t desc, avConvolutionMode_t *mode, int *nbDims, int padding[],
+				int strides[], int dilation[], int *groups, void *paddingValue);
+
 		/**
 		 * \param[in] context Context in which the operation is performed.
 		 * \param[in] config
@@ -771,102 +777,246 @@ namespace avocado
 				const avTensorDescriptor_t srcDesc, const avMemoryDescriptor_t srcMem, const avTensorDescriptor_t rowDesc,
 				avMemoryDescriptor_t rowMem);
 
-		/**
-		 * \brief Calculates required workspace size for refConvolutionBiasActivationForward.
-		 *
-		 * \param[in] context Context in which the operation is performed.
-		 * \param[in] config Convolution descriptor.
-		 * \param[in] xDesc Descriptor of the input tensor.
-		 * \param[in] wDesc Descriptor of the weights tensor.
-		 * \param[in] inferenceOnly If true, only workspace size required for inference will be calculated (may be too small for training).
-		 * \param[out] result Pointer to the integer with number of bytes required for the workspace.
-		 */
-		DLL_PUBLIC avStatus_t cpuGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
-				const avTensorDescriptor_t wDesc, bool inferenceOnly, avSize_t *result);
+//		/**
+//		 * \brief Calculates required workspace size for refConvolutionBiasActivationForward.
+//		 *
+//		 * \param[in] context Context in which the operation is performed.
+//		 * \param[in] config Convolution descriptor.
+//		 * \param[in] xDesc Descriptor of the input tensor.
+//		 * \param[in] wDesc Descriptor of the weights tensor.
+//		 * \param[in] inferenceOnly If true, only workspace size required for inference will be calculated (may be too small for training).
+//		 * \param[out] result Pointer to the integer with number of bytes required for the workspace.
+//		 */
+//		DLL_PUBLIC avStatus_t cpuGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
+//				const avTensorDescriptor_t wDesc, bool inferenceOnly, avSize_t *result);
+//
+//		/**
+//		 * \brief Calculates convolution, adds bias and optionally some external data and applies activation function.
+//		 * y = activation(alpha1 * conv(x, w) + alpha2 * z + b) + beta * y
+//		 *
+//		 * \param[in] context Context in which the operation is performed.
+//		 * \param[in] config Convolution descriptor.
+//		 * \param[in] alpha1 Scaling factor of the convolution output.
+//		 * \param[in] xDesc Input tensor descriptor.
+//		 * \param[in] xMem Input memory descriptor.
+//		 * \param[in] wDesc Weights tensor descriptor.
+//		 * \param[in] wMem Weights memory descriptor.
+//		 * \param[in] bDesc Bias tensor descriptor.
+//		 * \param[in] bMem Bias memory descriptor.
+//		 * \param[in] activation Activation function to be applied.
+//		 * \param[in] alpha2 Scaling factor of the external input tensor.
+//		 * \param[in] zDesc External input tensor descriptor.
+//		 * \param[in] zMem External input memory descriptor.
+//		 * \param[in] beta Scaling factor of the output tensor.
+//		 * \param[in] yDesc Output tensor descriptor.
+//		 * \param[out] yMem Output memory descriptor.
+//		 * \param[in] workspace Memory descriptor of some persistent workspace as calculated by refPrecomputeConvolutionWorkspace method.
+//		 */
+//		DLL_PUBLIC avStatus_t cpuConvolutionBiasActivationForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
+//				const void *alpha1, const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc,
+//				const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2,
+//				const avTensorDescriptor_t zDesc, const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc,
+//				avMemoryDescriptor_t yMem, const avActivationType_t activation, avMemoryDescriptor_t workspace);
+//
+//		/**
+//		 * \brief Simplified version of the above method.
+//		 * y = alpha * conv(x, w) + beta * y
+//		 *
+//		 * \param[in] context Context in which the operation is performed.
+//		 * \param[in] config
+//		 * \param[in] alpha
+//		 * \param[in] xDesc
+//		 * \param[in] xMem
+//		 * \param[in] wDesc
+//		 * \param[in] wMem
+//		 * \param[in] beta
+//		 * \param[in] yDesc
+//		 * \param[out] yMem
+//		 */
+//		DLL_PUBLIC avStatus_t cpuConvolutionForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
+//				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
+//				const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, avMemoryDescriptor_t workspace);
+//
+//		/**
+//		 * \brief Simplified version of the above method.
+//		 * y = alpha * conv(x, w) + beta * y
+//		 *
+//		 * \param[in] context Context in which the operation is performed.
+//		 * \param[in] config
+//		 * \param[in] alpha
+//		 * \param[in] dxDesc
+//		 * \param[out] dxMem
+//		 * \param[in] wDesc
+//		 * \param[in] wMem
+//		 * \param[in] beta
+//		 * \param[in] dyDesc
+//		 * \param[in] dyMem
+//		 * \param[in] workspaceMem Memory descriptor.
+//		 */
+//		DLL_PUBLIC avStatus_t cpuConvolutionBackward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
+//				const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
+//				const void *beta, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, avMemoryDescriptor_t workspaceMem);
+//
+//		/**
+//		 * \param[in] context Context in which the operation is performed.
+//		 * \param[in] config
+//		 * \param[in] alpha
+//		 * \param[in] xDesc
+//		 * \param[in] xMem
+//		 * \param[in] dyDesc
+//		 * \param[in] dyMem
+//		 * \param[in] beta
+//		 * \param[in] dwDesc
+//		 * \param[out] dwMem
+//		 */
+//		DLL_PUBLIC avStatus_t cpuConvolutionUpdate(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
+//				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc,
+//				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem,
+//				avMemoryDescriptor_t workspace);
 
 		/**
-		 * \brief Calculates convolution, adds bias and optionally some external data and applies activation function.
-		 * y = activation(alpha1 * conv(x, w) + alpha2 * z + b) + beta * y
+		 * \brief Calculates convolution forward pass via implicit gemm algorithm.
+		 * y = activation(alpha1 * convolution(x, w) + alpha2 * z + b) + beta * y
 		 *
-		 * \param[in] context Context in which the operation is performed.
-		 * \param[in] config Convolution descriptor.
-		 * \param[in] alpha1 Scaling factor of the convolution output.
-		 * \param[in] xDesc Input tensor descriptor.
-		 * \param[in] xMem Input memory descriptor.
-		 * \param[in] wDesc Weights tensor descriptor.
-		 * \param[in] wMem Weights memory descriptor.
-		 * \param[in] bDesc Bias tensor descriptor.
-		 * \param[in] bMem Bias memory descriptor.
-		 * \param[in] activation Activation function to be applied.
-		 * \param[in] alpha2 Scaling factor of the external input tensor.
-		 * \param[in] zDesc External input tensor descriptor.
-		 * \param[in] zMem External input memory descriptor.
-		 * \param[in] beta Scaling factor of the output tensor.
-		 * \param[in] yDesc Output tensor descriptor.
-		 * \param[out] yMem Output memory descriptor.
-		 * \param[in] workspace Memory descriptor of some persistent workspace as calculated by refPrecomputeConvolutionWorkspace method.
+		 * \param[in] context
+		 * \param[in] config
+		 * \param[in] wDesc
+		 * \param[in] alpha1
+		 * \param[in] matricesDesc
+		 * \param[in] matricesMem
+		 * \param[in] yDesc
+		 * \param[ouy] yMem
+		 * \param[in] bDesc
+		 * \param[in] bMem
+		 * \param[in] alpha2
+		 * \param[in] zDesc
+		 * \param[in] zMem
+		 * \param[in] beta
+		 * \param[in] activation
 		 */
-		DLL_PUBLIC avStatus_t cpuConvolutionBiasActivationForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
+		DLL_PUBLIC avStatus_t cpuConvolutionImplicitGemmForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
 				const void *alpha1, const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc,
 				const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2,
 				const avTensorDescriptor_t zDesc, const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc,
-				avMemoryDescriptor_t yMem, const avActivationType_t activation, avMemoryDescriptor_t workspace);
+				avMemoryDescriptor_t yMem, avActivationType_t activation);
 
 		/**
-		 * \brief Simplified version of the above method.
-		 * y = alpha * conv(x, w) + beta * y
+		 * \brief Calculates convolution forward pass via Winograd transformations using fused algorithm.
+		 * y = activation(alpha1 * convolution(x, w) + alpha2 * z + b) + beta * y
 		 *
-		 * \param[in] context Context in which the operation is performed.
+		 * \param[in] context
 		 * \param[in] config
-		 * \param[in] alpha
-		 * \param[in] xDesc
-		 * \param[in] xMem
 		 * \param[in] wDesc
-		 * \param[in] wMem
-		 * \param[in] beta
+		 * \param[in] alpha1
+		 * \param[in] matricesDesc
+		 * \param[in] matricesMem
 		 * \param[in] yDesc
-		 * \param[out] yMem
+		 * \param[ouy] yMem
+		 * \param[in] bDesc
+		 * \param[in] bMem
+		 * \param[in] alpha2
+		 * \param[in] zDesc
+		 * \param[in] zMem
+		 * \param[in] beta
+		 * \param[in] activation
 		 */
-		DLL_PUBLIC avStatus_t cpuConvolutionForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
-				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
-				const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, avMemoryDescriptor_t workspace);
+		DLL_PUBLIC avStatus_t cpuConvolutionWinogradFusedForward(avContextDescriptor_t context, const avConvolutionDescriptor_t config,
+				const void *alpha1, const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t wDesc,
+				const avMemoryDescriptor_t wMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const void *alpha2,
+				const avTensorDescriptor_t zDesc, const avMemoryDescriptor_t zMem, const void *beta, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem, avActivationType_t activation);
 
 		/**
-		 * \brief Simplified version of the above method.
-		 * y = alpha * conv(x, w) + beta * y
+		 * \brief Calculates initial Winograd transform of the weight (filter) tensor.
 		 *
-		 * \param[in] context Context in which the operation is performed.
+		 * \param[in] context
 		 * \param[in] config
-		 * \param[in] alpha
-		 * \param[in] dxDesc
-		 * \param[out] dxMem
 		 * \param[in] wDesc
 		 * \param[in] wMem
-		 * \param[in] beta
-		 * \param[in] dyDesc
-		 * \param[in] dyMem
-		 * \param[in] workspaceMem Memory descriptor.
+		 * \param[in] matricesDesc
+		 * \param[out] matricesMem
 		 */
-		DLL_PUBLIC avStatus_t cpuConvolutionBackward(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
-				const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem,
-				const void *beta, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, avMemoryDescriptor_t workspaceMem);
+		DLL_PUBLIC avStatus_t cpuWinogradWeightTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int transformSize,
+				const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem, const avTensorDescriptor_t matricesDesc,
+				avMemoryDescriptor_t matricesMem);
 
 		/**
-		 * \param[in] context Context in which the operation is performed.
+		 * \brief Calculates initial Winograd transform of the input tensor.
+		 *
+		 * \param[in] context
 		 * \param[in] config
-		 * \param[in] alpha
+		 * \param[in] wDesc
 		 * \param[in] xDesc
 		 * \param[in] xMem
+		 * \param[in] matricesDesc
+		 * \param[out] matricesMem
+		 */
+		DLL_PUBLIC avStatus_t cpuWinogradInputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int transformSize,
+				const avTensorDescriptor_t wDesc, const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem,
+				const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem);
+
+		/**
+		 * \brief Calculates final Winograd transform of the output tensor.
+		 * y = activation(alpha1 * transform(matrices) + alpha2 * z + b) + beta * y
+		 *
+		 * \param[in] context
+		 * \param[in] config
+		 * \param[in] wDesc
+		 * \param[in] alpha1
+		 * \param[in] matricesDesc
+		 * \param[in] matricesMem
+		 * \param[in] yDesc
+		 * \param[ouy] yMem
+		 * \param[in] bDesc
+		 * \param[in] bMem
+		 * \param[in] alpha2
+		 * \param[in] zDesc
+		 * \param[in] zMem
+		 * \param[in] beta
+		 * \param[in] activation
+		 */
+		DLL_PUBLIC avStatus_t cpuWinogradOutputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int transformSize,
+				const avTensorDescriptor_t wDesc, const void *alpha1, const avTensorDescriptor_t matricesDesc, const avMemoryDescriptor_t matricesMem,
+				const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
+				const void *alpha2, const avTensorDescriptor_t zDesc, const avMemoryDescriptor_t zMem, const void *beta,
+				avActivationType_t activation);
+
+		/**
+		 * \brief Calculates initial Winograd transform of the gradient tensor.
+		 *
+		 * \param[in] context
+		 * \param[in] config
+		 * \param[in] wDesc
 		 * \param[in] dyDesc
 		 * \param[in] dyMem
+		 * \param[in] matricesDesc
+		 * \param[out] matricesMem
+		 */
+		DLL_PUBLIC avStatus_t cpuWinogradGradientTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int transformSize,
+				const avTensorDescriptor_t wDesc, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem,
+				const avTensorDescriptor_t matricesDesc, avMemoryDescriptor_t matricesMem);
+
+		/**
+		 * \brief Calculates final Winograd transform of the weight (filter) update tensor.
+		 *
+		 * \param[in] context
+		 * \param[in] config
+		 * \param[in] alpha
+		 * \param[in] matricesDesc
+		 * \param[in] matricesMem
 		 * \param[in] beta
-		 * \param[in] dwDesc
+		 * \param[in] dwDescc
 		 * \param[out] dwMem
 		 */
-		DLL_PUBLIC avStatus_t cpuConvolutionUpdate(avContextDescriptor_t context, const avConvolutionDescriptor_t config, const void *alpha,
-				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc,
-				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem,
-				avMemoryDescriptor_t workspace);
+		DLL_PUBLIC avStatus_t cpuWinogradUpdateTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int transformSize,
+				const void *alpha, const avTensorDescriptor_t matricesDesc, const avMemoryDescriptor_t matricesMem, const void *beta,
+				const avTensorDescriptor_t dwDesc, avMemoryDescriptor_t dwMem);
+
+		/*
+		 *
+		 * Losses and metrics.
+		 *
+		 */
 
 		/**
 		 * \brief Computes chosen metric function, averaged over entire batch.
@@ -912,6 +1062,59 @@ namespace avocado
 				const avMemoryDescriptor_t targetMem, const void *beta, const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem,
 				bool isFused);
 
+		/*
+		 *
+		 * Optimizers.
+		 *
+		 */
+
+		/**
+		 * \brief Creates new optimizer descriptor.
+		 *
+		 * \param[out] result
+		 */
+		DLL_PUBLIC avStatus_t cpuCreateOptimizerDescriptor(avOptimizerDescriptor_t *result);
+
+		/**
+		 * \brief Deletes optimizer descriptor.
+		 *
+		 * \param[in] desc Optimizer descriptor to be deleted.
+		 */
+		DLL_PUBLIC avStatus_t cpuDestroyOptimizerDescriptor(avOptimizerDescriptor_t desc);
+
+		/**
+		 * \brief Sets optimizer descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[in] type
+		 * \param[in] learningRate
+		 * \param[in] coefficients
+		 * \param[in] flags
+		 */
+		DLL_PUBLIC avStatus_t cpuSetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t type, double learningRate,
+				const double coefficients[], const bool flags[]);
+
+		/**
+		 * \brief Queries parameters of optimizer descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[out] type
+		 * \param[out] learningRate
+		 * \param[out] coefficients
+		 * \param[out] flags
+		 */
+		DLL_PUBLIC avStatus_t cpuGetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t *type, double *learningRate,
+				double coefficients[], bool flags[]);
+
+		/**
+		 * \brief Returns number of bytes needed for the workspace of given optimizer descriptor.
+		 *
+		 * \param[in] desc
+		 * \param[in] wDesc
+		 * \param[out] result
+		 */
+		DLL_PUBLIC avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, avSize_t *result);
+
 		/**
 		 * \param[in] context Context in which the operation is performed.
 		 * \param[in] config Optimizer descriptor.
@@ -924,6 +1127,12 @@ namespace avocado
 		DLL_PUBLIC avStatus_t cpuOptimizerLearn(avContextDescriptor_t context, const avOptimizerDescriptor_t config, const void *alpha,
 				const avTensorDescriptor_t dwDesc, const avTensorDescriptor_t dwMem, const void *beta, const avTensorDescriptor_t wDesc,
 				avMemoryDescriptor_t wMem, avMemoryDescriptor_t workspace);
+
+		/*
+		 *
+		 * Regularizes.
+		 *
+		 */
 
 		/**
 		 * \param[in] context Context in which the operation is performed.

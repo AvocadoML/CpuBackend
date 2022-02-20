@@ -13,20 +13,26 @@
 #include <bitset>
 #include <x86intrin.h>
 
-#include "../src/vectors/simd_vectors.hpp"
+#include <gtest/gtest.h>
 
 using namespace avocado::backend;
-using namespace SIMD_NAMESPACE;
 
 int main(int argc, char *argv[])
 {
-//	cpuSetNumberOfThreads(1);
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
+	cpuSetNumberOfThreads(1);
+//	::testing::InitGoogleTest(&argc, argv);
+//	return RUN_ALL_TESTS();
 
-	UnaryOpTester data(0, AVOCADO_UNARY_OP_LOGICAL_NOT, { 8 }, AVOCADO_DTYPE_FLOAT64);
+	WinogradTest data(0, { 12, 4, 4, 13 }, { 12, 5, 5, 13 }, AVOCADO_DTYPE_FLOAT32, 2);
+	float padding[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	data.set(AVOCADO_CONVOLUTION_MODE, { -1, -1, 0 }, { 1, 1, 0 }, 1, padding);
 	double alpha = 1.1, beta = 0.1;
-	double diff = data.getDifference(&alpha, &beta);
+//	double diff = data.getDifferenceWeight();
+//	double diff = data.getDifferenceInput();
+
+	double diff = data.getDifferenceGradient();
+//	double diff = data.getDifferenceBackward(&alpha, &beta);
+//	double diff = data.getDifferenceUpdate(&alpha, &beta);
 	std::cout << "diff = " << diff << '\n';
 
 	std::cout << "END" << std::endl;

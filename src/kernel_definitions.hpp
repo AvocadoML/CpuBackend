@@ -58,9 +58,6 @@ namespace avocado
 				const cpu::TensorDescriptor &aDesc, const cpu::MemoryDescriptor &aMem, const cpu::TensorDescriptor &bDesc,
 				const cpu::MemoryDescriptor &bMem, const void *beta, const cpu::TensorDescriptor &cDesc, cpu::MemoryDescriptor &cMem);
 
-		avStatus_t cpu_getConvolutionWorkspaceSize(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &xDesc,
-				const cpu::TensorDescriptor &wDesc, bool inferenceOnly, avSize_t *result);
-
 		/*
 		 *
 		 */

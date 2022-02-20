@@ -1,5 +1,5 @@
 /*
- * winograd_fused.cpp
+ * conv2d_winograd_fused.cpp
  *
  *  Created on: Jan 3, 2022
  *      Author: Maciej Kozarzewski
@@ -20,13 +20,13 @@ namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_convForwardWinogradFused(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha1,
+	avStatus_t cpu_convolutionWinogradFusedForward(const ContextDescriptor &context, const ConvolutionDescriptor &config, const void *alpha1,
 			const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const TensorDescriptor &wDesc, const MemoryDescriptor &wMem,
 			const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *alpha2, const TensorDescriptor &zDesc,
-			const MemoryDescriptor &zMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem, avActivationType_t activation,
-			MemoryDescriptor &workspaceMem)
+			const MemoryDescriptor &zMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem, avActivationType_t activation)
 	{
 		return AVOCADO_STATUS_NOT_SUPPORTED;
 	}
-} /* namespace avocado */
+}
+/* namespace avocado */
 
