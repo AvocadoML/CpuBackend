@@ -490,7 +490,7 @@ namespace
 #pragma omp for
 			for (int tile_idx = 0; tile_idx < nb_of_tiles; tile_idx++)
 			{
-				for (int j = 0; j < 36; j++)
+				for (int j = 0; j < TileSize * TileSize; j++)
 					ptr_in[j] = mMem + mDesc.getIndex( { j, tile_idx, 0 });
 
 				int batch = tile_idx / tiles_per_image;
