@@ -15,6 +15,7 @@ set(libsrc 	src/cpu_properties.cpp
 			src/descriptors.cpp
 			src/dispatcher.cpp
 			src/gemms.cpp
+			src/utils.cpp
 			${PATH_TO_MAIN_LIB}/include/Avocado/backend/backend_descriptors.cpp)
 
 if(BUILD_SHARED_LIBS)
