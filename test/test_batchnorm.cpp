@@ -15,7 +15,7 @@ namespace avocado
 	{
 		TEST(TestBatchNorm, float32)
 		{
-			BatchNormTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT32);
+			BatchNormTester data( { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT32);
 			float alpha = 1.1, beta = 0.1;
 			double diff1 = data.getDifferenceInference(&alpha, &beta);
 			double diff2 = data.getDifferenceForward(&alpha, &beta);
@@ -32,7 +32,7 @@ namespace avocado
 		}
 		TEST(TestBatchNorm, float64)
 		{
-			BatchNormTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT64);
+			BatchNormTester data( { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT64);
 			double alpha = 1.1, beta = 0.1;
 			double diff1 = data.getDifferenceInference(&alpha, &beta);
 			double diff2 = data.getDifferenceForward(&alpha, &beta);

@@ -222,9 +222,9 @@ namespace avocado
 			return SIMD_NAMESPACE::cpu_addScalarToTensor(cpu_context, cpu_aDesc, cpu_aMem, scalar, cpu_cDesc, cpu_cMem);
 #endif
 		}
-		avStatus_t cpuAddBias(avContextDescriptor_t context, const void *alpha3, const void *alpha1, const avTensorDescriptor_t xDesc,
-				const avMemoryDescriptor_t xMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
-				const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, const void *beta1, const void *beta2, const avMemoryDescriptor_t zMem,
+		avStatus_t cpuAddBias(avContextDescriptor_t context, const void *alpha1, const void *alpha2, const avTensorDescriptor_t xDesc,
+				const avMemoryDescriptor_t xMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem, const avTensorDescriptor_t yDesc,
+				avMemoryDescriptor_t yMem, const void *beta1, const void *beta2, const void *beta3, const avMemoryDescriptor_t zMem,
 				avActivationType_t activation)
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
@@ -240,26 +240,26 @@ namespace avocado
 			switch (getSimdSupport())
 			{
 				case SimdLevel::AVX2:
-					return ns_avx2::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
-							beta1, beta2, cpu_zMem, activation);
+					return ns_avx2::cpu_addBias(cpu_context, alpha1, alpha2, cpu_xDesc, cpu_xMem, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem, beta1,
+							beta2, beta3, cpu_zMem, activation);
 				case SimdLevel::AVX:
-					return ns_avx::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
-							beta1, beta2, cpu_zMem, activation);
+					return ns_avx::cpu_addBias(cpu_context, alpha1, alpha2, cpu_xDesc, cpu_xMem, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem, beta1,
+							beta2, beta3, cpu_zMem, activation);
 				case SimdLevel::SSE41:
-					return ns_sse41::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
-							beta1, beta2, cpu_zMem, activation);
+					return ns_sse41::cpu_addBias(cpu_context, alpha1, alpha2, cpu_xDesc, cpu_xMem, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem, beta1,
+							beta2, beta3, cpu_zMem, activation);
 				case SimdLevel::SSE2:
-					return ns_sse2::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
-							beta1, beta2, cpu_zMem, activation);
+					return ns_sse2::cpu_addBias(cpu_context, alpha1, alpha2, cpu_xDesc, cpu_xMem, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem, beta1,
+							beta2, beta3, cpu_zMem, activation);
 				case SimdLevel::NONE:
-					return ns_none::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
-							beta1, beta2, cpu_zMem, activation);
+					return ns_none::cpu_addBias(ccpu_context, alpha1, alpha2, cpu_xDesc, cpu_xMem, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem, beta1,
+							beta2, beta3, cpu_zMem, activation);
 				default:
 					return AVOCADO_STATUS_NOT_SUPPORTED;
 			}
 #else
-			return SIMD_NAMESPACE::cpu_addBias(cpu_context, alpha3, alpha1, cpu_xDesc, cpu_xMem, alpha2, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem,
-					beta1, beta2, cpu_zMem, activation);
+			return SIMD_NAMESPACE::cpu_addBias(cpu_context, alpha1, alpha2, cpu_xDesc, cpu_xMem, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem, beta1,
+					beta2, beta3, cpu_zMem, activation);
 #endif
 		}
 		avStatus_t cpuBinaryOp(avContextDescriptor_t context, avBinaryOp_t operation, const void *alpha1, const avTensorDescriptor_t aDesc,
@@ -980,7 +980,8 @@ namespace avocado
 					return AVOCADO_STATUS_NOT_SUPPORTED;
 			}
 #else
-			return SIMD_NAMESPACE::cpu_winogradWeightTransform(cpu_context, cpu_config, transformSize, cpu_wDesc, cpu_wMem, cpu_matricesDesc, cpu_matricesMem);
+			return SIMD_NAMESPACE::cpu_winogradWeightTransform(cpu_context, cpu_config, transformSize, cpu_wDesc, cpu_wMem, cpu_matricesDesc,
+					cpu_matricesMem);
 #endif
 		}
 		avStatus_t cpuWinogradInputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int transformSize,
@@ -1016,8 +1017,8 @@ namespace avocado
 					return AVOCADO_STATUS_NOT_SUPPORTED;
 			}
 #else
-			return SIMD_NAMESPACE::cpu_winogradInputTransform(cpu_context, cpu_config, transformSize, cpu_wDesc, cpu_xDesc, cpu_xMem, cpu_matricesDesc,
-					cpu_matricesMem);
+			return SIMD_NAMESPACE::cpu_winogradInputTransform(cpu_context, cpu_config, transformSize, cpu_wDesc, cpu_xDesc, cpu_xMem,
+					cpu_matricesDesc, cpu_matricesMem);
 #endif
 		}
 		avStatus_t cpuWinogradOutputTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int transformSize,
@@ -1059,8 +1060,8 @@ namespace avocado
 					return AVOCADO_STATUS_NOT_SUPPORTED;
 			}
 #else
-			return SIMD_NAMESPACE::cpu_winogradOutputTransform(cpu_context, cpu_config, transformSize, cpu_wDesc, alpha1, cpu_matricesDesc, cpu_matricesMem,
-					cpu_yDesc, cpu_yMem, cpu_bDesc, cpu_bMem, alpha2, cpu_zDesc, cpu_zMem, beta, activation);
+			return SIMD_NAMESPACE::cpu_winogradOutputTransform(cpu_context, cpu_config, transformSize, cpu_wDesc, alpha1, cpu_matricesDesc,
+					cpu_matricesMem, cpu_yDesc, cpu_yMem, cpu_bDesc, cpu_bMem, alpha2, cpu_zDesc, cpu_zMem, beta, activation);
 
 #endif
 		}
@@ -1092,8 +1093,8 @@ namespace avocado
 					return AVOCADO_STATUS_NOT_SUPPORTED;
 			}
 #else
-			return SIMD_NAMESPACE::cpu_winogradGradientTransform(cpu_context, cpu_config, transformSize, cpu_wDesc, cpu_dyDesc, cpu_dyMem, cpu_matricesDesc,
-					cpu_matricesMem);
+			return SIMD_NAMESPACE::cpu_winogradGradientTransform(cpu_context, cpu_config, transformSize, cpu_wDesc, cpu_dyDesc, cpu_dyMem,
+					cpu_matricesDesc, cpu_matricesMem);
 #endif
 		}
 		avStatus_t cpuWinogradUpdateTransform(avContextDescriptor_t context, const avConvolutionDescriptor_t config, int transformSize,
@@ -1124,8 +1125,8 @@ namespace avocado
 					return AVOCADO_STATUS_NOT_SUPPORTED;
 			}
 #else
-			return SIMD_NAMESPACE::cpu_winogradUpdateTransform(cpu_context, cpu_config, transformSize, alpha, cpu_matricesDesc, cpu_matricesMem, beta, cpu_dwDesc,
-					cpu_dwMem);
+			return SIMD_NAMESPACE::cpu_winogradUpdateTransform(cpu_context, cpu_config, transformSize, alpha, cpu_matricesDesc, cpu_matricesMem, beta,
+					cpu_dwDesc, cpu_dwMem);
 #endif
 		}
 

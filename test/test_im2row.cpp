@@ -17,7 +17,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_INT32))
 				GTEST_SKIP();
-			Im2rowTest data(0, { 12, 23, 34, 45 }, { 11, 3, 3, 45 }, AVOCADO_DTYPE_INT32);
+			Im2rowTest data( { 12, 23, 34, 45 }, { 11, 3, 3, 45 }, AVOCADO_DTYPE_INT32);
 			uint32_t padding[4] = { 0, 0, 0, 0 };
 			data.set(AVOCADO_CONVOLUTION_MODE, { 0, 0, 0 }, { 1, 1, 0 }, { 1, 1, 0 }, 1, padding);
 			EXPECT_LE(data.getDifference(), 1.0e-6);
@@ -26,7 +26,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_INT32))
 				GTEST_SKIP();
-			Im2rowTest data(0, { 12, 23, 34, 45 }, { 11, 3, 3, 45 }, AVOCADO_DTYPE_INT32);
+			Im2rowTest data( { 12, 23, 34, 45 }, { 11, 3, 3, 45 }, AVOCADO_DTYPE_INT32);
 			uint32_t padding[4] = { 0, 0, 0, 0 };
 			data.set(AVOCADO_CONVOLUTION_MODE, { -1, -2, 0 }, { 1, 1, 0 }, { 1, 1, 0 }, 1, padding);
 			EXPECT_LE(data.getDifference(), 1.0e-6);
@@ -35,7 +35,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_INT32))
 				GTEST_SKIP();
-			Im2rowTest data(0, { 12, 23, 34, 45 }, { 11, 3, 3, 45 }, AVOCADO_DTYPE_INT32);
+			Im2rowTest data( { 12, 23, 34, 45 }, { 11, 3, 3, 45 }, AVOCADO_DTYPE_INT32);
 			uint32_t padding[4] = { 0, 0, 0, 0 };
 			data.set(AVOCADO_CONVOLUTION_MODE, { 0, 0, 0 }, { 2, 2, 0 }, { 1, 1, 0 }, 1, padding);
 			EXPECT_LE(data.getDifference(), 1.0e-6);

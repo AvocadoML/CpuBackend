@@ -25,7 +25,7 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_FLOAT16;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 2);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 2);
 			EXPECT_LT(data.getDifferenceWeight(), epsilonForTest(dtype));
 			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
 
@@ -39,7 +39,7 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_BFLOAT16;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 2);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 2);
 			EXPECT_LT(data.getDifferenceWeight(), epsilonForTest(dtype));
 			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
 
@@ -53,7 +53,7 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_FLOAT32;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 2);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 2);
 			EXPECT_LT(data.getDifferenceWeight(), epsilonForTest(dtype));
 			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
 
@@ -69,7 +69,7 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_FLOAT64;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 2);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 2);
 			EXPECT_LT(data.getDifferenceWeight(), epsilonForTest(dtype));
 			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
 
@@ -86,7 +86,7 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_FLOAT16;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 4);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 4);
 			EXPECT_LT(data.getDifferenceWeight(), epsilonForTest(dtype));
 			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
 
@@ -100,9 +100,9 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_BFLOAT16;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 4);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 4);
 			EXPECT_LT(data.getDifferenceWeight(), epsilonForTest(dtype));
-			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
+			EXPECT_LT(data.getDifferenceInput(), 0.02);
 
 			float alpha1 = 1.1f;
 			float alpha2 = 1.2f;
@@ -114,7 +114,7 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_FLOAT32;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 4);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 4);
 			EXPECT_LT(data.getDifferenceWeight(), epsilonForTest(dtype));
 			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
 
@@ -130,7 +130,7 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_FLOAT64;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 4);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 3, 3, 15 }, dtype, 4);
 			EXPECT_LT(data.getDifferenceWeight(), epsilonForTest(dtype));
 			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
 
@@ -147,7 +147,7 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_FLOAT16;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 5, 5, 15 }, dtype, 2);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 5, 5, 15 }, dtype, 2);
 			EXPECT_LT(data.getDifferenceWeight(), epsilonForTest(dtype));
 			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
 
@@ -161,9 +161,9 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_BFLOAT16;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 5, 5, 15 }, dtype, 2);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 5, 5, 15 }, dtype, 2);
 			EXPECT_LT(data.getDifferenceWeight(), 0.02);
-			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
+			EXPECT_LT(data.getDifferenceInput(), 0.02);
 
 			float alpha1 = 1.1f;
 			float alpha2 = 1.2f;
@@ -175,7 +175,7 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_FLOAT32;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 5, 5, 15 }, dtype, 2);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 5, 5, 15 }, dtype, 2);
 			EXPECT_LT(data.getDifferenceWeight(), epsilonForTest(dtype));
 			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
 
@@ -191,7 +191,7 @@ namespace avocado
 			const avDataType_t dtype = AVOCADO_DTYPE_FLOAT64;
 			if (not supportsType(dtype))
 				GTEST_SKIP();
-			WinogradTest data(0, { 12, 13, 14, 15 }, { 21, 5, 5, 15 }, dtype, 2);
+			WinogradTest data( { 12, 13, 14, 15 }, { 21, 5, 5, 15 }, dtype, 2);
 			EXPECT_LT(data.getDifferenceWeight(), epsilonForTest(dtype));
 			EXPECT_LT(data.getDifferenceInput(), epsilonForTest(dtype));
 

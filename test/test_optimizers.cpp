@@ -17,7 +17,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT32))
 				GTEST_SKIP();
-			OptimizerTester data(0, { 23, 45 }, AVOCADO_DTYPE_FLOAT32);
+			OptimizerTester data( { 23, 45 }, AVOCADO_DTYPE_FLOAT32);
 			data.set(AVOCADO_OPTIMIZER_SGD, 0.01, { 0.0, 0., 0.0, 0.0 }, { false, false, false, false });
 			float alpha = 1.1f, beta = 0.1f;
 			EXPECT_LT(data.getDifference(&alpha, &beta), 1.0e-4);
@@ -26,7 +26,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT32))
 				GTEST_SKIP();
-			OptimizerTester data(0, { 23, 45 }, AVOCADO_DTYPE_FLOAT32);
+			OptimizerTester data( { 23, 45 }, AVOCADO_DTYPE_FLOAT32);
 			data.set(AVOCADO_OPTIMIZER_SGD, 0.01, { 0.01, 0.0, 0.0, 0.0 }, { true, false, false, false });
 			float alpha = 1.1f, beta = 0.1f;
 			EXPECT_LT(data.getDifference(&alpha, &beta), 1.0e-4);
@@ -35,7 +35,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT32))
 				GTEST_SKIP();
-			OptimizerTester data(0, { 23, 45 }, AVOCADO_DTYPE_FLOAT32);
+			OptimizerTester data( { 23, 45 }, AVOCADO_DTYPE_FLOAT32);
 			data.set(AVOCADO_OPTIMIZER_SGD, 0.01, { 0.01, 0.0, 0.0, 0.0 }, { true, true, false, false });
 			float alpha = 1.1f, beta = 0.1f;
 			EXPECT_LT(data.getDifference(&alpha, &beta), 1.0e-4);
@@ -44,7 +44,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT32))
 				GTEST_SKIP();
-			OptimizerTester data(0, { 23, 45 }, AVOCADO_DTYPE_FLOAT32);
+			OptimizerTester data( { 23, 45 }, AVOCADO_DTYPE_FLOAT32);
 			data.set(AVOCADO_OPTIMIZER_ADAM, 0.01, { 0.01, 0.001, 0.0, 0.0 }, { false, false, false, false });
 			float alpha = 1.1f, beta = 0.1f;
 			EXPECT_LT(data.getDifference(&alpha, &beta), 1.0e-4);
@@ -54,7 +54,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT64))
 				GTEST_SKIP();
-			OptimizerTester data(0, { 23, 45 }, AVOCADO_DTYPE_FLOAT64);
+			OptimizerTester data( { 23, 45 }, AVOCADO_DTYPE_FLOAT64);
 			data.set(AVOCADO_OPTIMIZER_SGD, 0.01, { 0.0, 0., 0.0, 0.0 }, { false, false, false, false });
 			double alpha = 1.1, beta = 0.1;
 			EXPECT_LT(data.getDifference(&alpha, &beta), 1.0e-4);
@@ -63,7 +63,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT64))
 				GTEST_SKIP();
-			OptimizerTester data(0, { 23, 45 }, AVOCADO_DTYPE_FLOAT64);
+			OptimizerTester data( { 23, 45 }, AVOCADO_DTYPE_FLOAT64);
 			data.set(AVOCADO_OPTIMIZER_SGD, 0.01, { 0.01, 0.0, 0.0, 0.0 }, { true, false, false, false });
 			double alpha = 1.1, beta = 0.1;
 			EXPECT_LT(data.getDifference(&alpha, &beta), 1.0e-4);
@@ -72,7 +72,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT64))
 				GTEST_SKIP();
-			OptimizerTester data(0, { 23, 45 }, AVOCADO_DTYPE_FLOAT64);
+			OptimizerTester data( { 23, 45 }, AVOCADO_DTYPE_FLOAT64);
 			data.set(AVOCADO_OPTIMIZER_SGD, 0.01, { 0.01, 0.0, 0.0, 0.0 }, { true, true, false, false });
 			double alpha = 1.1, beta = 0.1;
 			EXPECT_LT(data.getDifference(&alpha, &beta), 1.0e-4);
@@ -81,7 +81,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT64))
 				GTEST_SKIP();
-			OptimizerTester data(0, { 23, 45 }, AVOCADO_DTYPE_FLOAT64);
+			OptimizerTester data( { 23, 45 }, AVOCADO_DTYPE_FLOAT64);
 			data.set(AVOCADO_OPTIMIZER_ADAM, 0.01, { 0.01, 0.001, 0.0, 0.0 }, { false, false, false, false });
 			double alpha = 1.1, beta = 0.1;
 			EXPECT_LT(data.getDifference(&alpha, &beta), 1.0e-4);

@@ -24,21 +24,21 @@ namespace avocado
 		{
 			if (not supportsType(GetParam()))
 				GTEST_SKIP();
-			ConcatTester data(0, { 23, 45 }, GetParam());
+			ConcatTester data( { 23, 45 }, GetParam());
 			EXPECT_LT(data.getDifference(), 1.0e-4);
 		}
 		TEST_P(TestConcatSplitTranspose, split)
 		{
 			if (not supportsType(GetParam()))
 				GTEST_SKIP();
-			SplitTester data(0, { 23, 45 }, GetParam());
+			SplitTester data( { 23, 45 }, GetParam());
 			EXPECT_LT(data.getDifference(), 1.0e-4);
 		}
 		TEST_P(TestConcatSplitTranspose, transpose)
 		{
 			if (not supportsType(GetParam()))
 				GTEST_SKIP();
-			TransposeTester data(0, { 23, 45, 67 }, GetParam());
+			TransposeTester data( { 23, 45, 67 }, GetParam());
 			EXPECT_LT(data.getDifference( { 2, 0, 1 }), 1.0e-4);
 		}
 		INSTANTIATE_TEST_SUITE_P(TestConcatSplitTranspose, TestConcatSplitTranspose,
@@ -49,7 +49,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT16))
 				GTEST_SKIP();
-			ScaleTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT16);
+			ScaleTester data( { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT16);
 			float alpha = 1.1f;
 			EXPECT_LT(data.getDifference(&alpha), 1.0e-3);
 		}
@@ -57,7 +57,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_BFLOAT16))
 				GTEST_SKIP();
-			ScaleTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_BFLOAT16);
+			ScaleTester data( { 23, 45, 67 }, AVOCADO_DTYPE_BFLOAT16);
 			float alpha = 1.1f;
 			EXPECT_LT(data.getDifference(&alpha), 1.0e-3);
 		}
@@ -65,7 +65,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT32))
 				GTEST_SKIP();
-			ScaleTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT32);
+			ScaleTester data( { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT32);
 			float alpha = 1.1f;
 			EXPECT_LT(data.getDifference(&alpha), 1.0e-4);
 		}
@@ -73,7 +73,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT64))
 				GTEST_SKIP();
-			ScaleTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT64);
+			ScaleTester data( { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT64);
 			double alpha = 1.1;
 			EXPECT_LT(data.getDifference(&alpha), 1.0e-4);
 		}
@@ -98,7 +98,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT32))
 				GTEST_SKIP();
-			AddScalarTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT32);
+			AddScalarTester data( { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT32);
 			float scalar = 1.1f;
 			EXPECT_LT(data.getDifference(&scalar), 1.0e-4);
 		}
@@ -106,7 +106,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT64))
 				GTEST_SKIP();
-			AddScalarTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT64);
+			AddScalarTester data( { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT64);
 			double scalar = 1.1;
 			EXPECT_LT(data.getDifference(&scalar), 1.0e-4);
 		}
@@ -115,49 +115,49 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT16))
 				GTEST_SKIP();
-			AddBiasTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT16, AVOCADO_DTYPE_FLOAT16, AVOCADO_DTYPE_FLOAT32);
+			AddBiasTester data( { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT16, AVOCADO_DTYPE_FLOAT16, AVOCADO_DTYPE_FLOAT32);
 			float alpha1 = 1.1f;
 			float alpha2 = 1.2f;
-			float alpha3 = 1.3f;
 			float beta1 = 0.1f;
-			float beta2 = 0.2f;
-			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta1, &beta2), 1.0e-3);
+			float beta2 = 0.1f;
+			float beta3 = 0.3f;
+			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &beta1, &beta2, &beta3), 1.0e-3);
 		}
 		TEST(TestTensorOp, bfloat16_add_bias)
 		{
 			if (not supportsType(AVOCADO_DTYPE_BFLOAT16))
 				GTEST_SKIP();
-			AddBiasTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_BFLOAT16, AVOCADO_DTYPE_BFLOAT16, AVOCADO_DTYPE_FLOAT32);
+			AddBiasTester data( { 23, 45, 67 }, AVOCADO_DTYPE_BFLOAT16, AVOCADO_DTYPE_BFLOAT16, AVOCADO_DTYPE_FLOAT32);
 			float alpha1 = 1.1f;
 			float alpha2 = 1.2f;
-			float alpha3 = 1.3f;
 			float beta1 = 0.1f;
-			float beta2 = 0.2f;
-			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta1, &beta2), 1.0e-2);
+			float beta2 = 0.1f;
+			float beta3 = 0.3f;
+			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &beta1, &beta2, &beta3), 1.0e-2);
 		}
 		TEST(TestTensorOp, float32_add_bias)
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT32))
 				GTEST_SKIP();
-			AddBiasTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT32);
+			AddBiasTester data( { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT32);
 			float alpha1 = 1.1f;
 			float alpha2 = 1.2f;
-			float alpha3 = 1.3f;
 			float beta1 = 0.1f;
-			float beta2 = 0.2f;
-			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta1, &beta2), 1.0e-4);
+			float beta2 = 0.1f;
+			float beta3 = 0.3f;
+			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &beta1, &beta2, &beta3), 1.0e-4);
 		}
 		TEST(TestTensorOp, float64_add_bias)
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT64))
 				GTEST_SKIP();
-			AddBiasTester data(0, { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT64);
+			AddBiasTester data( { 23, 45, 67 }, AVOCADO_DTYPE_FLOAT64);
 			double alpha1 = 1.1;
 			double alpha2 = 1.2;
-			double alpha3 = 1.3;
 			double beta1 = 0.1;
 			double beta2 = 0.2;
-			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &alpha3, &beta1, &beta2), 1.0e-4);
+			double beta3 = 0.2;
+			EXPECT_LT(data.getDifference(&alpha1, &alpha2, &beta1, &beta2, &beta3), 1.0e-4);
 		}
 
 	} /* namespace backend */

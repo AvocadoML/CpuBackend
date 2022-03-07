@@ -20,18 +20,20 @@ using namespace avocado::backend;
 int main(int argc, char *argv[])
 {
 	cpuSetNumberOfThreads(1);
-//	::testing::InitGoogleTest(&argc, argv);
-//	return RUN_ALL_TESTS();
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 
-	WinogradTest data(0, { 12, 4, 4, 13 }, { 12, 5, 5, 13 }, AVOCADO_DTYPE_FLOAT32, 2);
+	WinogradTest data( { 12, 13, 14, 15 }, { 21, 5, 5, 15 }, AVOCADO_DTYPE_FLOAT16, 2);
 	float padding[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	data.set(AVOCADO_CONVOLUTION_MODE, { -1, -1, 0 }, { 1, 1, 0 }, 1, padding);
-	double alpha = 1.1, beta = 0.1;
+	float alpha1 = 1.1, alpha2 = 1.2, beta = 0.1;
 //	double diff = data.getDifferenceWeight();
-//	double diff = data.getDifferenceInput();
-
-	double diff = data.getDifferenceGradient();
+	double diff = data.getDifferenceInput();
+//	double diff = data.getDifferenceOutput(&alpha1, &alpha2, &beta);
+//	double diff = data.getDifferenceGradient();
+//	double diff = data.getDifferenceUpdate(&alpha, &beta);
 //	double diff = data.getDifferenceBackward(&alpha, &beta);
+//	double diff = data.getDifferenceUpdate(&alpha, &beta);
 //	double diff = data.getDifferenceUpdate(&alpha, &beta);
 	std::cout << "diff = " << diff << '\n';
 

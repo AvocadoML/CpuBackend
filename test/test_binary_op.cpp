@@ -24,7 +24,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT16))
 				GTEST_SKIP();
-			BinaryOpTester data(0, GetParam(), { 23, 45 }, AVOCADO_DTYPE_FLOAT16);
+			BinaryOpTester data(GetParam(), { 23, 45 }, AVOCADO_DTYPE_FLOAT16);
 			float alpha1 = 1.1f, alpha2 = 1.2f, beta = 0.1f;
 			EXPECT_LT(data.getDifferenceSame(&alpha1, &alpha2, &beta), epsilonForTest(AVOCADO_DTYPE_FLOAT16));
 			EXPECT_LT(data.getDifference1D(&alpha1, &alpha2, &beta), epsilonForTest(AVOCADO_DTYPE_FLOAT16));
@@ -34,7 +34,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_BFLOAT16))
 				GTEST_SKIP();
-			BinaryOpTester data(0, GetParam(), { 23, 45 }, AVOCADO_DTYPE_BFLOAT16);
+			BinaryOpTester data(GetParam(), { 23, 45 }, AVOCADO_DTYPE_BFLOAT16);
 			float alpha1 = 1.1f, alpha2 = 1.2f, beta = 0.1f;
 			EXPECT_LT(data.getDifferenceSame(&alpha1, &alpha2, &beta), epsilonForTest(AVOCADO_DTYPE_FLOAT16));
 			EXPECT_LT(data.getDifference1D(&alpha1, &alpha2, &beta), epsilonForTest(AVOCADO_DTYPE_FLOAT16));
@@ -44,7 +44,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT32))
 				GTEST_SKIP();
-			BinaryOpTester data(0, GetParam(), { 23, 45 }, AVOCADO_DTYPE_FLOAT32);
+			BinaryOpTester data(GetParam(), { 23, 45 }, AVOCADO_DTYPE_FLOAT32);
 			float alpha1 = 1.1f, alpha2 = 1.2f, beta = 0.1f;
 			EXPECT_LT(data.getDifferenceSame(&alpha1, &alpha2, &beta), epsilonForTest(AVOCADO_DTYPE_FLOAT32));
 			EXPECT_LT(data.getDifference1D(&alpha1, &alpha2, &beta), epsilonForTest(AVOCADO_DTYPE_FLOAT32));
@@ -54,7 +54,7 @@ namespace avocado
 		{
 			if (not supportsType(AVOCADO_DTYPE_FLOAT64))
 				GTEST_SKIP();
-			BinaryOpTester data(0, GetParam(), { 23, 45 }, AVOCADO_DTYPE_FLOAT64);
+			BinaryOpTester data(GetParam(), { 23, 45 }, AVOCADO_DTYPE_FLOAT64);
 			double alpha1 = 1.1, alpha2 = 1.2, beta = 0.1;
 			EXPECT_LT(data.getDifferenceSame(&alpha1, &alpha2, &beta), epsilonForTest(AVOCADO_DTYPE_FLOAT64));
 			EXPECT_LT(data.getDifference1D(&alpha1, &alpha2, &beta), epsilonForTest(AVOCADO_DTYPE_FLOAT64));
