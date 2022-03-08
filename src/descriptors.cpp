@@ -57,11 +57,11 @@ namespace avocado
 			return number_of_threads;
 		}
 
-		avStatus_t cpuCreateMemoryDescriptor(avMemoryDescriptor_t *result, avSize_t sizeInBytes)
+		avStatus_t cpuCreateMemoryDescriptor(avMemoryDescriptor_t *result, av_int64 sizeInBytes)
 		{
 			return cpu::create<cpu::MemoryDescriptor>(result, sizeInBytes);
 		}
-		avStatus_t cpuCreateMemoryView(avMemoryDescriptor_t *result, const avMemoryDescriptor_t desc, avSize_t sizeInBytes, avSize_t offsetInBytes)
+		avStatus_t cpuCreateMemoryView(avMemoryDescriptor_t *result, const avMemoryDescriptor_t desc, av_int64 sizeInBytes, av_int64 offsetInBytes)
 		{
 			return cpu::create<cpu::MemoryDescriptor>(result, cpu::getMemory(desc), sizeInBytes, offsetInBytes);
 		}
@@ -69,8 +69,8 @@ namespace avocado
 		{
 			return cpu::destroy<cpu::MemoryDescriptor>(desc);
 		}
-		avStatus_t cpuSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, avSize_t dstSize, const void *pattern,
-				avSize_t patternSize)
+		avStatus_t cpuSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, av_int64 dstOffset, av_int64 dstSize, const void *pattern,
+				av_int64 patternSize)
 		{
 			if (not cpu::same_device_type(context, dst))
 				return AVOCADO_STATUS_DEVICE_TYPE_MISMATCH;
@@ -86,24 +86,24 @@ namespace avocado
 				return AVOCADO_STATUS_BAD_PARAM;
 
 			// buffer size must be divisible by pattern size, using about 256 bytes, but not less than then the actual pattern size
-			const avSize_t buffer_size = patternSize * std::max(1ull, (256ull / patternSize)); // bytes
+			const av_int64 buffer_size = patternSize * std::max(1ull, (256ull / patternSize)); // bytes
 			if (dstSize >= 4 * buffer_size)
 			{
 				uint8_t buffer[buffer_size];
-				for (avSize_t i = 0; i < buffer_size; i += patternSize)
+				for (av_int64 i = 0; i < buffer_size; i += patternSize)
 					std::memcpy(buffer + i, pattern, patternSize);
-				for (avSize_t i = 0; i < dstSize; i += buffer_size)
+				for (av_int64 i = 0; i < dstSize; i += buffer_size)
 					std::memcpy(cpu::getPointer<uint8_t>(dst) + dstOffset + i, buffer, std::min(buffer_size, dstSize - i));
 			}
 			else
 			{
-				for (avSize_t i = 0; i < dstSize; i += patternSize)
+				for (av_int64 i = 0; i < dstSize; i += patternSize)
 					std::memcpy(cpu::getPointer<uint8_t>(dst) + dstOffset + i, pattern, patternSize);
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t cpuCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, const avMemoryDescriptor_t src,
-				avSize_t srcOffset, avSize_t count)
+		avStatus_t cpuCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, av_int64 dstOffset, const avMemoryDescriptor_t src,
+				av_int64 srcOffset, av_int64 count)
 		{
 			if (not cpu::same_device_type(context, dst, src))
 				return AVOCADO_STATUS_DEVICE_TYPE_MISMATCH;
@@ -152,8 +152,11 @@ namespace avocado
 		}
 		avStatus_t cpuSetTensorDescriptor(avTensorDescriptor_t desc, avDataType_t dtype, int nbDims, const int dimensions[])
 		{
-			if (nbDims < 0 or nbDims > AVOCADO_MAX_TENSOR_DIMENSIONS or dimensions == nullptr)
+			if (nbDims < 0 or nbDims > AVOCADO_MAX_TENSOR_DIMENSIONS)
 				return AVOCADO_STATUS_BAD_PARAM;
+			if (dimensions == nullptr and nbDims != 0)
+				return AVOCADO_STATUS_BAD_PARAM;
+
 			try
 			{
 				cpu::getTensor(desc).set(dtype, nbDims, dimensions);
@@ -240,7 +243,7 @@ namespace avocado
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, avSize_t *result)
+		avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, av_int64 *result)
 		{
 			if (result == nullptr)
 				return AVOCADO_STATUS_BAD_PARAM;

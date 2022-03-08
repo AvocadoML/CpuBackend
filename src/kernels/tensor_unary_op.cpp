@@ -161,7 +161,7 @@ namespace
 		}
 	}
 	template<typename T, typename U, bool ZeroBeta>
-	void launcher_unary_op(T *dst, const T *src, U alpha, U beta, avSize_t elements, avUnaryOp_t operation)
+	void launcher_unary_op(T *dst, const T *src, U alpha, U beta, av_int64 elements, avUnaryOp_t operation)
 	{
 		switch (operation)
 		{
@@ -210,7 +210,7 @@ namespace
 		}
 	}
 	template<typename T, typename U>
-	void helper_unary_op(T *dst, const T *src, U alpha, U beta, avSize_t elements, avUnaryOp_t operation)
+	void helper_unary_op(T *dst, const T *src, U alpha, U beta, av_int64 elements, avUnaryOp_t operation)
 	{
 		if (beta == scalar::zero<U>())
 			launcher_unary_op<T, U, true>(dst, src, alpha, beta, elements, operation);
@@ -226,7 +226,7 @@ namespace SIMD_NAMESPACE
 	avStatus_t cpu_unaryOp(const ContextDescriptor &context, avUnaryOp_t operation, const void *alpha, const TensorDescriptor &aDesc,
 			const MemoryDescriptor &aMem, const void *beta, const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
 	{
-		const avSize_t elements = aDesc.volume();
+		const av_int64 elements = aDesc.volume();
 		switch (cDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:

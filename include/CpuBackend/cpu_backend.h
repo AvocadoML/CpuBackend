@@ -138,7 +138,7 @@ namespace avocado
 		 * \retval AVOCADO_STATUS_BAD_PARAM The passed pointer is null.
 		 * \retval AVOCADO_STATUS_BAD_ALLOC The allocation failed.
 		 */
-		DLL_PUBLIC avStatus_t cpuCreateMemoryDescriptor(avMemoryDescriptor_t *result, avSize_t sizeInBytes);
+		DLL_PUBLIC avStatus_t cpuCreateMemoryDescriptor(avMemoryDescriptor_t *result, av_int64 sizeInBytes);
 
 		/**
 		 * \brief Creates non-owning view of another memory block.
@@ -151,8 +151,8 @@ namespace avocado
 		 * \retval AVOCADO_STATUS_SUCCESS The memory view was successfully created.
 		 * \retval AVOCADO_STATUS_BAD_PARAM The descriptor is invalid or not owning or offset is negative.
 		 */
-		DLL_PUBLIC avStatus_t cpuCreateMemoryView(avMemoryDescriptor_t *result, const avMemoryDescriptor_t desc, avSize_t sizeInBytes,
-				avSize_t offsetInBytes);
+		DLL_PUBLIC avStatus_t cpuCreateMemoryView(avMemoryDescriptor_t *result, const avMemoryDescriptor_t desc, av_int64 sizeInBytes,
+				av_int64 offsetInBytes);
 
 		/**
 		 * \brief Frees memory and destroys the memory descriptor.
@@ -176,8 +176,8 @@ namespace avocado
 		 * \retval AVOCADO_STATUS_SUCCESS The memory was successfully set.
 		 * \retval AVOCADO_STATUS_BAD_PARAM The dstSize is not a multiple of patternSize.
 		 */
-		DLL_PUBLIC avStatus_t cpuSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset, avSize_t dstSize,
-				const void *pattern, avSize_t patternSize);
+		DLL_PUBLIC avStatus_t cpuSetMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, av_int64 dstOffset, av_int64 dstSize,
+				const void *pattern, av_int64 patternSize);
 
 		/**
 		 * \brief Copies block of memory.
@@ -190,8 +190,8 @@ namespace avocado
 		 * \retval AVOCADO_STATUS_SUCCESS The memory was successfully copied.
 		 * \retval AVOCADO_STATUS_BAD_PARAM Either dst descriptor or src descriptor is invalid.
 		 */
-		DLL_PUBLIC avStatus_t cpuCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, avSize_t dstOffset,
-				const avMemoryDescriptor_t src, avSize_t srcOffset, avSize_t count);
+		DLL_PUBLIC avStatus_t cpuCopyMemory(avContextDescriptor_t context, avMemoryDescriptor_t dst, av_int64 dstOffset,
+				const avMemoryDescriptor_t src, av_int64 srcOffset, av_int64 count);
 
 		/**
 		 * \brief This method returns pointer associated with the memory descriptor.
@@ -259,7 +259,7 @@ namespace avocado
 		 *
 		 */
 		DLL_PUBLIC avStatus_t cpuChangeTypeHost(avContextDescriptor_t context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
-				avSize_t elements);
+				av_int64 elements);
 
 		/**
 		 * \brief This routine is used to convert between data types.
@@ -273,7 +273,7 @@ namespace avocado
 		 *
 		 */
 		DLL_PUBLIC avStatus_t cpuChangeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType,
-				const avMemoryDescriptor_t src, avDataType_t srcType, avSize_t elements);
+				const avMemoryDescriptor_t src, avDataType_t srcType, av_int64 elements);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.
@@ -788,7 +788,7 @@ namespace avocado
 //		 * \param[out] result Pointer to the integer with number of bytes required for the workspace.
 //		 */
 //		DLL_PUBLIC avStatus_t cpuGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
-//				const avTensorDescriptor_t wDesc, bool inferenceOnly, avSize_t *result);
+//				const avTensorDescriptor_t wDesc, bool inferenceOnly, av_int64 *result);
 //
 //		/**
 //		 * \brief Calculates convolution, adds bias and optionally some external data and applies activation function.
@@ -1113,7 +1113,7 @@ namespace avocado
 		 * \param[in] wDesc
 		 * \param[out] result
 		 */
-		DLL_PUBLIC avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, avSize_t *result);
+		DLL_PUBLIC avStatus_t cpuGetOptimizerWorkspaceSize(avOptimizerDescriptor_t desc, const avTensorDescriptor_t wDesc, av_int64 *result);
 
 		/**
 		 * \param[in] context Context in which the operation is performed.

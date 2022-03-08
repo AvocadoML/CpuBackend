@@ -18,9 +18,9 @@ namespace avocado
 		 *
 		 */
 		avStatus_t cpuChangeTypeHost(avContextDescriptor_t context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
-				avSize_t elements)
+				av_int64 elements)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
 			{
@@ -42,10 +42,10 @@ namespace avocado
 #endif
 		}
 		avStatus_t cpuChangeType(avContextDescriptor_t context, avMemoryDescriptor_t dst, avDataType_t dstType, const avMemoryDescriptor_t src,
-				avDataType_t srcType, avSize_t elements)
+				avDataType_t srcType, av_int64 elements)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::MemoryDescriptor &cpu_src = cpu::const_getMemory(src);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::MemoryDescriptor &cpu_src = cpu::getMemory(src);
 			cpu::MemoryDescriptor &cpu_dst = cpu::getMemory(dst);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -70,15 +70,15 @@ namespace avocado
 		avStatus_t cpuConcatTensors(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
 				const avTensorDescriptor_t aDesc[], const avMemoryDescriptor_t aMem[], int nbTensors)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_cDesc = cpu::const_getTensor(cDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_cDesc = cpu::getTensor(cDesc);
 			cpu::MemoryDescriptor &cpu_cMem = cpu::getMemory(cMem);
 			std::vector<const cpu::TensorDescriptor*> cpu_aDesc(nbTensors);
 			std::vector<const cpu::MemoryDescriptor*> cpu_aMem(nbTensors);
 			for (int i = 0; i < nbTensors; i++)
 			{
-				cpu_aDesc[i] = &(cpu::const_getTensor(aDesc[i]));
-				cpu_aMem[i] = &(cpu::const_getMemory(aMem[i]));
+				cpu_aDesc[i] = &(cpu::getTensor(aDesc[i]));
+				cpu_aMem[i] = &(cpu::getMemory(aMem[i]));
 			}
 
 #if DYNAMIC_ARCH
@@ -104,14 +104,14 @@ namespace avocado
 		avStatus_t cpuSplitTensors(avContextDescriptor_t context, const avTensorDescriptor_t cDesc[], avMemoryDescriptor_t cMem[],
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, int nbTensors)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_aDesc = cpu::const_getTensor(aDesc);
-			const cpu::MemoryDescriptor &cpu_aMem = cpu::const_getMemory(aMem);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_aDesc = cpu::getTensor(aDesc);
+			const cpu::MemoryDescriptor &cpu_aMem = cpu::getMemory(aMem);
 			std::vector<const cpu::TensorDescriptor*> cpu_cDesc(nbTensors);
 			std::vector<cpu::MemoryDescriptor*> cpu_cMem(nbTensors);
 			for (int i = 0; i < nbTensors; i++)
 			{
-				cpu_cDesc[i] = &(cpu::const_getTensor(cDesc[i]));
+				cpu_cDesc[i] = &(cpu::getTensor(cDesc[i]));
 				cpu_cMem[i] = &(cpu::getMemory(cMem[i]));
 			}
 
@@ -139,11 +139,11 @@ namespace avocado
 		avStatus_t cpuTranspose(avContextDescriptor_t context, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem,
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const int newDimOrder[])
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_cDesc = cpu::const_getTensor(cDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_cDesc = cpu::getTensor(cDesc);
 			cpu::MemoryDescriptor &cpu_cMem = cpu::getMemory(cMem);
-			const cpu::TensorDescriptor &cpu_aDesc = cpu::const_getTensor(aDesc);
-			const cpu::MemoryDescriptor &cpu_aMem = cpu::const_getMemory(aMem);
+			const cpu::TensorDescriptor &cpu_aDesc = cpu::getTensor(aDesc);
+			const cpu::MemoryDescriptor &cpu_aMem = cpu::getMemory(aMem);
 
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -168,11 +168,11 @@ namespace avocado
 		avStatus_t cpuScaleTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const void *alpha,
 				const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_cDesc = cpu::const_getTensor(cDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_cDesc = cpu::getTensor(cDesc);
 			cpu::MemoryDescriptor &cpu_cMem = cpu::getMemory(cMem);
-			const cpu::TensorDescriptor &cpu_aDesc = cpu::const_getTensor(aDesc);
-			const cpu::MemoryDescriptor &cpu_aMem = cpu::const_getMemory(aMem);
+			const cpu::TensorDescriptor &cpu_aDesc = cpu::getTensor(aDesc);
+			const cpu::MemoryDescriptor &cpu_aMem = cpu::getMemory(aMem);
 
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -197,11 +197,11 @@ namespace avocado
 		avStatus_t cpuAddScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
 				const void *scalar, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_cDesc = cpu::const_getTensor(cDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_cDesc = cpu::getTensor(cDesc);
 			cpu::MemoryDescriptor &cpu_cMem = cpu::getMemory(cMem);
-			const cpu::TensorDescriptor &cpu_aDesc = cpu::const_getTensor(aDesc);
-			const cpu::MemoryDescriptor &cpu_aMem = cpu::const_getMemory(aMem);
+			const cpu::TensorDescriptor &cpu_aDesc = cpu::getTensor(aDesc);
+			const cpu::MemoryDescriptor &cpu_aMem = cpu::getMemory(aMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
 			{
@@ -227,14 +227,14 @@ namespace avocado
 				avMemoryDescriptor_t yMem, const void *beta1, const void *beta2, const void *beta3, const avMemoryDescriptor_t zMem,
 				avActivationType_t activation)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_bDesc = cpu::const_getTensor(bDesc);
-			const cpu::MemoryDescriptor &cpu_bMem = cpu::const_getMemory(bMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_bDesc = cpu::getTensor(bDesc);
+			const cpu::MemoryDescriptor &cpu_bMem = cpu::getMemory(bMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
-			const cpu::MemoryDescriptor &cpu_zMem = cpu::const_getMemory(zMem);
+			const cpu::MemoryDescriptor &cpu_zMem = cpu::getMemory(zMem);
 
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -266,12 +266,12 @@ namespace avocado
 				const avMemoryDescriptor_t aMem, const void *alpha2, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_aDesc = cpu::const_getTensor(aDesc);
-			const cpu::MemoryDescriptor &cpu_aMem = cpu::const_getMemory(aMem);
-			const cpu::TensorDescriptor &cpu_bDesc = cpu::const_getTensor(bDesc);
-			const cpu::MemoryDescriptor &cpu_bMem = cpu::const_getMemory(bMem);
-			const cpu::TensorDescriptor &cpu_cDesc = cpu::const_getTensor(cDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_aDesc = cpu::getTensor(aDesc);
+			const cpu::MemoryDescriptor &cpu_aMem = cpu::getMemory(aMem);
+			const cpu::TensorDescriptor &cpu_bDesc = cpu::getTensor(bDesc);
+			const cpu::MemoryDescriptor &cpu_bMem = cpu::getMemory(bMem);
+			const cpu::TensorDescriptor &cpu_cDesc = cpu::getTensor(cDesc);
 			cpu::MemoryDescriptor &cpu_cMem = cpu::getMemory(cMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -297,10 +297,10 @@ namespace avocado
 		avStatus_t cpuUnaryOp(avContextDescriptor_t context, avUnaryOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
 				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_aDesc = cpu::const_getTensor(aDesc);
-			const cpu::MemoryDescriptor &cpu_aMem = cpu::const_getMemory(aMem);
-			const cpu::TensorDescriptor &cpu_cDesc = cpu::const_getTensor(cDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_aDesc = cpu::getTensor(aDesc);
+			const cpu::MemoryDescriptor &cpu_aMem = cpu::getMemory(aMem);
+			const cpu::TensorDescriptor &cpu_cDesc = cpu::getTensor(cDesc);
 			cpu::MemoryDescriptor &cpu_cMem = cpu::getMemory(cMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -325,10 +325,10 @@ namespace avocado
 		avStatus_t cpuReduceTensor(avContextDescriptor_t context, avReduceOp_t operation, const void *alpha, const avTensorDescriptor_t aDesc,
 				const avMemoryDescriptor_t aMem, const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_aDesc = cpu::const_getTensor(aDesc);
-			const cpu::MemoryDescriptor &cpu_aMem = cpu::const_getMemory(aMem);
-			const cpu::TensorDescriptor &cpu_cDesc = cpu::const_getTensor(cDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_aDesc = cpu::getTensor(aDesc);
+			const cpu::MemoryDescriptor &cpu_aMem = cpu::getMemory(aMem);
+			const cpu::TensorDescriptor &cpu_cDesc = cpu::getTensor(cDesc);
 			cpu::MemoryDescriptor &cpu_cMem = cpu::getMemory(cMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -354,12 +354,12 @@ namespace avocado
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_aDesc = cpu::const_getTensor(aDesc);
-			const cpu::MemoryDescriptor &cpu_aMem = cpu::const_getMemory(aMem);
-			const cpu::TensorDescriptor &cpu_bDesc = cpu::const_getTensor(bDesc);
-			const cpu::MemoryDescriptor &cpu_bMem = cpu::const_getMemory(bMem);
-			const cpu::TensorDescriptor &cpu_cDesc = cpu::const_getTensor(cDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_aDesc = cpu::getTensor(aDesc);
+			const cpu::MemoryDescriptor &cpu_aMem = cpu::getMemory(aMem);
+			const cpu::TensorDescriptor &cpu_bDesc = cpu::getTensor(bDesc);
+			const cpu::MemoryDescriptor &cpu_bMem = cpu::getMemory(bMem);
+			const cpu::TensorDescriptor &cpu_cDesc = cpu::getTensor(cDesc);
 			cpu::MemoryDescriptor &cpu_cMem = cpu::getMemory(cMem);
 
 			return cpu_gemm(cpu_context, aOp, bOp, alpha, cpu_aDesc, cpu_aMem, cpu_bDesc, cpu_bMem, beta, cpu_cDesc, cpu_cMem);
@@ -368,12 +368,12 @@ namespace avocado
 				const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem, const avTensorDescriptor_t bDesc, const avMemoryDescriptor_t bMem,
 				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_aDesc = cpu::const_getTensor(aDesc);
-			const cpu::MemoryDescriptor &cpu_aMem = cpu::const_getMemory(aMem);
-			const cpu::TensorDescriptor &cpu_bDesc = cpu::const_getTensor(bDesc);
-			const cpu::MemoryDescriptor &cpu_bMem = cpu::const_getMemory(bMem);
-			const cpu::TensorDescriptor &cpu_cDesc = cpu::const_getTensor(cDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_aDesc = cpu::getTensor(aDesc);
+			const cpu::MemoryDescriptor &cpu_aMem = cpu::getMemory(aMem);
+			const cpu::TensorDescriptor &cpu_bDesc = cpu::getTensor(bDesc);
+			const cpu::MemoryDescriptor &cpu_bMem = cpu::getMemory(bMem);
+			const cpu::TensorDescriptor &cpu_cDesc = cpu::getTensor(cDesc);
 			cpu::MemoryDescriptor &cpu_cMem = cpu::getMemory(cMem);
 
 			return cpu_gemmBatched(cpu_context, aOp, bOp, alpha, cpu_aDesc, cpu_aMem, cpu_bDesc, cpu_bMem, beta, cpu_cDesc, cpu_cMem);
@@ -389,10 +389,10 @@ namespace avocado
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
 				avMemoryDescriptor_t yMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -418,12 +418,12 @@ namespace avocado
 				const avTensorDescriptor_t yDesc, const avMemoryDescriptor_t yMem, const avTensorDescriptor_t dyDesc,
 				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
-			const cpu::MemoryDescriptor &cpu_yMem = cpu::const_getMemory(yMem);
-			const cpu::TensorDescriptor &cpu_dyDesc = cpu::const_getTensor(dyDesc);
-			const cpu::MemoryDescriptor &cpu_dyMem = cpu::const_getMemory(dyMem);
-			const cpu::TensorDescriptor &cpu_dxDesc = cpu::const_getTensor(dxDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
+			const cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
+			const cpu::TensorDescriptor &cpu_dyDesc = cpu::getTensor(dyDesc);
+			const cpu::MemoryDescriptor &cpu_dyMem = cpu::getMemory(dyMem);
+			const cpu::TensorDescriptor &cpu_dxDesc = cpu::getTensor(dxDesc);
 			cpu::MemoryDescriptor &cpu_dxMem = cpu::getMemory(dxMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -449,10 +449,10 @@ namespace avocado
 		avStatus_t cpuSoftmaxForward(avContextDescriptor_t context, avSoftmaxMode_t mode, const void *alpha, const avTensorDescriptor_t xDesc,
 				const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -478,12 +478,12 @@ namespace avocado
 				const avMemoryDescriptor_t yMem, const avTensorDescriptor_t dyDesc, const avMemoryDescriptor_t dyMem, const void *beta,
 				const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
-			const cpu::MemoryDescriptor &cpu_yMem = cpu::const_getMemory(yMem);
-			const cpu::TensorDescriptor &cpu_dyDesc = cpu::const_getTensor(dyDesc);
-			const cpu::MemoryDescriptor &cpu_dyMem = cpu::const_getMemory(dyMem);
-			const cpu::TensorDescriptor &cpu_dxDesc = cpu::const_getTensor(dxDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
+			const cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
+			const cpu::TensorDescriptor &cpu_dyDesc = cpu::getTensor(dyDesc);
+			const cpu::MemoryDescriptor &cpu_dyMem = cpu::getMemory(dyMem);
+			const cpu::TensorDescriptor &cpu_dxDesc = cpu::getTensor(dxDesc);
 			cpu::MemoryDescriptor &cpu_dxMem = cpu::getMemory(dxMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -518,14 +518,14 @@ namespace avocado
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
 				avMemoryDescriptor_t yMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
-			const cpu::MemoryDescriptor &cpu_wMem = cpu::const_getMemory(wMem);
-			const cpu::TensorDescriptor &cpu_bDesc = cpu::const_getTensor(bDesc);
-			const cpu::MemoryDescriptor &cpu_bMem = cpu::const_getMemory(bMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
+			const cpu::MemoryDescriptor &cpu_wMem = cpu::getMemory(wMem);
+			const cpu::TensorDescriptor &cpu_bDesc = cpu::getTensor(bDesc);
+			const cpu::MemoryDescriptor &cpu_bMem = cpu::getMemory(bMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -553,15 +553,15 @@ namespace avocado
 				avMemoryDescriptor_t yMem, const avTensorDescriptor_t scaleBiasMeanVarDesc, const avMemoryDescriptor_t scaleMem,
 				const avMemoryDescriptor_t biasMem, const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, double epsilon)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_scaleBiasMeanVarDesc = cpu::const_getTensor(scaleBiasMeanVarDesc);
-			const cpu::MemoryDescriptor &cpu_scaleMem = cpu::const_getMemory(scaleMem);
-			const cpu::MemoryDescriptor &cpu_biasMem = cpu::const_getMemory(biasMem);
-			const cpu::MemoryDescriptor &cpu_meanMem = cpu::const_getMemory(meanMem);
-			const cpu::MemoryDescriptor &cpu_varianceMem = cpu::const_getMemory(varianceMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_scaleBiasMeanVarDesc = cpu::getTensor(scaleBiasMeanVarDesc);
+			const cpu::MemoryDescriptor &cpu_scaleMem = cpu::getMemory(scaleMem);
+			const cpu::MemoryDescriptor &cpu_biasMem = cpu::getMemory(biasMem);
+			const cpu::MemoryDescriptor &cpu_meanMem = cpu::getMemory(meanMem);
+			const cpu::MemoryDescriptor &cpu_varianceMem = cpu::getMemory(varianceMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -594,15 +594,15 @@ namespace avocado
 				avMemoryDescriptor_t yMem, const avTensorDescriptor_t scaleBiasMeanVarDesc, const avMemoryDescriptor_t scaleMem,
 				const avMemoryDescriptor_t biasMem, avMemoryDescriptor_t meanMem, avMemoryDescriptor_t varianceMem, double epsilon)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_scaleBiasMeanVarDesc = cpu::const_getTensor(scaleBiasMeanVarDesc);
-			const cpu::MemoryDescriptor &cpu_scaleMem = cpu::const_getMemory(scaleMem);
-			const cpu::MemoryDescriptor &cpu_biasMem = cpu::const_getMemory(biasMem);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_scaleBiasMeanVarDesc = cpu::getTensor(scaleBiasMeanVarDesc);
+			const cpu::MemoryDescriptor &cpu_scaleMem = cpu::getMemory(scaleMem);
+			const cpu::MemoryDescriptor &cpu_biasMem = cpu::getMemory(biasMem);
 			cpu::MemoryDescriptor &cpu_meanMem = cpu::getMemory(meanMem);
 			cpu::MemoryDescriptor &cpu_varianceMem = cpu::getMemory(varianceMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -637,19 +637,19 @@ namespace avocado
 				const avMemoryDescriptor_t meanMem, const avMemoryDescriptor_t varianceMem, const void *alpha2, const void *beta2,
 				avMemoryDescriptor_t scaleUpdateMem, avMemoryDescriptor_t biasUpdateMem, double epsilon)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
-			const cpu::MemoryDescriptor &cpu_yMem = cpu::const_getMemory(yMem);
-			const cpu::TensorDescriptor &cpu_dxDesc = cpu::const_getTensor(dxDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
+			const cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
+			const cpu::TensorDescriptor &cpu_dxDesc = cpu::getTensor(dxDesc);
 			cpu::MemoryDescriptor &cpu_dxMem = cpu::getMemory(dxMem);
-			const cpu::TensorDescriptor &cpu_dyDesc = cpu::const_getTensor(dyDesc);
+			const cpu::TensorDescriptor &cpu_dyDesc = cpu::getTensor(dyDesc);
 			cpu::MemoryDescriptor &cpu_dyMem = cpu::getMemory(dyMem);
-			const cpu::TensorDescriptor &cpu_scaleMeanVarDesc = cpu::const_getTensor(scaleMeanVarDesc);
-			const cpu::MemoryDescriptor &cpu_scaleMem = cpu::const_getMemory(scaleMem);
-			const cpu::MemoryDescriptor &cpu_meanMem = cpu::const_getMemory(meanMem);
-			const cpu::MemoryDescriptor &cpu_varianceMem = cpu::const_getMemory(varianceMem);
+			const cpu::TensorDescriptor &cpu_scaleMeanVarDesc = cpu::getTensor(scaleMeanVarDesc);
+			const cpu::MemoryDescriptor &cpu_scaleMem = cpu::getMemory(scaleMem);
+			const cpu::MemoryDescriptor &cpu_meanMem = cpu::getMemory(meanMem);
+			const cpu::MemoryDescriptor &cpu_varianceMem = cpu::getMemory(varianceMem);
 			cpu::MemoryDescriptor &cpu_scaleUpdateMem = cpu::getMemory(scaleUpdateMem);
 			cpu::MemoryDescriptor &cpu_biasUpdateMem = cpu::getMemory(biasUpdateMem);
 #if DYNAMIC_ARCH
@@ -694,11 +694,11 @@ namespace avocado
 		avStatus_t cpuDropoutForward(avContextDescriptor_t context, const avDropoutDescriptor_t config, const avTensorDescriptor_t xDesc,
 				const avMemoryDescriptor_t xMem, const avTensorDescriptor_t yDesc, avMemoryDescriptor_t yMem, avMemoryDescriptor_t states)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::DropoutDescriptor &cpu_config = cpu::const_getDropout(config);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::DropoutDescriptor &cpu_config = cpu::getDropout(config);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 			cpu::MemoryDescriptor &cpu_states = cpu::getMemory(states);
 #if DYNAMIC_ARCH
@@ -724,13 +724,13 @@ namespace avocado
 		avStatus_t cpuDropoutBackward(avContextDescriptor_t context, const avDropoutDescriptor_t config, const avTensorDescriptor_t dyDesc,
 				const avMemoryDescriptor_t dyMem, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem, const avMemoryDescriptor_t states)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::DropoutDescriptor &cpu_config = cpu::const_getDropout(config);
-			const cpu::TensorDescriptor &cpu_dyDesc = cpu::const_getTensor(dyDesc);
-			const cpu::MemoryDescriptor &cpu_dyMem = cpu::const_getMemory(dyMem);
-			const cpu::TensorDescriptor &cpu_dxDesc = cpu::const_getTensor(dxDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::DropoutDescriptor &cpu_config = cpu::getDropout(config);
+			const cpu::TensorDescriptor &cpu_dyDesc = cpu::getTensor(dyDesc);
+			const cpu::MemoryDescriptor &cpu_dyMem = cpu::getMemory(dyMem);
+			const cpu::TensorDescriptor &cpu_dxDesc = cpu::getTensor(dxDesc);
 			cpu::MemoryDescriptor &cpu_dxMem = cpu::getMemory(dxMem);
-			const cpu::MemoryDescriptor &cpu_states = cpu::const_getMemory(states);
+			const cpu::MemoryDescriptor &cpu_states = cpu::getMemory(states);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
 			{
@@ -762,11 +762,11 @@ namespace avocado
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const void *beta, const avTensorDescriptor_t yDesc,
 				avMemoryDescriptor_t yMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::PoolingDescriptor &cpu_config = cpu::const_getPooling(config);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::PoolingDescriptor &cpu_config = cpu::getPooling(config);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -792,13 +792,13 @@ namespace avocado
 				const avTensorDescriptor_t xDesc, const avMemoryDescriptor_t xMem, const avTensorDescriptor_t dyDesc,
 				const avMemoryDescriptor_t dyMem, const void *beta, const avTensorDescriptor_t dxDesc, avMemoryDescriptor_t dxMem)
 		{
-			const cpu::ContextDescriptor &cpu_context = cpu::const_getContext(context);
-			const cpu::PoolingDescriptor &cpu_config = cpu::const_getPooling(config);
-			const cpu::TensorDescriptor &cpu_dyDesc = cpu::const_getTensor(dyDesc);
-			const cpu::MemoryDescriptor &cpu_dyMem = cpu::const_getMemory(dyMem);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_dxDesc = cpu::const_getTensor(dxDesc);
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::PoolingDescriptor &cpu_config = cpu::getPooling(config);
+			const cpu::TensorDescriptor &cpu_dyDesc = cpu::getTensor(dyDesc);
+			const cpu::MemoryDescriptor &cpu_dyMem = cpu::getMemory(dyMem);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_dxDesc = cpu::getTensor(dxDesc);
 			cpu::MemoryDescriptor &cpu_dxMem = cpu::getMemory(dxMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -873,15 +873,15 @@ namespace avocado
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 			const cpu::ConvolutionDescriptor &cpu_config = cpu::getConvolution(config);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
-			const cpu::MemoryDescriptor &cpu_wMem = cpu::const_getMemory(wMem);
-			const cpu::TensorDescriptor &cpu_bDesc = cpu::const_getTensor(bDesc);
-			const cpu::MemoryDescriptor &cpu_bMem = cpu::const_getMemory(bMem);
-			const cpu::TensorDescriptor &cpu_zDesc = cpu::const_getTensor(zDesc);
-			const cpu::MemoryDescriptor &cpu_zMem = cpu::const_getMemory(zMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
+			const cpu::MemoryDescriptor &cpu_wMem = cpu::getMemory(wMem);
+			const cpu::TensorDescriptor &cpu_bDesc = cpu::getTensor(bDesc);
+			const cpu::MemoryDescriptor &cpu_bMem = cpu::getMemory(bMem);
+			const cpu::TensorDescriptor &cpu_zDesc = cpu::getTensor(zDesc);
+			const cpu::MemoryDescriptor &cpu_zMem = cpu::getMemory(zMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -917,15 +917,15 @@ namespace avocado
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 			const cpu::ConvolutionDescriptor &cpu_config = cpu::getConvolution(config);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
-			const cpu::MemoryDescriptor &cpu_wMem = cpu::const_getMemory(wMem);
-			const cpu::TensorDescriptor &cpu_bDesc = cpu::const_getTensor(bDesc);
-			const cpu::MemoryDescriptor &cpu_bMem = cpu::const_getMemory(bMem);
-			const cpu::TensorDescriptor &cpu_zDesc = cpu::const_getTensor(zDesc);
-			const cpu::MemoryDescriptor &cpu_zMem = cpu::const_getMemory(zMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
+			const cpu::MemoryDescriptor &cpu_wMem = cpu::getMemory(wMem);
+			const cpu::TensorDescriptor &cpu_bDesc = cpu::getTensor(bDesc);
+			const cpu::MemoryDescriptor &cpu_bMem = cpu::getMemory(bMem);
+			const cpu::TensorDescriptor &cpu_zDesc = cpu::getTensor(zDesc);
+			const cpu::MemoryDescriptor &cpu_zMem = cpu::getMemory(zMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -959,9 +959,9 @@ namespace avocado
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 			const cpu::ConvolutionDescriptor &cpu_config = cpu::getConvolution(config);
-			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
-			const cpu::MemoryDescriptor &cpu_wMem = cpu::const_getMemory(wMem);
-			const cpu::TensorDescriptor &cpu_matricesDesc = cpu::const_getTensor(matricesDesc);
+			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
+			const cpu::MemoryDescriptor &cpu_wMem = cpu::getMemory(wMem);
+			const cpu::TensorDescriptor &cpu_matricesDesc = cpu::getTensor(matricesDesc);
 			cpu::MemoryDescriptor &cpu_matricesMem = cpu::getMemory(matricesMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -990,10 +990,10 @@ namespace avocado
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 			const cpu::ConvolutionDescriptor &cpu_config = cpu::getConvolution(config);
-			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
-			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-			const cpu::TensorDescriptor &cpu_matricesDesc = cpu::const_getTensor(matricesDesc);
+			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
+			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+			const cpu::TensorDescriptor &cpu_matricesDesc = cpu::getTensor(matricesDesc);
 			cpu::MemoryDescriptor &cpu_matricesMem = cpu::getMemory(matricesMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -1029,14 +1029,14 @@ namespace avocado
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 			const cpu::ConvolutionDescriptor &cpu_config = cpu::getConvolution(config);
-			const cpu::TensorDescriptor &cpu_matricesDesc = cpu::const_getTensor(matricesDesc);
-			const cpu::MemoryDescriptor &cpu_matricesMem = cpu::const_getMemory(matricesMem);
-			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
-			const cpu::TensorDescriptor &cpu_bDesc = cpu::const_getTensor(bDesc);
-			const cpu::MemoryDescriptor &cpu_bMem = cpu::const_getMemory(bMem);
-			const cpu::TensorDescriptor &cpu_zDesc = cpu::const_getTensor(zDesc);
-			const cpu::MemoryDescriptor &cpu_zMem = cpu::const_getMemory(zMem);
-			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+			const cpu::TensorDescriptor &cpu_matricesDesc = cpu::getTensor(matricesDesc);
+			const cpu::MemoryDescriptor &cpu_matricesMem = cpu::getMemory(matricesMem);
+			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
+			const cpu::TensorDescriptor &cpu_bDesc = cpu::getTensor(bDesc);
+			const cpu::MemoryDescriptor &cpu_bMem = cpu::getMemory(bMem);
+			const cpu::TensorDescriptor &cpu_zDesc = cpu::getTensor(zDesc);
+			const cpu::MemoryDescriptor &cpu_zMem = cpu::getMemory(zMem);
+			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -1071,10 +1071,10 @@ namespace avocado
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 			const cpu::ConvolutionDescriptor &cpu_config = cpu::getConvolution(config);
-			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
-			const cpu::TensorDescriptor &cpu_dyDesc = cpu::const_getTensor(dyDesc);
-			const cpu::MemoryDescriptor &cpu_dyMem = cpu::const_getMemory(dyMem);
-			const cpu::TensorDescriptor &cpu_matricesDesc = cpu::const_getTensor(matricesDesc);
+			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
+			const cpu::TensorDescriptor &cpu_dyDesc = cpu::getTensor(dyDesc);
+			const cpu::MemoryDescriptor &cpu_dyMem = cpu::getMemory(dyMem);
+			const cpu::TensorDescriptor &cpu_matricesDesc = cpu::getTensor(matricesDesc);
 			cpu::MemoryDescriptor &cpu_matricesMem = cpu::getMemory(matricesMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -1103,9 +1103,9 @@ namespace avocado
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 			const cpu::ConvolutionDescriptor &cpu_config = cpu::getConvolution(config);
-			const cpu::TensorDescriptor &cpu_matricesDesc = cpu::const_getTensor(matricesDesc);
-			const cpu::MemoryDescriptor &cpu_matricesMem = cpu::const_getMemory(matricesMem);
-			const cpu::TensorDescriptor &cpu_dwDesc = cpu::const_getTensor(dwDesc);
+			const cpu::TensorDescriptor &cpu_matricesDesc = cpu::getTensor(matricesDesc);
+			const cpu::MemoryDescriptor &cpu_matricesMem = cpu::getMemory(matricesMem);
+			const cpu::TensorDescriptor &cpu_dwDesc = cpu::getTensor(dwDesc);
 			cpu::MemoryDescriptor &cpu_dwMem = cpu::getMemory(dwMem);
 
 #if DYNAMIC_ARCH
@@ -1131,11 +1131,11 @@ namespace avocado
 		}
 
 //		avStatus_t cpuGetConvolutionWorkspaceSize(const avConvolutionDescriptor_t config, const avTensorDescriptor_t xDesc,
-//				const avTensorDescriptor_t wDesc, bool inferenceOnly, avSize_t *result)
+//				const avTensorDescriptor_t wDesc, bool inferenceOnly, av_int64 *result)
 //		{
 //			const cpu::ConvolutionDescriptor &cpu_config = cpu::const_getConvolution(config);
-//			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-//			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
+//			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+//			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
 //
 //			return cpu_getConvolutionWorkspaceSize(cpu_config, cpu_xDesc, cpu_wDesc, inferenceOnly, result);
 //		}
@@ -1147,15 +1147,15 @@ namespace avocado
 //		{
 //			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 //			const cpu::ConvolutionDescriptor &cpu_config = cpu::getConvolution(config);
-//			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-//			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-//			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
-//			const cpu::MemoryDescriptor &cpu_wMem = cpu::const_getMemory(wMem);
-//			const cpu::TensorDescriptor &cpu_bDesc = cpu::const_getTensor(bDesc);
-//			const cpu::MemoryDescriptor &cpu_bMem = cpu::const_getMemory(bMem);
-//			const cpu::TensorDescriptor &cpu_zDesc = cpu::const_getTensor(zDesc);
-//			const cpu::MemoryDescriptor &cpu_zMem = cpu::const_getMemory(zMem);
-//			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+//			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+//			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+//			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
+//			const cpu::MemoryDescriptor &cpu_wMem = cpu::getMemory(wMem);
+//			const cpu::TensorDescriptor &cpu_bDesc = cpu::getTensor(bDesc);
+//			const cpu::MemoryDescriptor &cpu_bMem = cpu::getMemory(bMem);
+//			const cpu::TensorDescriptor &cpu_zDesc = cpu::getTensor(zDesc);
+//			const cpu::MemoryDescriptor &cpu_zMem = cpu::getMemory(zMem);
+//			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 //			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 //			cpu::MemoryDescriptor &cpu_workspaceMem = cpu::getMemory(workspaceMem);
 //#if DYNAMIC_ARCH
@@ -1190,11 +1190,11 @@ namespace avocado
 //		{
 //			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 //			const cpu::ConvolutionDescriptor &cpu_config = cpu::getConvolution(config);
-//			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-//			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-//			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
-//			const cpu::MemoryDescriptor &cpu_wMem = cpu::const_getMemory(wMem);
-//			const cpu::TensorDescriptor &cpu_yDesc = cpu::const_getTensor(yDesc);
+//			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+//			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+//			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
+//			const cpu::MemoryDescriptor &cpu_wMem = cpu::getMemory(wMem);
+//			const cpu::TensorDescriptor &cpu_yDesc = cpu::getTensor(yDesc);
 //			cpu::MemoryDescriptor &cpu_yMem = cpu::getMemory(yMem);
 //			cpu::MemoryDescriptor &cpu_workspaceMem = cpu::getMemory(workspaceMem);
 //#if DYNAMIC_ARCH
@@ -1229,12 +1229,12 @@ namespace avocado
 //		{
 //			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 //			const cpu::ConvolutionDescriptor &cpu_config = cpu::getConvolution(config);
-//			const cpu::TensorDescriptor &cpu_dxDesc = cpu::const_getTensor(dxDesc);
+//			const cpu::TensorDescriptor &cpu_dxDesc = cpu::getTensor(dxDesc);
 //			cpu::MemoryDescriptor &cpu_dxMem = cpu::getMemory(dxMem);
-//			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
-//			const cpu::MemoryDescriptor &cpu_wMem = cpu::const_getMemory(wMem);
-//			const cpu::TensorDescriptor &cpu_dyDesc = cpu::const_getTensor(dyDesc);
-//			const cpu::MemoryDescriptor &cpu_dyMem = cpu::const_getMemory(dyMem);
+//			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
+//			const cpu::MemoryDescriptor &cpu_wMem = cpu::getMemory(wMem);
+//			const cpu::TensorDescriptor &cpu_dyDesc = cpu::getTensor(dyDesc);
+//			const cpu::MemoryDescriptor &cpu_dyMem = cpu::getMemory(dyMem);
 //			cpu::MemoryDescriptor &cpu_workspaceMem = cpu::getMemory(workspaceMem);
 //#if DYNAMIC_ARCH
 //			switch (getSimdSupport())
@@ -1269,11 +1269,11 @@ namespace avocado
 //		{
 //			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 //			const cpu::ConvolutionDescriptor &cpu_config = cpu::getConvolution(config);
-//			const cpu::TensorDescriptor &cpu_xDesc = cpu::const_getTensor(xDesc);
-//			const cpu::MemoryDescriptor &cpu_xMem = cpu::const_getMemory(xMem);
-//			const cpu::TensorDescriptor &cpu_dyDesc = cpu::const_getTensor(dyDesc);
-//			const cpu::MemoryDescriptor &cpu_dyMem = cpu::const_getMemory(dyMem);
-//			const cpu::TensorDescriptor &cpu_dwDesc = cpu::const_getTensor(dwDesc);
+//			const cpu::TensorDescriptor &cpu_xDesc = cpu::getTensor(xDesc);
+//			const cpu::MemoryDescriptor &cpu_xMem = cpu::getMemory(xMem);
+//			const cpu::TensorDescriptor &cpu_dyDesc = cpu::getTensor(dyDesc);
+//			const cpu::MemoryDescriptor &cpu_dyMem = cpu::getMemory(dyMem);
+//			const cpu::TensorDescriptor &cpu_dwDesc = cpu::getTensor(dwDesc);
 //			cpu::MemoryDescriptor &cpu_dwMem = cpu::getMemory(dwMem);
 //			cpu::MemoryDescriptor &cpu_workspaceMem = cpu::getMemory(workspaceMem);
 //#if DYNAMIC_ARCH
@@ -1313,10 +1313,10 @@ namespace avocado
 				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, void *result)
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
-			const cpu::TensorDescriptor &cpu_outputDesc = cpu::const_getTensor(outputDesc);
-			const cpu::MemoryDescriptor &cpu_outputMem = cpu::const_getMemory(outputMem);
-			const cpu::TensorDescriptor &cpu_targetDesc = cpu::const_getTensor(targetDesc);
-			const cpu::MemoryDescriptor &cpu_targetMem = cpu::const_getMemory(targetMem);
+			const cpu::TensorDescriptor &cpu_outputDesc = cpu::getTensor(outputDesc);
+			const cpu::MemoryDescriptor &cpu_outputMem = cpu::getMemory(outputMem);
+			const cpu::TensorDescriptor &cpu_targetDesc = cpu::getTensor(targetDesc);
+			const cpu::MemoryDescriptor &cpu_targetMem = cpu::getMemory(targetMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
 			{
@@ -1341,10 +1341,10 @@ namespace avocado
 				const avMemoryDescriptor_t outputMem, const avTensorDescriptor_t targetDesc, const avMemoryDescriptor_t targetMem, void *result)
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
-			const cpu::TensorDescriptor &cpu_outputDesc = cpu::const_getTensor(outputDesc);
-			const cpu::MemoryDescriptor &cpu_outputMem = cpu::const_getMemory(outputMem);
-			const cpu::TensorDescriptor &cpu_targetDesc = cpu::const_getTensor(targetDesc);
-			const cpu::MemoryDescriptor &cpu_targetMem = cpu::const_getMemory(targetMem);
+			const cpu::TensorDescriptor &cpu_outputDesc = cpu::getTensor(outputDesc);
+			const cpu::MemoryDescriptor &cpu_outputMem = cpu::getMemory(outputMem);
+			const cpu::TensorDescriptor &cpu_targetDesc = cpu::getTensor(targetDesc);
+			const cpu::MemoryDescriptor &cpu_targetMem = cpu::getMemory(targetMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
 			{
@@ -1370,11 +1370,11 @@ namespace avocado
 				const avTensorDescriptor_t gradientDesc, avMemoryDescriptor_t gradientMem, bool isFused)
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
-			const cpu::TensorDescriptor &cpu_outputDesc = cpu::const_getTensor(outputDesc);
-			const cpu::MemoryDescriptor &cpu_outputMem = cpu::const_getMemory(outputMem);
-			const cpu::TensorDescriptor &cpu_targetDesc = cpu::const_getTensor(targetDesc);
-			const cpu::MemoryDescriptor &cpu_targetMem = cpu::const_getMemory(targetMem);
-			const cpu::TensorDescriptor &cpu_gradientDesc = cpu::const_getTensor(gradientDesc);
+			const cpu::TensorDescriptor &cpu_outputDesc = cpu::getTensor(outputDesc);
+			const cpu::MemoryDescriptor &cpu_outputMem = cpu::getMemory(outputMem);
+			const cpu::TensorDescriptor &cpu_targetDesc = cpu::getTensor(targetDesc);
+			const cpu::MemoryDescriptor &cpu_targetMem = cpu::getMemory(targetMem);
+			const cpu::TensorDescriptor &cpu_gradientDesc = cpu::getTensor(gradientDesc);
 			cpu::MemoryDescriptor &cpu_gradientMem = cpu::getMemory(gradientMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
@@ -1408,9 +1408,9 @@ namespace avocado
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
 			const cpu::OptimizerDescriptor &cpu_config = cpu::getOptimizer(config);
-			const cpu::TensorDescriptor &cpu_dwDesc = cpu::const_getTensor(dwDesc);
-			const cpu::MemoryDescriptor &cpu_dwMem = cpu::const_getMemory(dwMem);
-			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
+			const cpu::TensorDescriptor &cpu_dwDesc = cpu::getTensor(dwDesc);
+			const cpu::MemoryDescriptor &cpu_dwMem = cpu::getMemory(dwMem);
+			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
 			cpu::MemoryDescriptor &cpu_wMem = cpu::getMemory(wMem);
 			cpu::MemoryDescriptor &cpu_workspaceMem = cpu::getMemory(workspaceMem);
 #if DYNAMIC_ARCH
@@ -1438,10 +1438,10 @@ namespace avocado
 				const avTensorDescriptor_t wDesc, const avMemoryDescriptor_t wMem, const void *coefficient, const void *offset, void *loss)
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
-			const cpu::TensorDescriptor &cpu_dwDesc = cpu::const_getTensor(dwDesc);
+			const cpu::TensorDescriptor &cpu_dwDesc = cpu::getTensor(dwDesc);
 			cpu::MemoryDescriptor &cpu_dwMem = cpu::getMemory(dwMem);
-			const cpu::TensorDescriptor &cpu_wDesc = cpu::const_getTensor(wDesc);
-			const cpu::MemoryDescriptor &cpu_wMem = cpu::const_getMemory(wMem);
+			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);
+			const cpu::MemoryDescriptor &cpu_wMem = cpu::getMemory(wMem);
 #if DYNAMIC_ARCH
 			switch (getSimdSupport())
 			{

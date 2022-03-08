@@ -7,7 +7,7 @@
 
 using avocado::backend::avStatus_t;
 using avocado::backend::avDataType_t;
-using avocado::backend::avSize_t;
+using avocado::backend::av_int64;
 using avocado::backend::avActivationType_t;
 using avocado::backend::avBinaryOp_t;
 using avocado::backend::avUnaryOp_t;
@@ -28,9 +28,9 @@ using avocado::backend::cpu::OptimizerDescriptor;
  * Tensor operations.
  */
 avStatus_t cpu_changeTypeHost(const ContextDescriptor &context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
-		avSize_t elements);
+		av_int64 elements);
 avStatus_t cpu_changeType(const ContextDescriptor &context, MemoryDescriptor &dst, avDataType_t dstType, const MemoryDescriptor &src,
-		avDataType_t srcType, avSize_t elements);
+		avDataType_t srcType, av_int64 elements);
 avStatus_t cpu_concatTensors(const ContextDescriptor &context, const TensorDescriptor &cDesc, MemoryDescriptor &cMem,
 		const std::vector<const TensorDescriptor*> &aDesc, const std::vector<const MemoryDescriptor*> &aMem);
 avStatus_t cpu_splitTensors(const ContextDescriptor &context, const std::vector<const TensorDescriptor*> &cDesc, std::vector<MemoryDescriptor*> &cMem,

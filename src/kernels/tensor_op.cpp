@@ -275,7 +275,7 @@ namespace SIMD_NAMESPACE
 	avStatus_t cpu_scaleTensor(const ContextDescriptor &context, const TensorDescriptor &aDesc, const MemoryDescriptor &aMem, const void *alpha,
 			const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
 	{
-		const avSize_t elements = cDesc.volume();
+		const av_int64 elements = cDesc.volume();
 		switch (cDesc.dtype())
 		{
 //			case AVOCADO_DTYPE_UINT8:
@@ -320,7 +320,7 @@ namespace SIMD_NAMESPACE
 	avStatus_t cpu_addScalarToTensor(const ContextDescriptor &context, const TensorDescriptor &aDesc, const MemoryDescriptor &aMem,
 			const void *scalar, const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
 	{
-		const avSize_t elements = cDesc.volume();
+		const av_int64 elements = cDesc.volume();
 		switch (cDesc.dtype())
 		{
 //			case AVOCADO_DTYPE_UINT8:

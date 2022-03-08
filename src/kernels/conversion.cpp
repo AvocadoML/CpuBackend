@@ -144,16 +144,16 @@ namespace
 	};
 
 	template<typename T, typename U>
-	void kernel_convert(T *dst, const U *src, avSize_t elements) noexcept
+	void kernel_convert(T *dst, const U *src, av_int64 elements) noexcept
 	{
 		assert(dst != nullptr);
 		assert(src != nullptr);
 
-		for (avSize_t i = 0; i < elements; i++)
+		for (av_int64 i = 0; i < elements; i++)
 			dst[i] = Converter<T, U>::convert(src[i]);
 	}
 	template<typename T>
-	void convert_helper(T *dst, const void *src, avSize_t elements, avDataType_t srcType)
+	void convert_helper(T *dst, const void *src, av_int64 elements, avDataType_t srcType)
 	{
 		switch (srcType)
 		{
@@ -201,7 +201,7 @@ namespace SIMD_NAMESPACE
 	using namespace avocado::backend;
 
 	avStatus_t cpu_changeTypeHost(const ContextDescriptor &context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
-			avSize_t elements)
+			av_int64 elements)
 	{
 		if (dst == nullptr or src == nullptr)
 			return AVOCADO_STATUS_BAD_PARAM;
@@ -249,7 +249,7 @@ namespace SIMD_NAMESPACE
 	}
 
 	avStatus_t cpu_changeType(const ContextDescriptor &context, MemoryDescriptor &dst, avDataType_t dstType, const MemoryDescriptor &src,
-			avDataType_t srcType, avSize_t elements)
+			avDataType_t srcType, av_int64 elements)
 	{
 		return cpu_changeTypeHost(context, dst.data(), dstType, src.data(), srcType, elements);
 	}
