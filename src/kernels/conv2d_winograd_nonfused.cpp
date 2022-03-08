@@ -462,7 +462,7 @@ namespace
 		}
 	}
 	template<typename T, typename U, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-	void kernel_output_transform(const cpu::TensorDescriptor &yDesc, T *yMem, const cpu::TensorDescriptor &mDesc, const T *mMem, const T *bMem,
+	void kernel_output_transform(const cpu::TensorDescriptor &yDesc, T *yMem, const cpu::TensorDescriptor &mDesc, const T *mMem, const U *bMem,
 			const T *zMem, avActivationType_t activation, U alpha1, U alpha2, U beta, T *workspace)
 	{
 		const int batch_size = yDesc.dimension(0);
@@ -775,12 +775,12 @@ namespace
 			switch (transformSize)
 			{
 				case 2:
-					kernel_output_transform<T, U, 2, 3>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<T>(), zMem.data<T>(),
+					kernel_output_transform<T, U, 2, 3>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<U>(), zMem.data<T>(),
 							activation, cpu::getAlphaValue<U>(alpha1), cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta),
 							context.getWorkspace().data<T>());
 					return AVOCADO_STATUS_SUCCESS;
 				case 4:
-					kernel_output_transform<T, U, 4, 3>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<T>(), zMem.data<T>(),
+					kernel_output_transform<T, U, 4, 3>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<U>(), zMem.data<T>(),
 							activation, cpu::getAlphaValue<U>(alpha1), cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta),
 							context.getWorkspace().data<T>());
 					return AVOCADO_STATUS_SUCCESS;
@@ -791,7 +791,7 @@ namespace
 			switch (transformSize)
 			{
 				case 2:
-					kernel_output_transform<T, U, 2, 5>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<T>(), zMem.data<T>(),
+					kernel_output_transform<T, U, 2, 5>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<U>(), zMem.data<T>(),
 							activation, cpu::getAlphaValue<U>(alpha1), cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta),
 							context.getWorkspace().data<T>());
 					return AVOCADO_STATUS_SUCCESS;
