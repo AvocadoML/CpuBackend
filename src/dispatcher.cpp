@@ -252,7 +252,7 @@ namespace avocado
 					return ns_sse2::cpu_addBias(cpu_context, alpha1, alpha2, cpu_xDesc, cpu_xMem, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem, beta1,
 							beta2, beta3, cpu_zMem, activation);
 				case SimdLevel::NONE:
-					return ns_none::cpu_addBias(ccpu_context, alpha1, alpha2, cpu_xDesc, cpu_xMem, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem, beta1,
+					return ns_none::cpu_addBias(cpu_context, alpha1, alpha2, cpu_xDesc, cpu_xMem, cpu_bDesc, cpu_bMem, cpu_yDesc, cpu_yMem, beta1,
 							beta2, beta3, cpu_zMem, activation);
 				default:
 					return AVOCADO_STATUS_NOT_SUPPORTED;
