@@ -140,6 +140,38 @@ namespace
 		}
 	}
 
+	template<typename T, typename U>
+	void kernel_add_tensors(T *dst, const T *src, U alpha, U beta, cpu::BroadcastedDimensions dims) noexcept
+	{
+		assert(dst != nullptr);
+		assert(src != nullptr);
+		if (dims.first == 1)
+		{
+#pragma omp parallel for
+			for (int i = 0; i < dims.last; i += SIMD<T>::length)
+			{
+				const int elements_left = std::min(dims.last - i, SIMD<T>::length);
+				SIMD<T> tmp = alpha * SIMD<T>(src + i, elements_left);
+				if (beta != scalar::zero<U>())
+					tmp += beta * SIMD<T>(dst + i, elements_left);
+				tmp.store(dst + i, elements_left);
+			}
+		}
+		else
+		{
+#pragma omp parallel for
+			for (int i = 0; i < dims.first; i++)
+				for (int j = 0; j < dims.last; j += SIMD<T>::length)
+				{
+					const int elements_left = std::min(dims.last - j, SIMD<T>::length);
+					SIMD<T> tmp = alpha * SIMD<T>(src + i * dims.last + j, elements_left);
+					if (beta != scalar::zero<U>())
+						tmp += beta * SIMD<T>(dst + i * dims.last + j, elements_left);
+					tmp.store(dst + i * dims.last + j, elements_left);
+				}
+		}
+	}
+
 	template<class Activation, typename dstT, typename srcT, typename biasT>
 	void kernel_add_bias(dstT *yMem, biasT alpha1, biasT alpha2, const srcT *xMem, const biasT *bMem, const dstT *zMem, biasT beta1, biasT beta2,
 			biasT beta3, cpu::BroadcastedDimensions dims) noexcept
@@ -162,10 +194,7 @@ namespace
 				else
 					tmp = alpha1 * activation.forward(tmp);
 				if (beta3 != scalar::zero<biasT>())
-				{
-					SIMD<dstT> dst(yMem + i * dims.last + j, elements_left);
-					tmp += beta3 * dst;
-				}
+					tmp += beta3 * SIMD<dstT>(yMem + i * dims.last + j, elements_left);
 				tmp.store(yMem + i * dims.last + j, elements_left);
 			}
 	}
@@ -355,6 +384,53 @@ namespace SIMD_NAMESPACE
 //				break;
 //			case AVOCADO_DTYPE_COMPLEX64:
 //				kernel_add_scalar_to_tensor(getPointer<std::complex<double>>(cMem), scalar, elements);
+//				break;
+			default:
+				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
+		}
+		return AVOCADO_STATUS_SUCCESS;
+	}
+
+	avStatus_t cpu_addTensors(const ContextDescriptor &context, const void *alpha, const TensorDescriptor &aDesc, const MemoryDescriptor &aMem,
+			const void *beta, const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
+	{
+		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(aDesc, cDesc);
+		const av_int64 elements = cDesc.volume();
+		switch (cDesc.dtype())
+		{
+//			case AVOCADO_DTYPE_UINT8:
+//				kernel_scale_tensor(cpu::getPointer<uint8_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT8:
+//				kernel_scale_tensor(cpu::getPointer<int8_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT16:
+//				kernel_scale_tensor(cpu::getPointer<int16_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT32:
+//				kernel_scale_tensor(cpu::getPointer<int32_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_INT64:
+//				kernel_scale_tensor(cpu::getPointer<int64_t>(cMem), cpu::getAlphaValue(alpha), elements);
+//				break;
+			case AVOCADO_DTYPE_FLOAT16:
+				kernel_add_tensors(cMem.data<float16>(), aMem.data<float16>(), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), dimensions);
+				break;
+			case AVOCADO_DTYPE_BFLOAT16:
+				kernel_add_tensors(cMem.data<bfloat16>(), aMem.data<bfloat16>(), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), dimensions);
+				break;
+			case AVOCADO_DTYPE_FLOAT32:
+				kernel_add_tensors(cMem.data<float>(), aMem.data<float>(), cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), dimensions);
+				break;
+			case AVOCADO_DTYPE_FLOAT64:
+				kernel_add_tensors(cMem.data<double>(), aMem.data<double>(), cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta),
+						dimensions);
+				break;
+//			case AVOCADO_DTYPE_COMPLEX32:
+//				kernel_scale_tensor(cpu::getPointer<std::complex<float>>(cMem), cpu::getAlphaValue<std::complex<float>>(alpha), elements);
+//				break;
+//			case AVOCADO_DTYPE_COMPLEX64:
+//				kernel_scale_tensor(cpu::getPointer<std::complex<double>>(cMem), cpu::getAlphaValue<std::complex<double>>(alpha), elements);
 //				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

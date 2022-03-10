@@ -41,6 +41,8 @@ avStatus_t cpu_scaleTensor(const ContextDescriptor &context, const TensorDescrip
 		const TensorDescriptor &cDesc, MemoryDescriptor &cMem);
 avStatus_t cpu_addScalarToTensor(const ContextDescriptor &context, const TensorDescriptor &aDesc, const MemoryDescriptor &aMem, const void *scalar,
 		const TensorDescriptor &cDesc, MemoryDescriptor &cMem);
+avStatus_t cpu_addTensors(const ContextDescriptor &context, const void *alpha, const TensorDescriptor &aDesc, const MemoryDescriptor &aMem,
+		const void *beta, const TensorDescriptor &cDesc, MemoryDescriptor &cMem);
 avStatus_t cpu_addBias(const ContextDescriptor &context, const void *alpha1, const void *alpha2, const TensorDescriptor &xDesc,
 		const MemoryDescriptor &xMem, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const TensorDescriptor &yDesc,
 		MemoryDescriptor &yMem, const void *beta1, const void *beta2, const void *beta3, const MemoryDescriptor &zMem, avActivationType_t activation);

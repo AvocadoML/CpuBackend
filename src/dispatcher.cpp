@@ -194,6 +194,35 @@ namespace avocado
 			return SIMD_NAMESPACE::cpu_scaleTensor(cpu_context, cpu_aDesc, cpu_aMem, alpha, cpu_cDesc, cpu_cMem);
 #endif
 		}
+		avStatus_t cpuAddTensors(avContextDescriptor_t context, const void *alpha, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
+				const void *beta, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
+		{
+			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
+			const cpu::TensorDescriptor &cpu_cDesc = cpu::getTensor(cDesc);
+			cpu::MemoryDescriptor &cpu_cMem = cpu::getMemory(cMem);
+			const cpu::TensorDescriptor &cpu_aDesc = cpu::getTensor(aDesc);
+			const cpu::MemoryDescriptor &cpu_aMem = cpu::getMemory(aMem);
+
+#if DYNAMIC_ARCH
+			switch (getSimdSupport())
+			{
+				case SimdLevel::AVX2:
+					return ns_avx2::cpu_addTensors(cpu_context, alpha, cpu_aDesc, cpu_aMem, beta, cpu_cDesc, cpu_cMem);
+				case SimdLevel::AVX:
+					return ns_avx::cpu_addTensors(cpu_context, alpha, cpu_aDesc, cpu_aMem, beta, cpu_cDesc, cpu_cMem);
+				case SimdLevel::SSE41:
+					return ns_sse41::cpu_addTensors(cpu_context, alpha, cpu_aDesc, cpu_aMem, beta, cpu_cDesc, cpu_cMem);
+				case SimdLevel::SSE2:
+					return ns_sse2::cpu_addTensors(cpu_context, alpha, cpu_aDesc, cpu_aMem, beta, cpu_cDesc, cpu_cMem);
+				case SimdLevel::NONE:
+					return ns_none::cpu_addTensors(cpu_context, alpha, cpu_aDesc, cpu_aMem, beta, cpu_cDesc, cpu_cMem);
+				default:
+					return AVOCADO_STATUS_NOT_SUPPORTED;
+			}
+#else
+			return SIMD_NAMESPACE::cpu_addTensors(cpu_context, alpha, cpu_aDesc, cpu_aMem, beta, cpu_cDesc, cpu_cMem);
+#endif
+		}
 		avStatus_t cpuAddScalarToTensor(avContextDescriptor_t context, const avTensorDescriptor_t aDesc, const avMemoryDescriptor_t aMem,
 				const void *scalar, const avTensorDescriptor_t cDesc, avMemoryDescriptor_t cMem)
 		{
