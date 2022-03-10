@@ -25,7 +25,7 @@ namespace
 	}
 
 	template<typename T, bool UseMomentum, bool UseNesterov>
-	void kernel_learn_sgd(T *wMem, const T *dwMem, T *momentumMem, int elements, T learning_rate, T beta1, T alpha, T beta)
+	void kernel_learn_sgd(T *wMem, const T *dwMem, T *momentumMem, int elements, T learningRate, T beta1, T alpha, T beta)
 	{
 		assert(wMem != nullptr);
 		assert(dwMem != nullptr);
@@ -39,15 +39,15 @@ namespace
 			if constexpr (UseMomentum)
 			{
 				SIMD<T> momentum(momentumMem + i, elements_left);
-				momentum = beta1 * momentum - learning_rate * update;
+				momentum = beta1 * momentum - learningRate * update;
 				momentum.store(momentumMem + i, elements_left);
 				if constexpr (UseNesterov)
-					result = beta1 * momentum - learning_rate * update;
+					result = beta1 * momentum - learningRate * update;
 				else
 					result = momentum;
 			}
 			else
-				result = -learning_rate * update;
+				result = -learningRate * update;
 
 			result *= alpha;
 			if (beta != scalar::zero<T>())
@@ -60,7 +60,7 @@ namespace
 		}
 	}
 	template<typename T>
-	void kernel_learn_adam(T *wMem, const T *dwMem, T *momentumMem, T *varianceMem, int elements, T learning_rate, T beta1, T beta2, T alpha, T beta)
+	void kernel_learn_adam(T *wMem, const T *dwMem, T *momentumMem, T *varianceMem, int elements, T learningRate, T beta1, T beta2, T alpha, T beta)
 	{
 		assert(wMem != nullptr);
 		assert(dwMem != nullptr);
@@ -78,7 +78,7 @@ namespace
 			variance = variance * beta2 + square(update) * (SIMD<T>::one() - beta2);
 			momentum.store(momentumMem + i, elements_left);
 			variance.store(varianceMem + i, elements_left);
-			SIMD<T> result = -momentum * learning_rate * rsqrt(variance + SIMD<T>::epsilon());
+			SIMD<T> result = -momentum * learningRate * rsqrt(variance + SIMD<T>::epsilon());
 
 			result *= alpha;
 			if (beta != scalar::zero<T>())
@@ -92,7 +92,7 @@ namespace
 	}
 
 	template<typename T>
-	avStatus_t launcher_optimizer(const cpu::OptimizerDescriptor &optimizer, const cpu::TensorDescriptor &wDesc, T *weight, const T *update,
+	avStatus_t launcher_optimizer(cpu::OptimizerDescriptor &optimizer, const cpu::TensorDescriptor &wDesc, T *weight, const T *update,
 			cpu::MemoryDescriptor &workspace, T alpha, T beta)
 	{
 		const int elements = wDesc.volume();
@@ -117,6 +117,7 @@ namespace
 				}
 				else
 					kernel_learn_sgd<T, false, false>(weight, update, momentum, elements, learning_rate, beta1, alpha, beta);
+				optimizer.steps++;
 				return AVOCADO_STATUS_SUCCESS;
 			}
 			case AVOCADO_OPTIMIZER_ADAM:
@@ -126,25 +127,26 @@ namespace
 				T beta1 = optimizer.coef[0];
 				T beta2 = optimizer.coef[1];
 				T learning_rate = optimizer.learning_rate;
+				if (optimizer.steps < 10000)
+					learning_rate *= std::sqrt(1.0 - std::pow(beta2, optimizer.steps)) / (1.0 - std::pow(beta1, optimizer.steps));
 				T *momentum = workspace.data<T>();
 				T *variance = workspace.data<T>() + elements;
 				kernel_learn_adam(weight, update, momentum, variance, elements, learning_rate, beta1, beta2, alpha, beta);
+				optimizer.steps++;
 				return AVOCADO_STATUS_SUCCESS;
 			}
 			default:
 				return AVOCADO_STATUS_BAD_PARAM;
 		}
 	}
-
 }
 
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
 
-	avStatus_t cpu_optimizerLearn(const ContextDescriptor &context, const OptimizerDescriptor &config, const void *alpha,
-			const TensorDescriptor &dwDesc, const MemoryDescriptor &dwMem, const void *beta, const TensorDescriptor &wDesc, MemoryDescriptor &wMem,
-			MemoryDescriptor &workspace)
+	avStatus_t cpu_optimizerLearn(const ContextDescriptor &context, OptimizerDescriptor &config, const void *alpha, const TensorDescriptor &dwDesc,
+			const MemoryDescriptor &dwMem, const void *beta, const TensorDescriptor &wDesc, MemoryDescriptor &wMem, MemoryDescriptor &workspace)
 	{
 		switch (wDesc.dtype())
 		{

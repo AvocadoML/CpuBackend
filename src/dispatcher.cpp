@@ -1436,7 +1436,7 @@ namespace avocado
 				avMemoryDescriptor_t wMem, avMemoryDescriptor_t workspaceMem)
 		{
 			const cpu::ContextDescriptor &cpu_context = cpu::getContext(context);
-			const cpu::OptimizerDescriptor &cpu_config = cpu::getOptimizer(config);
+			cpu::OptimizerDescriptor &cpu_config = cpu::getOptimizer(config);
 			const cpu::TensorDescriptor &cpu_dwDesc = cpu::getTensor(dwDesc);
 			const cpu::MemoryDescriptor &cpu_dwMem = cpu::getMemory(dwMem);
 			const cpu::TensorDescriptor &cpu_wDesc = cpu::getTensor(wDesc);

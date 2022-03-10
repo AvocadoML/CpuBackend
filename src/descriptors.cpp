@@ -229,24 +229,24 @@ namespace avocado
 				return AVOCADO_STATUS_BAD_PARAM;
 			return cpu::destroy<cpu::OptimizerDescriptor>(desc);
 		}
-		avStatus_t cpuSetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t type, double learningRate, const double coefficients[],
-				const bool flags[])
+		avStatus_t cpuSetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t type, av_int64 steps, double learningRate,
+				const double coefficients[], const bool flags[])
 		{
 			try
 			{
-				cpu::getOptimizer(desc).set(type, learningRate, coefficients, flags);
+				cpu::getOptimizer(desc).set(type, steps, learningRate, coefficients, flags);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-		avStatus_t cpuGetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t *type, double *learningRate, double coefficients[],
-				bool flags[])
+		avStatus_t cpuGetOptimizerDescriptor(avOptimizerDescriptor_t desc, avOptimizerType_t *type, av_int64 *steps, double *learningRate,
+				double coefficients[], bool flags[])
 		{
 			try
 			{
-				cpu::getOptimizer(desc).get(type, learningRate, coefficients, flags);
+				cpu::getOptimizer(desc).get(type, steps, learningRate, coefficients, flags);
 			} catch (std::exception &e)
 			{
 				return AVOCADO_STATUS_INTERNAL_ERROR;

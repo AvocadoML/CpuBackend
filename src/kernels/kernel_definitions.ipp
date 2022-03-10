@@ -161,7 +161,7 @@ avStatus_t cpu_lossFunction(const ContextDescriptor &context, avLossType_t lossT
 avStatus_t cpu_lossGradient(const ContextDescriptor &context, avLossType_t lossType, const void *alpha, const TensorDescriptor &outputDesc,
 		const MemoryDescriptor &outputMem, const TensorDescriptor &targetDesc, const MemoryDescriptor &targetMem, const void *beta,
 		const TensorDescriptor &gradientDesc, MemoryDescriptor &gradientMem, bool isFused);
-avStatus_t cpu_optimizerLearn(const ContextDescriptor &context, const OptimizerDescriptor &config, const void *alpha, const TensorDescriptor &dwDesc,
+avStatus_t cpu_optimizerLearn(const ContextDescriptor &context, OptimizerDescriptor &config, const void *alpha, const TensorDescriptor &dwDesc,
 		const MemoryDescriptor &dwMem, const void *beta, const TensorDescriptor &wDesc, MemoryDescriptor &wMem, MemoryDescriptor &workspaceMem);
 avStatus_t cpu_regularizerL2(const ContextDescriptor &context, const TensorDescriptor &dwDesc, MemoryDescriptor &dwMem, const TensorDescriptor &wDesc,
 		const MemoryDescriptor &wMem, const void *coefficient, const void *offset, void *loss);
