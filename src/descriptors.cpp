@@ -63,6 +63,7 @@ namespace avocado
 		}
 		avStatus_t cpuCreateMemoryView(avMemoryDescriptor_t *result, const avMemoryDescriptor_t desc, av_int64 sizeInBytes, av_int64 offsetInBytes)
 		{
+//			std::cout << __FUNCTION__ << "() owning memory = " << desc << ", view size = " << sizeInBytes << ", offset = " << offsetInBytes << '\n';
 			return cpu::create<cpu::MemoryDescriptor>(result, cpu::getMemory(desc), sizeInBytes, offsetInBytes);
 		}
 		avStatus_t cpuDestroyMemoryDescriptor(avMemoryDescriptor_t desc)
@@ -77,7 +78,12 @@ namespace avocado
 			if (not cpu::same_device_type(context, dst))
 				return AVOCADO_STATUS_DEVICE_TYPE_MISMATCH;
 			if (cpu::getPointer(dst) == nullptr)
-				return AVOCADO_STATUS_BAD_PARAM;
+			{
+				if (dstSize != 0)
+					return AVOCADO_STATUS_BAD_PARAM;
+				else
+					return AVOCADO_STATUS_SUCCESS;
+			}
 			if (pattern == nullptr)
 			{
 				std::memset(cpu::getPointer<int8_t>(dst) + dstOffset, 0, dstSize);
@@ -109,6 +115,10 @@ namespace avocado
 		{
 			if (not cpu::same_device_type(context, dst, src))
 				return AVOCADO_STATUS_DEVICE_TYPE_MISMATCH;
+//			std::cout << "tutaj\n";
+//			std::cout << dst << " " << src << '\n';
+//			std::cout << cpu::getPointer<int8_t>(dst) << " " << dstOffset << " " << cpu::getMemory(dst).size() << '\n';
+//			std::cout << cpu::getPointer<int8_t>(src) << " " << srcOffset << " " << cpu::getMemory(src).size() << '\n';
 			std::memcpy(cpu::getPointer<int8_t>(dst) + dstOffset, cpu::getPointer<int8_t>(src) + srcOffset, count);
 			return AVOCADO_STATUS_SUCCESS;
 		}
