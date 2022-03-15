@@ -395,7 +395,6 @@ namespace SIMD_NAMESPACE
 			const void *beta, const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
 	{
 		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(aDesc, cDesc);
-		const av_int64 elements = cDesc.volume();
 		switch (cDesc.dtype())
 		{
 //			case AVOCADO_DTYPE_UINT8:

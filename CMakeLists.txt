@@ -4,11 +4,11 @@ project(AvocadoCpuBackend VERSION 1.0.0 DESCRIPTION "CPU backend library" LANGUA
 option(BUILD_TESTING "Build unit tests?" OFF)
 option(BUILD_WITH_OPENBLAS "Use OpenBlas for linear algebra on CPU?" ON)
 option(BUILD_WITH_BLIS "Use BLIS for linear algebra on CPU?" OFF)
-option(DYNAMIC_ARCH "Use runtime dispatching of simd code" ON)
+option(DYNAMIC_ARCH "Use runtime dispatching of simd code" OFF)
 option(ENABLE_FAST_MATH "Use fast arithmetic functions in few places" OFF)
 option(BUILD_SHARED_LIBS "Build shared library?" OFF)
 set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Choose debug postfix" FORCE)
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose build type" FORCE)
+set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose build type" FORCE)
 set(PATH_TO_MAIN_LIB "${PROJECT_SOURCE_DIR}/../Avocado" CACHE STRING "Path to the main Avocado project")
 
 set(libsrc 	src/cpu_properties.cpp
@@ -122,6 +122,7 @@ else()
 		
 	else()
 		target_compile_options(${LIBRARY_NAME} PRIVATE -march=native)
+#		target_compile_options(${LIBRARY_NAME} PRIVATE -fsanitize=address -fsanitize=undefined)
 	endif()
 endif()
 
