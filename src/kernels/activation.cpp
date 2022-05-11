@@ -6,7 +6,7 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 #include "activation.hpp"
 
@@ -119,8 +119,8 @@ namespace
 		return AVOCADO_STATUS_SUCCESS;
 	}
 	template<typename T, typename U = T>
-	avStatus_t launcher_activation_backward(avActivationType_t activation, U alpha, T *dxMem, U beta, const T *dyMem, const T *yMem, int elements)
-	noexcept
+	avStatus_t launcher_activation_backward(avActivationType_t activation, U alpha, T *dxMem, U beta, const T *dyMem, const T *yMem,
+			int elements) noexcept
 	{
 		switch (activation)
 		{
@@ -162,6 +162,7 @@ namespace
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 	avStatus_t cpu_activationForward(const ContextDescriptor &context, avActivationType_t activation, const void *alpha,
 			const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem)
@@ -170,17 +171,17 @@ namespace SIMD_NAMESPACE
 		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				return launcher_activation_forward<float16, float>(activation, cpu::getAlphaValue(alpha), xMem.data<float16>(),
-						cpu::getBetaValue(beta), yMem.data<float16>(), elements);
+				return launcher_activation_forward<float16, float>(activation, getAlphaValue(alpha), xMem.data<float16>(), getBetaValue(beta),
+						yMem.data<float16>(), elements);
 			case AVOCADO_DTYPE_BFLOAT16:
-				return launcher_activation_forward<bfloat16, float>(activation, cpu::getAlphaValue(alpha), xMem.data<bfloat16>(),
-						cpu::getBetaValue(beta), yMem.data<bfloat16>(), elements);
+				return launcher_activation_forward<bfloat16, float>(activation, getAlphaValue(alpha), xMem.data<bfloat16>(), getBetaValue(beta),
+						yMem.data<bfloat16>(), elements);
 			case AVOCADO_DTYPE_FLOAT32:
-				return launcher_activation_forward<float>(activation, cpu::getAlphaValue(alpha), xMem.data<float>(), cpu::getBetaValue(beta),
+				return launcher_activation_forward<float>(activation, getAlphaValue(alpha), xMem.data<float>(), getBetaValue(beta),
 						yMem.data<float>(), elements);
 			case AVOCADO_DTYPE_FLOAT64:
-				return launcher_activation_forward<double>(activation, cpu::getAlphaValue<double>(alpha), xMem.data<double>(),
-						cpu::getBetaValue<double>(beta), yMem.data<double>(), elements);
+				return launcher_activation_forward<double>(activation, getAlphaValue<double>(alpha), xMem.data<double>(), getBetaValue<double>(beta),
+						yMem.data<double>(), elements);
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}
@@ -194,11 +195,11 @@ namespace SIMD_NAMESPACE
 		switch (yDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
-				return launcher_activation_backward<float>(activation, cpu::getAlphaValue(alpha), dxMem.data<float>(), cpu::getBetaValue(beta),
+				return launcher_activation_backward<float>(activation, getAlphaValue(alpha), dxMem.data<float>(), getBetaValue(beta),
 						dyMem.data<float>(), yMem.data<float>(), elements);
 			case AVOCADO_DTYPE_FLOAT64:
-				return launcher_activation_backward<double>(activation, cpu::getAlphaValue<double>(alpha), dxMem.data<double>(),
-						cpu::getBetaValue<double>(beta), dyMem.data<double>(), yMem.data<double>(), elements);
+				return launcher_activation_backward<double>(activation, getAlphaValue<double>(alpha), dxMem.data<double>(),
+						getBetaValue<double>(beta), dyMem.data<double>(), yMem.data<double>(), elements);
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 		}

@@ -6,7 +6,7 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 #include "../vectors/simd_vectors.hpp"
 #include "../utils.hpp"
@@ -16,6 +16,7 @@
 namespace
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 	using namespace SIMD_NAMESPACE;
 
 	template<typename T>
@@ -124,6 +125,7 @@ namespace
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 	avStatus_t cpu_softmaxForward(const ContextDescriptor &context, avSoftmaxMode_t mode, const void *alpha, const TensorDescriptor &xDesc,
 			const MemoryDescriptor &xMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem)
@@ -140,27 +142,27 @@ namespace SIMD_NAMESPACE
 			last_dim = xDesc.volumeWithoutFirstDim();
 		}
 
-		const int required_workspace_size = cpuGetNumberOfThreads() * last_dim * cpu::dataTypeSize(xDesc.dtype());
-		if (context.getWorkspace().size() < required_workspace_size)
+		const int required_workspace_size = cpuGetNumberOfThreads() * last_dim * dataTypeSize(xDesc.dtype());
+		if (context.getWorkspace().sizeInBytes() < required_workspace_size)
 			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
 		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				kernel_softmax_forward(cpu::getAlphaValue(alpha), xMem.data<float16>(), cpu::getBetaValue(beta), yMem.data<float16>(), first_dim,
-						last_dim, context.getWorkspace().data<float16>());
+				kernel_softmax_forward(getAlphaValue(alpha), xMem.data<float16>(), getBetaValue(beta), yMem.data<float16>(), first_dim, last_dim,
+						context.getWorkspace().data<float16>());
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				kernel_softmax_forward(cpu::getAlphaValue(alpha), xMem.data<bfloat16>(), cpu::getBetaValue(beta), yMem.data<bfloat16>(), first_dim,
-						last_dim, context.getWorkspace().data<bfloat16>());
+				kernel_softmax_forward(getAlphaValue(alpha), xMem.data<bfloat16>(), getBetaValue(beta), yMem.data<bfloat16>(), first_dim, last_dim,
+						context.getWorkspace().data<bfloat16>());
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				kernel_softmax_forward(cpu::getAlphaValue(alpha), xMem.data<float>(), cpu::getBetaValue(beta), yMem.data<float>(), first_dim,
-						last_dim, context.getWorkspace().data<float>());
+				kernel_softmax_forward(getAlphaValue(alpha), xMem.data<float>(), getBetaValue(beta), yMem.data<float>(), first_dim, last_dim,
+						context.getWorkspace().data<float>());
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				kernel_softmax_forward(cpu::getAlphaValue<double>(alpha), xMem.data<double>(), cpu::getBetaValue<double>(beta), yMem.data<double>(),
-						first_dim, last_dim, context.getWorkspace().data<double>());
+				kernel_softmax_forward(getAlphaValue<double>(alpha), xMem.data<double>(), getBetaValue<double>(beta), yMem.data<double>(), first_dim,
+						last_dim, context.getWorkspace().data<double>());
 				break;
 			default:
 				return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;

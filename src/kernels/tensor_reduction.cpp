@@ -6,7 +6,7 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 #include "../vectors/simd_vectors.hpp"
 #include "../utils.hpp"
@@ -16,6 +16,7 @@
 namespace
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 	using namespace SIMD_NAMESPACE;
 
 	template<typename T>
@@ -359,6 +360,7 @@ namespace
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 	avStatus_t cpu_reduceTensor(const ContextDescriptor &context, avReduceOp_t operation, const void *alpha, const TensorDescriptor &aDesc,
 			const MemoryDescriptor &aMem, const void *beta, const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
@@ -366,7 +368,7 @@ namespace SIMD_NAMESPACE
 		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(aDesc, cDesc);
 
 		const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * dimensions.last * cpu::dataTypeSize(aDesc.dtype());
-		if (context.getWorkspace().size() < required_workspace_size)
+		if (context.getWorkspace().sizeInBytes() < required_workspace_size)
 			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
 		switch (aDesc.dtype())

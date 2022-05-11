@@ -6,14 +6,14 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 #include "../vectors/simd_macros.hpp"
 
 namespace
 {
 	using namespace avocado::backend;
-	using namespace avocado::backend::cpu;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 	// add bias    : y = alpha3 * activation(alpha1 * x + alpha2 * b + beta1 * z) + beta2 * z
 	// convolution : y = activation(alpha1 * conv(x, w) + alpha2 * z + b) + beta * y

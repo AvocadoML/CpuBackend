@@ -6,19 +6,21 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 #include "../vectors/simd_macros.hpp"
 
 namespace
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 }
 
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 	avStatus_t cpu_poolingForward(const ContextDescriptor &context, const PoolingDescriptor &config, const void *alpha, const TensorDescriptor &xDesc,
 			const MemoryDescriptor &xMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem)

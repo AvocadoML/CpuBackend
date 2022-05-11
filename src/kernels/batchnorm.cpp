@@ -6,7 +6,7 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 #include "activation.hpp"
 #include "array_utils.hpp"
 
@@ -18,10 +18,11 @@
 namespace
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 	using namespace SIMD_NAMESPACE;
 
 	template<typename T, typename U>
-	void kernel_affine_forward(U alpha, U beta, const T *xMem, T *yMem, const T *wMem, const T *bMem, cpu::BroadcastedDimensions dims,
+	void kernel_affine_forward(U alpha, U beta, const T *xMem, T *yMem, const T *wMem, const T *bMem, BroadcastedDimensions dims,
 			avActivationType_t activation)
 	{
 		assert(xMem != nullptr);
@@ -75,7 +76,7 @@ namespace
 
 	template<typename T>
 	void kernel_batchnorm_inference(T alpha, T beta, const T *xMem, T *yMem, const T *scaleMem, const T *biasMem, const T *meanMem,
-			const T *varianceMem, T epsilon, cpu::BroadcastedDimensions dims, avActivationType_t activation, T *workspace)
+			const T *varianceMem, T epsilon, BroadcastedDimensions dims, avActivationType_t activation, T *workspace)
 	{
 		assert(xMem != nullptr);
 		assert(yMem != nullptr);
@@ -108,7 +109,7 @@ namespace
 	}
 	template<typename T>
 	void kernel_batchnorm_forward(T alpha, T beta, const T *xMem, T *yMem, const T *scaleMem, const T *biasMem, T *meanMem, T *varianceMem, T epsilon,
-			cpu::BroadcastedDimensions dims, avActivationType_t activation, T *workspace)
+			BroadcastedDimensions dims, avActivationType_t activation, T *workspace)
 	{
 #pragma omp parallel
 		{
@@ -184,7 +185,7 @@ namespace
 	}
 	template<typename T>
 	void kernel_batchnorm_backward(T alpha1, T beta1, const T *xMem, const T *yMem, T *dxMem, T *dyMem, const T *scaleMem, const T *meanMem,
-			const T *varianceMem, T epsilon, cpu::BroadcastedDimensions dims, T alpha2, T beta2, T *dwMem, T *dbMem, avActivationType_t activation,
+			const T *varianceMem, T epsilon, BroadcastedDimensions dims, T alpha2, T beta2, T *dwMem, T *dbMem, avActivationType_t activation,
 			T *workspace)
 	{
 		T *d_sigma = workspace + 0 * 2 * dims.last;
@@ -268,28 +269,29 @@ namespace
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 	avStatus_t cpu_affineForward(const ContextDescriptor &context, avActivationType_t activation, const TensorDescriptor &wDesc,
 			const MemoryDescriptor &wMem, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem, const void *alpha,
 			const TensorDescriptor &xDesc, const MemoryDescriptor &xMem, const void *beta, const TensorDescriptor &yDesc, MemoryDescriptor &yMem)
 	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(yDesc, xDesc);
+		BroadcastedDimensions dimensions = getBroadcastDimensions(yDesc, xDesc);
 		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT16:
-				kernel_affine_forward(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<float16>(), yMem.data<float16>(),
-						wMem.data<float16>(), bMem.data<float16>(), dimensions, activation);
+				kernel_affine_forward(getAlphaValue(alpha), getBetaValue(beta), xMem.data<float16>(), yMem.data<float16>(), wMem.data<float16>(),
+						bMem.data<float16>(), dimensions, activation);
 				break;
 			case AVOCADO_DTYPE_BFLOAT16:
-				kernel_affine_forward(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<bfloat16>(), yMem.data<bfloat16>(),
-						wMem.data<bfloat16>(), bMem.data<bfloat16>(), dimensions, activation);
+				kernel_affine_forward(getAlphaValue(alpha), getBetaValue(beta), xMem.data<bfloat16>(), yMem.data<bfloat16>(), wMem.data<bfloat16>(),
+						bMem.data<bfloat16>(), dimensions, activation);
 				break;
 			case AVOCADO_DTYPE_FLOAT32:
-				kernel_affine_forward(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<float>(), yMem.data<float>(), wMem.data<float>(),
+				kernel_affine_forward(getAlphaValue(alpha), getBetaValue(beta), xMem.data<float>(), yMem.data<float>(), wMem.data<float>(),
 						bMem.data<float>(), dimensions, activation);
 				break;
 			case AVOCADO_DTYPE_FLOAT64:
-				kernel_affine_forward(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), xMem.data<double>(), yMem.data<double>(),
+				kernel_affine_forward(getAlphaValue<double>(alpha), getBetaValue<double>(beta), xMem.data<double>(), yMem.data<double>(),
 						wMem.data<double>(), bMem.data<double>(), dimensions, activation);
 				break;
 			default:
@@ -303,26 +305,26 @@ namespace SIMD_NAMESPACE
 			const TensorDescriptor &scaleBiasMeanVarDesc, const MemoryDescriptor &scaleMem, const MemoryDescriptor &biasMem,
 			const MemoryDescriptor &meanMem, const MemoryDescriptor &varianceMem, double epsilon)
 	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(xDesc, scaleBiasMeanVarDesc);
+		BroadcastedDimensions dimensions = getBroadcastDimensions(xDesc, scaleBiasMeanVarDesc);
 
-		const int required_workspace_size = 2 * dimensions.last * cpu::dataTypeSize(xDesc.dtype());
-		if (context.getWorkspace().size() < required_workspace_size)
+		const int required_workspace_size = 2 * dimensions.last * dataTypeSize(xDesc.dtype());
+		if (context.getWorkspace().sizeInBytes() < required_workspace_size)
 			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
 		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				kernel_batchnorm_inference<float>(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<float>(), yMem.data<float>(),
+				kernel_batchnorm_inference<float>(getAlphaValue(alpha), getBetaValue(beta), xMem.data<float>(), yMem.data<float>(),
 						scaleMem.data<float>(), biasMem.data<float>(), meanMem.data<float>(), varianceMem.data<float>(), epsilon, dimensions,
 						activation, context.getWorkspace().data<float>());
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				kernel_batchnorm_inference<double>(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), xMem.data<double>(),
-						yMem.data<double>(), scaleMem.data<double>(), biasMem.data<double>(), meanMem.data<double>(), varianceMem.data<double>(),
-						epsilon, dimensions, activation, context.getWorkspace().data<double>());
+				kernel_batchnorm_inference<double>(getAlphaValue<double>(alpha), getBetaValue<double>(beta), xMem.data<double>(), yMem.data<double>(),
+						scaleMem.data<double>(), biasMem.data<double>(), meanMem.data<double>(), varianceMem.data<double>(), epsilon, dimensions,
+						activation, context.getWorkspace().data<double>());
 				break;
 			}
 			default:
@@ -336,26 +338,26 @@ namespace SIMD_NAMESPACE
 			const TensorDescriptor &scaleBiasMeanVarDesc, const MemoryDescriptor &scaleMem, const MemoryDescriptor &biasMem,
 			MemoryDescriptor &meanMem, MemoryDescriptor &varianceMem, double epsilon)
 	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(xDesc, scaleBiasMeanVarDesc);
+		BroadcastedDimensions dimensions = getBroadcastDimensions(xDesc, scaleBiasMeanVarDesc);
 
-		const int required_workspace_size = std::min(2, cpuGetNumberOfThreads()) * dimensions.last * cpu::dataTypeSize(xDesc.dtype());
-		if (context.getWorkspace().size() < required_workspace_size)
+		const int required_workspace_size = std::min(2, cpuGetNumberOfThreads()) * dimensions.last * dataTypeSize(xDesc.dtype());
+		if (context.getWorkspace().sizeInBytes() < required_workspace_size)
 			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
 		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				kernel_batchnorm_forward<float>(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<float>(), yMem.data<float>(),
+				kernel_batchnorm_forward<float>(getAlphaValue(alpha), getBetaValue(beta), xMem.data<float>(), yMem.data<float>(),
 						scaleMem.data<float>(), biasMem.data<float>(), meanMem.data<float>(), varianceMem.data<float>(), epsilon, dimensions,
 						activation, context.getWorkspace().data<float>());
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				kernel_batchnorm_forward<double>(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), xMem.data<double>(),
-						yMem.data<double>(), scaleMem.data<double>(), biasMem.data<double>(), meanMem.data<double>(), varianceMem.data<double>(),
-						epsilon, dimensions, activation, context.getWorkspace().data<double>());
+				kernel_batchnorm_forward<double>(getAlphaValue<double>(alpha), getBetaValue<double>(beta), xMem.data<double>(), yMem.data<double>(),
+						scaleMem.data<double>(), biasMem.data<double>(), meanMem.data<double>(), varianceMem.data<double>(), epsilon, dimensions,
+						activation, context.getWorkspace().data<double>());
 				break;
 			}
 			default:
@@ -371,27 +373,27 @@ namespace SIMD_NAMESPACE
 			const MemoryDescriptor &varianceMem, const void *alpha2, const void *beta2, MemoryDescriptor &scaleUpdateMem,
 			MemoryDescriptor &biasUpdateMem, double epsilon)
 	{
-		cpu::BroadcastedDimensions dimensions = cpu::getBroadcastDimensions(xDesc, scaleMeanVarDesc);
-		const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * 2 * dimensions.last * cpu::dataTypeSize(xDesc.dtype());
-		if (context.getWorkspace().size() < required_workspace_size)
+		BroadcastedDimensions dimensions = getBroadcastDimensions(xDesc, scaleMeanVarDesc);
+		const int required_workspace_size = (1 + cpuGetNumberOfThreads()) * 2 * dimensions.last * dataTypeSize(xDesc.dtype());
+		if (context.getWorkspace().sizeInBytes() < required_workspace_size)
 			return AVOCADO_STATUS_INTERNAL_ERROR; // not enough workspace
 
 		switch (xDesc.dtype())
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				kernel_batchnorm_backward<float>(cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), xMem.data<float>(), yMem.data<float>(),
+				kernel_batchnorm_backward<float>(getAlphaValue(alpha), getBetaValue(beta), xMem.data<float>(), yMem.data<float>(),
 						dxMem.data<float>(), dyMem.data<float>(), scaleMem.data<float>(), meanMem.data<float>(), varianceMem.data<float>(), epsilon,
-						dimensions, cpu::getAlphaValue(alpha2), cpu::getBetaValue(beta2), scaleUpdateMem.data<float>(), biasUpdateMem.data<float>(),
-						activation, context.getWorkspace().data<float>());
+						dimensions, getAlphaValue(alpha2), getBetaValue(beta2), scaleUpdateMem.data<float>(), biasUpdateMem.data<float>(), activation,
+						context.getWorkspace().data<float>());
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				kernel_batchnorm_backward<double>(cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), xMem.data<double>(),
-						yMem.data<double>(), dxMem.data<double>(), dyMem.data<double>(), scaleMem.data<double>(), meanMem.data<double>(),
-						varianceMem.data<double>(), epsilon, dimensions, cpu::getAlphaValue<double>(alpha2), cpu::getBetaValue<double>(beta2),
-						scaleUpdateMem.data<double>(), biasUpdateMem.data<double>(), activation, context.getWorkspace().data<double>());
+				kernel_batchnorm_backward<double>(getAlphaValue<double>(alpha), getBetaValue<double>(beta), xMem.data<double>(), yMem.data<double>(),
+						dxMem.data<double>(), dyMem.data<double>(), scaleMem.data<double>(), meanMem.data<double>(), varianceMem.data<double>(),
+						epsilon, dimensions, getAlphaValue<double>(alpha2), getBetaValue<double>(beta2), scaleUpdateMem.data<double>(),
+						biasUpdateMem.data<double>(), activation, context.getWorkspace().data<double>());
 				break;
 			}
 			default:

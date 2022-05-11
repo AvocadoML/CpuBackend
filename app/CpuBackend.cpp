@@ -3,9 +3,9 @@
 // Author      : Maciej Kozarzewski
 //============================================================================
 
-#include <CpuBackend/cpu_backend.h>
-#include <backend_defs.h>
-#include <backend_descriptors.hpp>
+#include <Avocado/cpu_backend.h>
+#include <Avocado/backend_defs.h>
+#include <Avocado/backend_descriptors.hpp>
 
 #include <type_traits>
 #include <iostream>
@@ -18,6 +18,7 @@
 #include "../src/vectors/simd_vectors.hpp"
 
 using namespace avocado::backend;
+using namespace avocado::backend::BACKEND_NAMESPACE;
 
 void print_defined_flags()
 {
@@ -42,6 +43,7 @@ void print_defined_flags()
 #endif
 	std::cout << '\n';
 }
+/*
 class TensorWrapper
 {
 	private:
@@ -53,7 +55,7 @@ class TensorWrapper
 			cpuCreateTensorDescriptor(&desc);
 			cpuSetTensorDescriptor(desc, dtype, dimensions.size(), dimensions.begin());
 
-			avSize_t size_in_bytes = cpu::getTensor(desc).sizeInBytes();
+			av_int64 size_in_bytes = getTensor(desc).sizeInBytes();
 			cpuCreateMemoryDescriptor(&mem, size_in_bytes);
 			cpuSetMemory(cpuGetDefaultContext(), mem, 0, size_in_bytes, nullptr, 0);
 		}
@@ -64,30 +66,30 @@ class TensorWrapper
 		}
 		int dimension(int idx) const noexcept
 		{
-			return cpu::getTensor(desc).dimension(idx);
+			return getTensor(desc).dimension(idx);
 		}
 		template<typename T>
 		void fill(T value)
 		{
-			assert(cpu::typeOf<T>() == cpu::getTensor(desc).dtype());
-			for (int i = 0; i < cpu::getTensor(desc).volume(); i++)
-				cpu::getPointer<T>(mem)[i] = value;
+			assert(typeOf<T>() == getTensor(desc).dtype());
+			for (int i = 0; i < getTensor(desc).volume(); i++)
+				getPointer<T>(mem)[i] = value;
 		}
 		template<typename T>
 		void set(T value, std::initializer_list<int> idx)
 		{
-			assert(cpu::typeOf<T>() == cpu::getTensor(desc).dtype());
-			cpu::getPointer<T>(mem)[cpu::getTensor(desc).getIndex(idx)] = value;
+			assert(typeOf<T>() == getTensor(desc).dtype());
+			getPointer<T>(mem)[getTensor(desc).getIndex(idx)] = value;
 		}
 		template<typename T>
 		T get(std::initializer_list<int> idx) const
 		{
-			assert(cpu::typeOf<T>() == cpu::getTensor(desc).dtype());
-			return cpu::getPointer<T>(mem)[cpu::getTensor(desc).getIndex(idx)];
+			assert(typeOf<T>() == getTensor(desc).dtype());
+			return getPointer<T>(mem)[getTensor(desc).getIndex(idx)];
 		}
-		const cpu::TensorDescriptor& tensor() const noexcept
+		const TensorDescriptor& tensor() const noexcept
 		{
-			return cpu::getTensor(desc);
+			return getTensor(desc);
 		}
 		avTensorDescriptor_t getDesc() const noexcept
 		{
@@ -100,24 +102,24 @@ class TensorWrapper
 		template<typename T = void>
 		T* data() noexcept
 		{
-			return cpu::getPointer<T>(mem);
+			return getPointer<T>(mem);
 		}
 		template<typename T = void>
 		const T* data() const noexcept
 		{
-			return cpu::getPointer<T>(mem);
+			return getPointer<T>(mem);
 		}
 		int volume() const noexcept
 		{
-			return cpu::getTensor(desc).volume();
+			return getTensor(desc).volume();
 		}
 		int sizeIntBytes() const noexcept
 		{
-			return volume() * cpu::dataTypeSize(cpu::getTensor(desc).dtype());
+			return volume() * dataTypeSize(getTensor(desc).dtype());
 		}
 		avDataType_t dtype() const noexcept
 		{
-			return cpu::getTensor(desc).dtype();
+			return getTensor(desc).dtype();
 		}
 };
 
@@ -622,7 +624,7 @@ struct InputTransform<T, 2, 5>
 		}
 };
 template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-void winograd_weight_transform(const cpu::TensorDescriptor &wDesc, const T *wMem, const cpu::TensorDescriptor &mDesc, T *mMem, bool invert)
+void winograd_weight_transform(const TensorDescriptor &wDesc, const T *wMem, const TensorDescriptor &mDesc, T *mMem, bool invert)
 {
 	const int filtersOut = wDesc.firstDim();
 	const int filtersIn = wDesc.lastDim();
@@ -671,7 +673,7 @@ void winograd_weight_transform(const cpu::TensorDescriptor &wDesc, const T *wMem
 	}
 }
 template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-void winograd_input_transform(const cpu::TensorDescriptor &xDesc, const T *xMem, const cpu::TensorDescriptor &mDesc, T *mMem, int2 padding, T *workspace)
+void winograd_input_transform(const TensorDescriptor &xDesc, const T *xMem, const TensorDescriptor &mDesc, T *mMem, int2 padding, T *workspace)
 {
 	const int batch_size = xDesc.dimension(0);
 	const int height = xDesc.dimension(1);
@@ -738,7 +740,7 @@ void winograd_input_transform(const cpu::TensorDescriptor &xDesc, const T *xMem,
 template<typename T>
 void initTensor(TensorWrapper &tensor)
 {
-	if (cpu::typeOf<T>() != tensor.dtype())
+	if (typeOf<T>() != tensor.dtype())
 		throw std::logic_error("initTensor() : data type mismatch");
 
 	for (int i = 0; i < tensor.volume(); i++)
@@ -747,7 +749,7 @@ void initTensor(TensorWrapper &tensor)
 template<typename T>
 void setTensor(TensorWrapper &tensor, T value)
 {
-	if (cpu::typeOf<T>() != tensor.dtype())
+	if (typeOf<T>() != tensor.dtype())
 		throw std::logic_error("setTensor() : data type mismatch");
 
 	for (int i = 0; i < tensor.volume(); i++)
@@ -756,7 +758,7 @@ void setTensor(TensorWrapper &tensor, T value)
 template<typename T>
 double diff(const TensorWrapper &lhs, const TensorWrapper &rhs)
 {
-	if (cpu::typeOf<T>() != lhs.dtype() or lhs.dtype() != rhs.dtype())
+	if (typeOf<T>() != lhs.dtype() or lhs.dtype() != rhs.dtype())
 		throw std::logic_error("diff() : data type mismatch");
 
 	assert(lhs.volume() == rhs.volume());
@@ -849,7 +851,7 @@ void measure_time(int batch, int filters)
 	std::cout << diff<float>(matrix, matrix2) << '\n';
 	std::cout << diff<float>(matrix, matrix3) << '\n';
 }
-
+*/
 int main()
 {
 //	float float_data[8] = { 1.0f / 3.0f, 0.65f, -0.34f, -1.23f, 45.0f, 10.1f, 3.34f, 0.1f };
@@ -875,75 +877,75 @@ int main()
 
 	print_defined_flags();
 	return 0;
-	std::cout << "filters old weight v2 new bf16 fp16\n";
-//	std::cout << "filters bf16 fp16\n";
-//	for (int i = 8; i <= 256; i += 8)
-//		measure_time(128, i);
-	measure_time(32, 64);
-	return 0;
-
-	char result[256];
-	std::memset(result, 0, sizeof(result));
-	cpuGetDeviceProperty(AVOCADO_DEVICE_NAME, result);
-	std::cout << result << '\n';
-
-	ContextWrapper context;
-
-	TensorWrapper tensor1( { 1000000, 100 }, AVOCADO_DTYPE_FLOAT32);
-	TensorWrapper tensor2( { 100 }, AVOCADO_DTYPE_FLOAT32);
-	TensorWrapper tensor3( { 1000000, 100 }, AVOCADO_DTYPE_FLOAT32);
-
-	SIMD_NAMESPACE::SIMD<float> res1, res2, res3, res4, res5, res6, res7, res8, res9, res10;
-	SIMD_NAMESPACE::SIMD<float> data1(1.0f);
-	SIMD_NAMESPACE::SIMD<float> data2(1.0f);
-
-	int repeats = 3000;
-
-	float alpha = 2.0f;
-	float alpha2 = 1.0f;
-	float beta = 0.0f;
-	cpuSetNumberOfThreads(1);
-	double total_time = 0.0;
-	for (int i = 0; i < repeats; i++)
-	{
-		double start = omp_get_wtime();
-//		avStatus_t status = cpuReduceTensor(context, AVOCADO_REDUCE_MAX, &alpha, tensor1.getDesc(), tensor1.getMem(), &beta, tensor2.getDesc(),
-//				tensor2.getMem());
-
-		for (int j = 0; j < 1000000; j++)
-		{
-			res1 = SIMD_NAMESPACE::mul_add(data1, data2, res1);
-			res2 = SIMD_NAMESPACE::mul_add(data2, data2, res2);
-			res3 = SIMD_NAMESPACE::mul_add(data2, data2, res3);
-			res4 = SIMD_NAMESPACE::mul_add(data1, data1, res4);
-			res5 = SIMD_NAMESPACE::mul_add(data1, data2, res5);
-			res6 = SIMD_NAMESPACE::mul_add(data1, data1, res6);
-			res7 = SIMD_NAMESPACE::mul_add(data2, data2, res7);
-			res8 = SIMD_NAMESPACE::mul_add(data2, data1, res8);
-			res9 = SIMD_NAMESPACE::mul_add(data2, data1, res9);
-			res10 = SIMD_NAMESPACE::mul_add(data1, data2, res10);
-		}
-//		avStatus_t status = cpuBinaryOp(context, AVOCADO_BINARY_OP_ADD_SQUARE, &alpha, tensor1.getDesc(), tensor1.getMem(), &alpha2,
-//				tensor2.getDesc(), tensor2.getMem(), &beta, tensor3.getDesc(), tensor3.getMem());
-
-//		avStatus_t status = cpuScaleTensor(context, tensor1.getDesc(), tensor1.getMem(), &alpha);
-//		std::memcpy(tensor1.data(), tensor2.data(), tensor1.sizeIntBytes());
-		double stop = omp_get_wtime();
-		total_time += (stop - start);
-
-//		if (status != AVOCADO_STATUS_SUCCESS)
+//	std::cout << "filters old weight v2 new bf16 fp16\n";
+////	std::cout << "filters bf16 fp16\n";
+////	for (int i = 8; i <= 256; i += 8)
+////		measure_time(128, i);
+//	measure_time(32, 64);
+//	return 0;
+//
+//	char result[256];
+//	std::memset(result, 0, sizeof(result));
+//	cpuGetDeviceProperty(AVOCADO_DEVICE_NAME, result);
+//	std::cout << result << '\n';
+//
+//	ContextWrapper context;
+//
+//	TensorWrapper tensor1( { 1000000, 100 }, AVOCADO_DTYPE_FLOAT32);
+//	TensorWrapper tensor2( { 100 }, AVOCADO_DTYPE_FLOAT32);
+//	TensorWrapper tensor3( { 1000000, 100 }, AVOCADO_DTYPE_FLOAT32);
+//
+//	SIMD_NAMESPACE::SIMD<float> res1, res2, res3, res4, res5, res6, res7, res8, res9, res10;
+//	SIMD_NAMESPACE::SIMD<float> data1(1.0f);
+//	SIMD_NAMESPACE::SIMD<float> data2(1.0f);
+//
+//	int repeats = 3000;
+//
+//	float alpha = 2.0f;
+//	float alpha2 = 1.0f;
+//	float beta = 0.0f;
+//	cpuSetNumberOfThreads(1);
+//	double total_time = 0.0;
+//	for (int i = 0; i < repeats; i++)
+//	{
+//		double start = omp_get_wtime();
+////		avStatus_t status = cpuReduceTensor(context, AVOCADO_REDUCE_MAX, &alpha, tensor1.getDesc(), tensor1.getMem(), &beta, tensor2.getDesc(),
+////				tensor2.getMem());
+//
+//		for (int j = 0; j < 1000000; j++)
 //		{
-//			std::cout << "error : " << status << "\n";
-//			break;
+//			res1 = SIMD_NAMESPACE::mul_add(data1, data2, res1);
+//			res2 = SIMD_NAMESPACE::mul_add(data2, data2, res2);
+//			res3 = SIMD_NAMESPACE::mul_add(data2, data2, res3);
+//			res4 = SIMD_NAMESPACE::mul_add(data1, data1, res4);
+//			res5 = SIMD_NAMESPACE::mul_add(data1, data2, res5);
+//			res6 = SIMD_NAMESPACE::mul_add(data1, data1, res6);
+//			res7 = SIMD_NAMESPACE::mul_add(data2, data2, res7);
+//			res8 = SIMD_NAMESPACE::mul_add(data2, data1, res8);
+//			res9 = SIMD_NAMESPACE::mul_add(data2, data1, res9);
+//			res10 = SIMD_NAMESPACE::mul_add(data1, data2, res10);
 //		}
-	}
-	std::cout << (res1 + res2 + res3 + res4 + res5 + res6 + res7 + res8 + res9 + res10)[0] << '\n';
-
-	double bandwidth = 0.0; //static_cast<double>(repeats) * (tensor1.sizeIntBytes() + tensor2.sizeIntBytes() + tensor3.sizeIntBytes()) / total_time;
-	double flops = repeats * (1000000.0 * res1.length * 10) / total_time;
-	std::cout << 1000.0 * total_time / repeats << "ms \n\n";
-	std::cout << bandwidth * 1.0e-9 << " GB/s\n";
-	std::cout << flops * 1.0e-9 << " GFLOPS\n";
+////		avStatus_t status = cpuBinaryOp(context, AVOCADO_BINARY_OP_ADD_SQUARE, &alpha, tensor1.getDesc(), tensor1.getMem(), &alpha2,
+////				tensor2.getDesc(), tensor2.getMem(), &beta, tensor3.getDesc(), tensor3.getMem());
+//
+////		avStatus_t status = cpuScaleTensor(context, tensor1.getDesc(), tensor1.getMem(), &alpha);
+////		std::memcpy(tensor1.data(), tensor2.data(), tensor1.sizeIntBytes());
+//		double stop = omp_get_wtime();
+//		total_time += (stop - start);
+//
+////		if (status != AVOCADO_STATUS_SUCCESS)
+////		{
+////			std::cout << "error : " << status << "\n";
+////			break;
+////		}
+//	}
+//	std::cout << (res1 + res2 + res3 + res4 + res5 + res6 + res7 + res8 + res9 + res10)[0] << '\n';
+//
+//	double bandwidth = 0.0; //static_cast<double>(repeats) * (tensor1.sizeIntBytes() + tensor2.sizeIntBytes() + tensor3.sizeIntBytes()) / total_time;
+//	double flops = repeats * (1000000.0 * res1.length * 10) / total_time;
+//	std::cout << 1000.0 * total_time / repeats << "ms \n\n";
+//	std::cout << bandwidth * 1.0e-9 << " GB/s\n";
+//	std::cout << flops * 1.0e-9 << " GFLOPS\n";
 
 //	SIMD<float> rhs(tmp2);
 //	SIMD<float> sign = sgn(lhs);

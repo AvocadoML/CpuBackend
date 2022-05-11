@@ -8,11 +8,13 @@
 #ifndef KERNELS_KERNEL_DEFINITIONS_HPP_
 #define KERNELS_KERNEL_DEFINITIONS_HPP_
 
-#include <CpuBackend/cpu_backend.h>
-#include <backend_descriptors.hpp>
+#include <Avocado/cpu_backend.h>
+#include <Avocado/backend_descriptors.hpp>
 
 #include "vectors/simd_macros.hpp"
 #include "utils.hpp"
+
+#include <vector>
 
 #if DYNAMIC_ARCH
 

@@ -6,7 +6,7 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 #include "activation.hpp"
 #include "../vectors/simd_vectors.hpp"
@@ -16,6 +16,7 @@
 namespace
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 	using namespace SIMD_NAMESPACE;
 
 	template<typename T, int Length>
@@ -347,7 +348,7 @@ namespace
 	};
 
 	template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-	void kernel_weight_transform(const cpu::TensorDescriptor &wDesc, const T *wMem, const cpu::TensorDescriptor &mDesc, T *mMem, bool invert)
+	void kernel_weight_transform(const TensorDescriptor &wDesc, const T *wMem, const TensorDescriptor &mDesc, T *mMem, bool invert)
 	{
 		const int filtersOut = wDesc.firstDim();
 		const int filtersIn = wDesc.lastDim();
@@ -396,8 +397,8 @@ namespace
 		}
 	}
 	template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-	void kernel_input_transform(const cpu::TensorDescriptor &xDesc, const T *xMem, const cpu::TensorDescriptor &mDesc, T *mMem,
-			std::array<int, 3> padding, T *workspace, T padding_value)
+	void kernel_input_transform(const TensorDescriptor &xDesc, const T *xMem, const TensorDescriptor &mDesc, T *mMem, std::array<int, 3> padding,
+			T *workspace, T padding_value)
 	{
 		const int batch_size = xDesc.dimension(0);
 		const int height = xDesc.dimension(1);
@@ -462,8 +463,8 @@ namespace
 		}
 	}
 	template<typename T, typename U, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-	void kernel_output_transform(const cpu::TensorDescriptor &yDesc, T *yMem, const cpu::TensorDescriptor &mDesc, const T *mMem, const U *bMem,
-			const T *zMem, avActivationType_t activation, U alpha1, U alpha2, U beta, T *workspace)
+	void kernel_output_transform(const TensorDescriptor &yDesc, T *yMem, const TensorDescriptor &mDesc, const T *mMem, const U *bMem, const T *zMem,
+			avActivationType_t activation, U alpha1, U alpha2, U beta, T *workspace)
 	{
 		const int batch_size = yDesc.dimension(0);
 		const int height = yDesc.dimension(1);
@@ -575,7 +576,7 @@ namespace
 		}
 	}
 	template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-	void kernel_gradient_transform(const cpu::TensorDescriptor &dyDesc, const T *dyMem, const cpu::TensorDescriptor &mDesc, T *mMem, T *workspace)
+	void kernel_gradient_transform(const TensorDescriptor &dyDesc, const T *dyMem, const TensorDescriptor &mDesc, T *mMem, T *workspace)
 	{
 		const int batch_size = dyDesc.dimension(0);
 		const int height = dyDesc.dimension(1);
@@ -640,7 +641,7 @@ namespace
 		}
 	}
 	template<typename T, int TransformSize, int KernelSize, int TileSize = TransformSize + KernelSize - 1>
-	void kernel_update_transform(const cpu::TensorDescriptor &dwDesc, T *dwMem, const cpu::TensorDescriptor &mDesc, const T *mMem, T alpha, T beta)
+	void kernel_update_transform(const TensorDescriptor &dwDesc, T *dwMem, const TensorDescriptor &mDesc, const T *mMem, T alpha, T beta)
 	{
 		const int filtersOut = dwDesc.firstDim();
 		const int filtersIn = dwDesc.lastDim();
@@ -731,7 +732,7 @@ namespace
 	{
 		const T padding_value = config.getPaddingValue<T>();
 		const int input_filters = wDesc.lastDim();
-		if (context.getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters)
+		if (context.getWorkspace().sizeInBytes() < static_cast<int>(sizeof(T)) * input_filters)
 			return AVOCADO_STATUS_INTERNAL_ERROR;
 
 		if (is_conv(3, wDesc))
@@ -767,7 +768,7 @@ namespace
 			const MemoryDescriptor &zMem, const void *beta, const avActivationType_t activation, const TensorDescriptor &wDesc, int transformSize)
 	{
 		const int input_filters = wDesc.lastDim();
-		if (context.getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters * (1 + cpuGetNumberOfThreads()))
+		if (context.getWorkspace().sizeInBytes() < static_cast<int>(sizeof(T)) * input_filters * (1 + cpuGetNumberOfThreads()))
 			return AVOCADO_STATUS_INTERNAL_ERROR;
 
 		if (is_conv(3, wDesc))
@@ -776,13 +777,11 @@ namespace
 			{
 				case 2:
 					kernel_output_transform<T, U, 2, 3>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<U>(), zMem.data<T>(),
-							activation, cpu::getAlphaValue<U>(alpha1), cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta),
-							context.getWorkspace().data<T>());
+							activation, getAlphaValue<U>(alpha1), getAlphaValue<U>(alpha2), getBetaValue<U>(beta), context.getWorkspace().data<T>());
 					return AVOCADO_STATUS_SUCCESS;
 				case 4:
 					kernel_output_transform<T, U, 4, 3>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<U>(), zMem.data<T>(),
-							activation, cpu::getAlphaValue<U>(alpha1), cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta),
-							context.getWorkspace().data<T>());
+							activation, getAlphaValue<U>(alpha1), getAlphaValue<U>(alpha2), getBetaValue<U>(beta), context.getWorkspace().data<T>());
 					return AVOCADO_STATUS_SUCCESS;
 			}
 		}
@@ -792,8 +791,7 @@ namespace
 			{
 				case 2:
 					kernel_output_transform<T, U, 2, 5>(yDesc, yMem.data<T>(), matricesDesc, matricesMem.data<T>(), bMem.data<U>(), zMem.data<T>(),
-							activation, cpu::getAlphaValue<U>(alpha1), cpu::getAlphaValue<U>(alpha2), cpu::getBetaValue<U>(beta),
-							context.getWorkspace().data<T>());
+							activation, getAlphaValue<U>(alpha1), getAlphaValue<U>(alpha2), getBetaValue<U>(beta), context.getWorkspace().data<T>());
 					return AVOCADO_STATUS_SUCCESS;
 			}
 		}
@@ -805,7 +803,7 @@ namespace
 			int transformSize)
 	{
 		const int input_filters = wDesc.lastDim();
-		if (context.getWorkspace().size() < static_cast<int>(sizeof(T)) * input_filters)
+		if (context.getWorkspace().sizeInBytes() < static_cast<int>(sizeof(T)) * input_filters)
 			return AVOCADO_STATUS_INTERNAL_ERROR;
 
 		if (is_conv(3, wDesc))
@@ -844,12 +842,12 @@ namespace
 			switch (transformSize)
 			{
 				case 2:
-					kernel_update_transform<T, 2, 3>(dwDesc, dwMem.data<T>(), matricesDesc, matricesMem.data<T>(), cpu::getAlphaValue<T>(alpha),
-							cpu::getBetaValue<T>(beta));
+					kernel_update_transform<T, 2, 3>(dwDesc, dwMem.data<T>(), matricesDesc, matricesMem.data<T>(), getAlphaValue<T>(alpha),
+							getBetaValue<T>(beta));
 					return AVOCADO_STATUS_SUCCESS;
 				case 4:
-					kernel_update_transform<T, 4, 3>(dwDesc, dwMem.data<T>(), matricesDesc, matricesMem.data<T>(), cpu::getAlphaValue<T>(alpha),
-							cpu::getBetaValue<T>(beta));
+					kernel_update_transform<T, 4, 3>(dwDesc, dwMem.data<T>(), matricesDesc, matricesMem.data<T>(), getAlphaValue<T>(alpha),
+							getBetaValue<T>(beta));
 					return AVOCADO_STATUS_SUCCESS;
 			}
 		}
@@ -858,8 +856,8 @@ namespace
 			switch (transformSize)
 			{
 				case 2:
-					kernel_update_transform<T, 2, 5>(dwDesc, dwMem.data<T>(), matricesDesc, matricesMem.data<T>(), cpu::getAlphaValue<T>(alpha),
-							cpu::getBetaValue<T>(beta));
+					kernel_update_transform<T, 2, 5>(dwDesc, dwMem.data<T>(), matricesDesc, matricesMem.data<T>(), getAlphaValue<T>(alpha),
+							getBetaValue<T>(beta));
 					return AVOCADO_STATUS_SUCCESS;
 				default:
 					return AVOCADO_STATUS_NOT_SUPPORTED;
@@ -872,6 +870,7 @@ namespace
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 	avStatus_t cpu_winogradWeightTransform(const ContextDescriptor &context, const ConvolutionDescriptor &config, int transformSize,
 			const TensorDescriptor &wDesc, const MemoryDescriptor &wMem, const TensorDescriptor &matricesDesc, MemoryDescriptor &matricesMem)

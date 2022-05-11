@@ -6,17 +6,17 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 #include "../vectors/simd_macros.hpp"
 
 namespace
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
-	void kernel_im2row_2d(const cpu::ConvolutionDescriptor &config, const cpu::TensorDescriptor &rowDesc, cpu::MemoryDescriptor &rowMem,
-			const cpu::TensorDescriptor &srcDesc, const cpu::MemoryDescriptor &srcMem, const cpu::TensorDescriptor &filterDesc,
-			cpu::MemoryDescriptor &workspace)
+	void kernel_im2row_2d(const ConvolutionDescriptor &config, const TensorDescriptor &rowDesc, MemoryDescriptor &rowMem,
+			const TensorDescriptor &srcDesc, const MemoryDescriptor &srcMem, const TensorDescriptor &filterDesc, MemoryDescriptor &workspace)
 	{
 		assert(rowMem.data() != nullptr);
 		assert(srcMem.data() != nullptr);
@@ -40,7 +40,7 @@ namespace
 
 		const bool no_dilation = (dilation_h == 1) and (dilation_w == 1);
 
-		const int dtype_size = cpu::dataTypeSize(srcDesc.dtype());
+		const int dtype_size = dataTypeSize(srcDesc.dtype());
 		const bool zero_padding = config.paddingWithZeros();
 
 		const int filter_size_in_bytes = input_filters * dtype_size;
@@ -52,7 +52,7 @@ namespace
 				std::memcpy(workspace.data<uint8_t>() + i, config.padding_value.data(), dtype_size);
 		}
 
-		cpu::TensorDescriptor output_shape = config.getOutputShape(srcDesc, filterDesc);
+		TensorDescriptor output_shape = config.getOutputShape(srcDesc, filterDesc);
 
 #pragma omp parallel for
 		for (int b = 0; b < batch_size; b++)
@@ -122,6 +122,7 @@ namespace
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 	avStatus_t cpu_im2row(const ContextDescriptor &context, const ConvolutionDescriptor &config, const TensorDescriptor &filterDesc,
 			const TensorDescriptor &srcDesc, const MemoryDescriptor &srcMem, const TensorDescriptor &rowDesc, MemoryDescriptor &rowMem)

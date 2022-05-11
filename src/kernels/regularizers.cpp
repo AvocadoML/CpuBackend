@@ -6,7 +6,7 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 #include "../vectors/simd_vectors.hpp"
 #include "../utils.hpp"
@@ -16,6 +16,7 @@
 namespace
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 	using namespace SIMD_NAMESPACE;
 
 	template<typename T>
@@ -63,6 +64,7 @@ namespace
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 	avStatus_t cpu_regularizerL2(const ContextDescriptor &context, const TensorDescriptor &dwDesc, MemoryDescriptor &dwMem,
 			const TensorDescriptor &wDesc, const MemoryDescriptor &wMem, const void *coefficient, const void *offset, void *loss)
@@ -72,25 +74,24 @@ namespace SIMD_NAMESPACE
 		{
 			case AVOCADO_DTYPE_FLOAT32:
 			{
-				kernel_regularizer_l2(dwMem.data<float>(), wMem.data<float>(), cpu::getScalarValue<float>(coefficient),
-						cpu::getScalarValue<float>(offset), elements);
+				kernel_regularizer_l2(dwMem.data<float>(), wMem.data<float>(), getScalarValue<float>(coefficient), getScalarValue<float>(offset),
+						elements);
 				if (loss != nullptr)
 				{
-					float l2_loss = kernel_loss_l2(wMem.data<float>(), cpu::getScalarValue<float>(coefficient), cpu::getScalarValue<float>(offset),
-							elements);
-					cpu::setScalarValue(loss, l2_loss);
+					float l2_loss = kernel_loss_l2(wMem.data<float>(), getScalarValue<float>(coefficient), getScalarValue<float>(offset), elements);
+					setScalarValue(loss, l2_loss);
 				}
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
-				kernel_regularizer_l2(dwMem.data<double>(), wMem.data<double>(), cpu::getScalarValue<double>(coefficient),
-						cpu::getScalarValue<double>(offset), elements);
+				kernel_regularizer_l2(dwMem.data<double>(), wMem.data<double>(), getScalarValue<double>(coefficient), getScalarValue<double>(offset),
+						elements);
 				if (loss != nullptr)
 				{
-					double l2_loss = kernel_loss_l2(wMem.data<double>(), cpu::getScalarValue<double>(coefficient),
-							cpu::getScalarValue<double>(offset), elements);
-					cpu::setScalarValue(loss, l2_loss);
+					double l2_loss = kernel_loss_l2(wMem.data<double>(), getScalarValue<double>(coefficient), getScalarValue<double>(offset),
+							elements);
+					setScalarValue(loss, l2_loss);
 				}
 				break;
 			}

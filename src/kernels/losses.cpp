@@ -6,7 +6,7 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 #include "array_utils.hpp"
 
 #include "../vectors/simd_vectors.hpp"
@@ -16,6 +16,7 @@
 namespace
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 	using namespace SIMD_NAMESPACE;
 
 	template<typename T>
@@ -123,8 +124,7 @@ namespace
 		}
 	}
 	template<typename T>
-	void launcher_gradient(avLossType_t lossType, T *gradient, const T *output, const T *target, int elements, T alpha, T beta, bool fused)
-	noexcept
+	void launcher_gradient(avLossType_t lossType, T *gradient, const T *output, const T *target, int elements, T alpha, T beta, bool fused) noexcept
 	{
 		switch (lossType)
 		{
@@ -155,6 +155,7 @@ namespace
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 	avStatus_t cpu_lossFunction(const ContextDescriptor &context, avLossType_t lossType, const TensorDescriptor &outputDesc,
 			const MemoryDescriptor &outputMem, const TensorDescriptor &targetDesc, const MemoryDescriptor &targetMem, void *result)
@@ -189,13 +190,13 @@ namespace SIMD_NAMESPACE
 			case AVOCADO_DTYPE_FLOAT32:
 			{
 				launcher_gradient(lossType, gradientMem.data<float>(), outputMem.data<float>(), targetMem.data<float>(), elements,
-						cpu::getAlphaValue(alpha), cpu::getBetaValue(beta), isFused);
+						getAlphaValue(alpha), getBetaValue(beta), isFused);
 				break;
 			}
 			case AVOCADO_DTYPE_FLOAT64:
 			{
 				launcher_gradient(lossType, gradientMem.data<double>(), outputMem.data<double>(), targetMem.data<double>(), elements,
-						cpu::getAlphaValue<double>(alpha), cpu::getBetaValue<double>(beta), isFused);
+						getAlphaValue<double>(alpha), getBetaValue<double>(beta), isFused);
 				break;
 			}
 			default:

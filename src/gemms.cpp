@@ -6,7 +6,7 @@
  */
 
 #include "kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 #if USE_BLIS
 #  ifdef __GNUC__
@@ -20,33 +20,33 @@
 #endif
 
 #if USE_OPENBLAS
-#    ifdef __linux__
-#      include <openblas/include/cblas.h>
-#    else
-#      include <openblas/cblas.h>
-#    endif
+#  include <cblas.h>
 #endif
+
+#include <complex>
 
 namespace avocado
 {
 	namespace backend
 	{
-		avStatus_t cpu_gemm(const cpu::ContextDescriptor &context, avGemmOperation_t aOp, avGemmOperation_t bOp, const void *alpha,
-				const cpu::TensorDescriptor &aDesc, const cpu::MemoryDescriptor &aMem, const cpu::TensorDescriptor &bDesc,
-				const cpu::MemoryDescriptor &bMem, const void *beta, const cpu::TensorDescriptor &cDesc, cpu::MemoryDescriptor &cMem)
+		using namespace BACKEND_NAMESPACE;
+
+		avStatus_t cpu_gemm(const ContextDescriptor &context, avGemmOperation_t aOp, avGemmOperation_t bOp, const void *alpha,
+				const TensorDescriptor &aDesc, const MemoryDescriptor &aMem, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem,
+				const void *beta, const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
 		{
 #if USE_BLIS
-			trans_t op_A = cpu::is_transpose(aOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
-			trans_t op_B = cpu::is_transpose(bOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
+			trans_t op_A = is_transpose(aOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
+			trans_t op_B = is_transpose(bOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
 #endif
 #if USE_OPENBLAS
-			CBLAS_TRANSPOSE op_A = cpu::is_transpose(aOp) ? CblasTrans : CblasNoTrans;
-			CBLAS_TRANSPOSE op_B = cpu::is_transpose(bOp) ? CblasTrans : CblasNoTrans;
+			CBLAS_TRANSPOSE op_A = is_transpose(aOp) ? CblasTrans : CblasNoTrans;
+			CBLAS_TRANSPOSE op_B = is_transpose(bOp) ? CblasTrans : CblasNoTrans;
 #endif
 
-			int M = cpu::is_transpose(aOp) ? aDesc.dimension(1) : aDesc.dimension(0);
-			int N = cpu::is_transpose(bOp) ? bDesc.dimension(0) : bDesc.dimension(1);
-			int K = cpu::is_transpose(aOp) ? aDesc.dimension(0) : aDesc.dimension(1);
+			int M = is_transpose(aOp) ? aDesc.dimension(1) : aDesc.dimension(0);
+			int N = is_transpose(bOp) ? bDesc.dimension(0) : bDesc.dimension(1);
+			int K = is_transpose(aOp) ? aDesc.dimension(0) : aDesc.dimension(1);
 
 			int LDA = aDesc.dimension(1);
 			int LDB = bDesc.dimension(1);
@@ -56,11 +56,11 @@ namespace avocado
 			{
 //				case AVOCADO_DTYPE_BFLOAT16:
 //				{
-//					float c_alpha = cpu::getAlphaValue<float>(alpha);
-//					float c_beta = cpu::getBetaValue<float>(beta);
-//					const uint16_t *A_ptr = cpu::getPointer<uint16_t>(aMem);
-//					const uint16_t *B_ptr = cpu::getPointer<uint16_t>(bMem);
-//					float *C_ptr = cpu::getPointer<float>(cMem);
+//					float c_alpha = getAlphaValue<float>(alpha);
+//					float c_beta = getBetaValue<float>(beta);
+//					const uint16_t *A_ptr = getPointer<uint16_t>(aMem);
+//					const uint16_t *B_ptr = getPointer<uint16_t>(bMem);
+//					float *C_ptr = getPointer<float>(cMem);
 //#if USE_OPENBLAS
 //					cblas_sbgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, c_alpha, A_ptr, LDA, B_ptr, LDB, c_beta, C_ptr, LDC);
 //#endif
@@ -68,8 +68,8 @@ namespace avocado
 //				}
 				case AVOCADO_DTYPE_FLOAT32:
 				{
-					float c_alpha = cpu::getAlphaValue<float>(alpha);
-					float c_beta = cpu::getBetaValue<float>(beta);
+					float c_alpha = getAlphaValue<float>(alpha);
+					float c_beta = getBetaValue<float>(beta);
 					const float *A_ptr = aMem.data<float>();
 					const float *B_ptr = bMem.data<float>();
 					float *C_ptr = cMem.data<float>();
@@ -85,8 +85,8 @@ namespace avocado
 				}
 				case AVOCADO_DTYPE_FLOAT64:
 				{
-					double c_alpha = cpu::getAlphaValue<double>(alpha);
-					double c_beta = cpu::getBetaValue<double>(beta);
+					double c_alpha = getAlphaValue<double>(alpha);
+					double c_beta = getBetaValue<double>(beta);
 					const double *A_ptr = aMem.data<double>();
 					const double *B_ptr = bMem.data<double>();
 					double *C_ptr = cMem.data<double>();
@@ -101,8 +101,8 @@ namespace avocado
 				}
 				case AVOCADO_DTYPE_COMPLEX32:
 				{
-					std::complex<float> c_alpha = cpu::getAlphaValue<std::complex<float>>(alpha);
-					std::complex<float> c_beta = cpu::getBetaValue<std::complex<float>>(beta);
+					std::complex<float> c_alpha = getAlphaValue<std::complex<float>>(alpha);
+					std::complex<float> c_beta = getBetaValue<std::complex<float>>(beta);
 					const std::complex<float> *A_ptr = aMem.data<std::complex<float>>();
 					const std::complex<float> *B_ptr = bMem.data<std::complex<float>>();
 					std::complex<float> *C_ptr = cMem.data<std::complex<float>>();
@@ -117,8 +117,8 @@ namespace avocado
 				}
 				case AVOCADO_DTYPE_COMPLEX64:
 				{
-					std::complex<double> c_alpha = cpu::getAlphaValue<std::complex<double>>(alpha);
-					std::complex<double> c_beta = cpu::getBetaValue<std::complex<double>>(beta);
+					std::complex<double> c_alpha = getAlphaValue<std::complex<double>>(alpha);
+					std::complex<double> c_beta = getBetaValue<std::complex<double>>(beta);
 					const std::complex<double> *A_ptr = aMem.data<std::complex<double>>();
 					const std::complex<double> *B_ptr = bMem.data<std::complex<double>>();
 					std::complex<double> *C_ptr = cMem.data<std::complex<double>>();
@@ -135,21 +135,21 @@ namespace avocado
 					return AVOCADO_STATUS_UNSUPPORTED_DATATYPE;
 			}
 		}
-		avStatus_t cpu_gemmBatched(const cpu::ContextDescriptor &context, avGemmOperation_t aOp, avGemmOperation_t bOp, const void *alpha,
-				const cpu::TensorDescriptor &aDesc, const cpu::MemoryDescriptor &aMem, const cpu::TensorDescriptor &bDesc,
-				const cpu::MemoryDescriptor &bMem, const void *beta, const cpu::TensorDescriptor &cDesc, cpu::MemoryDescriptor &cMem)
+		avStatus_t cpu_gemmBatched(const ContextDescriptor &context, avGemmOperation_t aOp, avGemmOperation_t bOp, const void *alpha,
+				const TensorDescriptor &aDesc, const MemoryDescriptor &aMem, const TensorDescriptor &bDesc, const MemoryDescriptor &bMem,
+				const void *beta, const TensorDescriptor &cDesc, MemoryDescriptor &cMem)
 		{
 #if USE_BLIS
-			trans_t op_A = cpu::is_transpose(aOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
-			trans_t op_B = cpu::is_transpose(bOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
+			trans_t op_A = is_transpose(aOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
+			trans_t op_B = is_transpose(bOp) ? BLIS_TRANSPOSE : BLIS_NO_TRANSPOSE;
 #endif
 #if USE_OPENBLAS
-			CBLAS_TRANSPOSE op_A = cpu::is_transpose(aOp) ? CblasTrans : CblasNoTrans;
-			CBLAS_TRANSPOSE op_B = cpu::is_transpose(bOp) ? CblasTrans : CblasNoTrans;
+			CBLAS_TRANSPOSE op_A = is_transpose(aOp) ? CblasTrans : CblasNoTrans;
+			CBLAS_TRANSPOSE op_B = is_transpose(bOp) ? CblasTrans : CblasNoTrans;
 #endif
-			int M = cpu::is_transpose(aOp) ? aDesc.dimension(2) : aDesc.dimension(1);
-			int N = cpu::is_transpose(bOp) ? bDesc.dimension(1) : bDesc.dimension(2);
-			int K = cpu::is_transpose(aOp) ? aDesc.dimension(1) : aDesc.dimension(2);
+			int M = is_transpose(aOp) ? aDesc.dimension(2) : aDesc.dimension(1);
+			int N = is_transpose(bOp) ? bDesc.dimension(1) : bDesc.dimension(2);
+			int K = is_transpose(aOp) ? aDesc.dimension(1) : aDesc.dimension(2);
 
 			int LDA = aDesc.dimension(2);
 			int LDB = bDesc.dimension(2);
@@ -159,13 +159,13 @@ namespace avocado
 			{
 //				case AVOCADO_DTYPE_BFLOAT16:
 //				{
-//					float c_alpha = cpu::getAlphaValue<float>(alpha);
-//					float c_beta = cpu::getBetaValue<float>(beta);
+//					float c_alpha = getAlphaValue<float>(alpha);
+//					float c_beta = getBetaValue<float>(beta);
 //					for (int i = 0; i < aDesc).firstDim(); i++)
 //					{
-//						const uint16_t *A_ptr = cpu::getPointer<uint16_t>(aMem) + i * M * K;
-//						const uint16_t *B_ptr = cpu::getPointer<uint16_t>(bMem) + i * N * K;
-//						float *C_ptr = cpu::getPointer<float>(cMem) + i * M * N;
+//						const uint16_t *A_ptr = getPointer<uint16_t>(aMem) + i * M * K;
+//						const uint16_t *B_ptr = getPointer<uint16_t>(bMem) + i * N * K;
+//						float *C_ptr = getPointer<float>(cMem) + i * M * N;
 //#if USE_OPENBLAS
 //						cblas_sbgemm(CBLAS_ORDER::CblasRowMajor, op_A, op_B, M, N, K, c_alpha, A_ptr, LDA, B_ptr, LDB, c_beta, C_ptr, LDC);
 //#endif
@@ -174,8 +174,8 @@ namespace avocado
 //				}
 				case AVOCADO_DTYPE_FLOAT32:
 				{
-					float c_alpha = cpu::getAlphaValue<float>(alpha);
-					float c_beta = cpu::getBetaValue<float>(beta);
+					float c_alpha = getAlphaValue<float>(alpha);
+					float c_beta = getBetaValue<float>(beta);
 					for (int i = 0; i < aDesc.firstDim(); i++)
 					{
 						const float *A_ptr = aMem.data<float>() + i * M * K;
@@ -193,8 +193,8 @@ namespace avocado
 				}
 				case AVOCADO_DTYPE_FLOAT64:
 				{
-					double c_alpha = cpu::getAlphaValue<double>(alpha);
-					double c_beta = cpu::getBetaValue<double>(beta);
+					double c_alpha = getAlphaValue<double>(alpha);
+					double c_beta = getBetaValue<double>(beta);
 					for (int i = 0; i < aDesc.firstDim(); i++)
 					{
 						const double *A_ptr = aMem.data<double>() + i * M * K;
@@ -212,8 +212,8 @@ namespace avocado
 				}
 				case AVOCADO_DTYPE_COMPLEX32:
 				{
-					std::complex<float> c_alpha = cpu::getAlphaValue<std::complex<float>>(alpha);
-					std::complex<float> c_beta = cpu::getBetaValue<std::complex<float>>(beta);
+					std::complex<float> c_alpha = getAlphaValue<std::complex<float>>(alpha);
+					std::complex<float> c_beta = getBetaValue<std::complex<float>>(beta);
 					for (int i = 0; i < aDesc.firstDim(); i++)
 					{
 						const std::complex<float> *A_ptr = aMem.data<std::complex<float>>() + i * M * K;
@@ -231,8 +231,8 @@ namespace avocado
 				}
 				case AVOCADO_DTYPE_COMPLEX64:
 				{
-					std::complex<double> c_alpha = cpu::getAlphaValue<std::complex<double>>(alpha);
-					std::complex<double> c_beta = cpu::getBetaValue<std::complex<double>>(beta);
+					std::complex<double> c_alpha = getAlphaValue<std::complex<double>>(alpha);
+					std::complex<double> c_beta = getBetaValue<std::complex<double>>(beta);
 					for (int i = 0; i < aDesc.firstDim(); i++)
 					{
 						const std::complex<double> *A_ptr = aMem.data<std::complex<double>>() + i * M * K;

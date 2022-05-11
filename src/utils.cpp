@@ -6,7 +6,7 @@
  */
 
 #include "kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 namespace avocado
 {

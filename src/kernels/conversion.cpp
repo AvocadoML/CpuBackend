@@ -6,7 +6,7 @@
  */
 
 #include "../kernel_definitions.hpp"
-#include <backend_descriptors.hpp>
+#include <Avocado/backend_descriptors.hpp>
 
 #include "../vectors/simd_vectors.hpp"
 #include "../utils.hpp"
@@ -16,6 +16,7 @@
 namespace
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 	using namespace SIMD_NAMESPACE;
 
 	template<typename T, typename U>
@@ -199,13 +200,14 @@ namespace
 namespace SIMD_NAMESPACE
 {
 	using namespace avocado::backend;
+	using namespace avocado::backend::BACKEND_NAMESPACE;
 
 	avStatus_t cpu_changeTypeHost(const ContextDescriptor &context, void *dst, avDataType_t dstType, const void *src, avDataType_t srcType,
 			av_int64 elements)
 	{
 		if (dst == nullptr or src == nullptr)
 			return AVOCADO_STATUS_BAD_PARAM;
-		if (dst == src and cpu::dataTypeSize(dstType) != cpu::dataTypeSize(srcType))
+		if (dst == src and dataTypeSize(dstType) != dataTypeSize(srcType))
 			return AVOCADO_STATUS_BAD_PARAM;
 		switch (dstType)
 		{
