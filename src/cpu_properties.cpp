@@ -300,9 +300,9 @@ namespace
 					cores = sysconf( _SC_NPROCESSORS_ONLN);
 #endif // defined(_WIN32)
 
-//			unsigned int ncores = 0, nthreads = 0;
-//			asm volatile("cpuid": "=a" (ncores), "=b" (nthreads) : "a" (0xb), "c" (0x1) : );
-				}
+//				unsigned int ncores = 0, nthreads = 0;
+//				asm volatile("cpuid": "=a" (ncores), "=b" (nthreads) : "a" (0xb), "c" (0x1) : );
+			}
 				if (nIds >= 0x00000007)
 				{
 					cpuid(info, 0x00000007, 0);
@@ -459,7 +459,7 @@ namespace avocado
 					reinterpret_cast<int64_t*>(result)[0] = features.memory;
 					break;
 				case AVOCADO_DEVICE_SUPPORTS_HALF_PRECISION:
-					reinterpret_cast<bool*>(result)[0] = features.HW_F16C;
+					reinterpret_cast<bool*>(result)[0] = features.HW_F16C and features.OS_AVX and features.HW_AVX;
 					break;
 				case AVOCADO_DEVICE_SUPPORTS_BFLOAT16:
 					reinterpret_cast<bool*>(result)[0] = features.HW_SSE41;
@@ -514,7 +514,6 @@ namespace avocado
 			}
 			return AVOCADO_STATUS_SUCCESS;
 		}
-
 	}
 /* namespace backend */
 } /* namespace avocado */
