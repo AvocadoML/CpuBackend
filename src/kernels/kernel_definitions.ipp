@@ -169,4 +169,5 @@ avStatus_t cpu_regularizerL2(const ContextDescriptor &context, const TensorDescr
 /*
  * Additional kernels that are not exposed in the main API
  */
+double cpu_compute_banchmark(avDataType_t dtype, size_t iterations);
 

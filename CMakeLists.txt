@@ -6,8 +6,8 @@ option(BUILD_WITH_OPENBLAS "Use OpenBlas for linear algebra on CPU?" ON)
 option(DYNAMIC_ARCH "Use runtime dispatching of simd code" OFF)
 option(ENABLE_FAST_MATH "Use fast arithmetic functions in few places" OFF)
 option(BUILD_SHARED_LIBS "Build shared library?" OFF)
-set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Choose debug postfix")
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose build type")
+set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Choose debug postfix" FORCE)
+set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose build type" FORCE)
 set(PATH_TO_COMMON_UTILS "${PROJECT_SOURCE_DIR}/../CommonBackendUtils" CACHE STRING "Path to the common backend utils project")
 
 set(commonsrc 	${PATH_TO_COMMON_UTILS}/src/descriptors/ContextDescriptor.cpp

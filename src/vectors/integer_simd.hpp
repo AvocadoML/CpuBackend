@@ -143,15 +143,15 @@ namespace SIMD_NAMESPACE
 			{
 				assert(index >= 0 && index < length);
 				T tmp[length];
-				storeu(tmp);
+				store(tmp);
 				tmp[index] = value;
-				loadu(tmp);
+				load(tmp);
 			}
 			T extract(int index) const noexcept
 			{
 				assert(index >= 0 && index < length);
 				T tmp[length];
-				storeu(tmp);
+				store(tmp);
 				return tmp[index];
 			}
 			T operator[](int index) const noexcept

@@ -60,6 +60,7 @@
 #endif
 
 /* These are intended for use in other source files */
+#define SUPPORTS_AVX512 0
 #define SUPPORTS_AVX2 (SIMD_LEVEL >= 8)
 #define SUPPORTS_FP16 defined(__F16C__)
 #define SUPPORTS_AVX (SIMD_LEVEL >= 7)

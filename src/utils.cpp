@@ -8,6 +8,45 @@
 #include "kernel_definitions.hpp"
 #include <Avocado/backend_descriptors.hpp>
 
+namespace
+{
+	using namespace avocado::backend;
+	bool supports_simd(avDeviceProperty_t prop)
+	{
+		bool result = false;
+		avStatus_t status = cpuGetDeviceProperty(prop, &result);
+		assert(status == AVOCADO_STATUS_SUCCESS);
+		return result;
+	}
+	SimdLevel check_supported_simd_level()
+	{
+//		if (supports_simd(AVOCADO_DEVICE_SUPPORTS_AVX512_VL_BW_DQ))
+//			return SimdLevel::AVX512VL_BW_DQ;
+//		if (supports_simd(AVOCADO_DEVICE_SUPPORTS_AVX512_F))
+//			return SimdLevel::AVX512F;
+		if (supports_simd(AVOCADO_DEVICE_SUPPORTS_AVX2))
+			return SimdLevel::AVX2;
+		if (supports_simd(AVOCADO_DEVICE_SUPPORTS_HALF_PRECISION))
+			return SimdLevel::F16C;
+		if (supports_simd(AVOCADO_DEVICE_SUPPORTS_AVX))
+			return SimdLevel::AVX;
+//		if (supports_simd(AVOCADO_DEVICE_SUPPORTS_SSE42))
+//			return SimdLevel::SSE42;
+		if (supports_simd(AVOCADO_DEVICE_SUPPORTS_SSE41))
+			return SimdLevel::SSE41;
+//		if (supports_simd(AVOCADO_DEVICE_SUPPORTS_SSSE3))
+//			return SimdLevel::SSSE3;
+//		if (supports_simd(AVOCADO_DEVICE_SUPPORTS_SSE3))
+//			return SimdLevel::SSE3;
+		if (supports_simd(AVOCADO_DEVICE_SUPPORTS_SSE2))
+			return SimdLevel::SSE2;
+//		if (supports_simd(AVOCADO_DEVICE_SUPPORTS_SSE))
+//			return SimdLevel::SSE;
+		return SimdLevel::NONE;
+	}
+
+}
+
 namespace avocado
 {
 	namespace backend
@@ -162,6 +201,70 @@ namespace avocado
 //				filter_tiles *= wDesc.dimension(i);
 //			return cpu::TensorDescriptor( { output_tiles, filter_tiles }, xDesc.dtype());
 //		}
+
+		std::string toString(SimdLevel sl)
+		{
+			switch (sl)
+			{
+				default:
+				case SimdLevel::NONE:
+					return "NONE";
+				case SimdLevel::SSE:
+					return "SSE";
+				case SimdLevel::SSE2:
+					return "SSE2";
+				case SimdLevel::SSE3:
+					return "SSE3";
+				case SimdLevel::SSSE3:
+					return "SSSE3";
+				case SimdLevel::SSE41:
+					return "SSE41";
+				case SimdLevel::SSE42:
+					return "SSE42";
+				case SimdLevel::AVX:
+					return "AVX";
+				case SimdLevel::F16C:
+					return "F16C";
+				case SimdLevel::AVX2:
+					return "AVX2";
+				case SimdLevel::AVX512F:
+					return "AVX512F";
+				case SimdLevel::AVX512VL_BW_DQ:
+					return "AVX512VL_BW_DQ";
+			}
+		}
+		SimdLevel simdLevelFromString(const std::string &str)
+		{
+			if (str == "AVX512VL_BW_DQ")
+				return SimdLevel::AVX512VL_BW_DQ;
+			if (str == "AVX512F")
+				return SimdLevel::AVX512F;
+			if (str == "AVX2")
+				return SimdLevel::AVX2;
+			if (str == "F16C")
+				return SimdLevel::F16C;
+			if (str == "AVX")
+				return SimdLevel::AVX;
+			if (str == "SSE42")
+				return SimdLevel::SSE42;
+			if (str == "SSE41")
+				return SimdLevel::SSE41;
+			if (str == "SSSE3")
+				return SimdLevel::SSSE3;
+			if (str == "SSE3")
+				return SimdLevel::SSE3;
+			if (str == "SSE2")
+				return SimdLevel::SSE2;
+			if (str == "SSE")
+				return SimdLevel::SSE;
+			return SimdLevel::NONE;
+		}
+
+		SimdLevel getSimdSupport() noexcept
+		{
+			static const SimdLevel supported_simd_level = check_supported_simd_level();
+			return supported_simd_level;
+		}
 	}
 }
 

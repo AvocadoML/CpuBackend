@@ -163,8 +163,14 @@ namespace SIMD_NAMESPACE
 			}
 			float extract(int index) const noexcept
 			{
+#if SUPPORTS_AVX512
 				return 0.0f; // FIXME
-//				return m_data.extract(index);
+#else
+				assert(index >= 0 && index < length);
+				float tmp[length];
+				store(tmp);
+				return tmp[index];
+#endif
 			}
 			float operator[](int index) const noexcept
 			{
