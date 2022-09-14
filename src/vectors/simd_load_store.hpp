@@ -37,7 +37,7 @@ namespace SIMD_NAMESPACE
 	}
 	static inline void partial_store(__m128d reg, double *ptr, const int num) noexcept
 	{
-		assert(num > 0 && num <= 2);
+		assert(num >= 0 && num <= 2);
 		switch (num)
 		{
 			case 1:
@@ -73,7 +73,7 @@ namespace SIMD_NAMESPACE
 	}
 	static inline void partial_store(__m128 reg, float *ptr, const int num) noexcept
 	{
-		assert(num > 0 && num <= 4);
+		assert(num >= 0 && num <= 4);
 		switch (num)
 		{
 			case 1:
