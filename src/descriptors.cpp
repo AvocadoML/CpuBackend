@@ -8,6 +8,7 @@
 #include <Avocado/cpu_backend.h>
 #include <Avocado/backend_descriptors.hpp>
 
+#include <iostream>
 #include <omp.h>
 
 #if USE_BLIS
@@ -65,7 +66,6 @@ namespace avocado
 		}
 		avStatus_t cpuCreateMemoryView(avMemoryDescriptor_t *result, const avMemoryDescriptor_t desc, av_int64 sizeInBytes, av_int64 offsetInBytes)
 		{
-//			std::cout << __FUNCTION__ << "() owning memory = " << desc << ", view size = " << sizeInBytes << ", offset = " << offsetInBytes << '\n';
 			return create_descriptor<MemoryDescriptor>(result, getMemory(desc), sizeInBytes, offsetInBytes);
 		}
 		avStatus_t cpuDestroyMemoryDescriptor(avMemoryDescriptor_t desc)

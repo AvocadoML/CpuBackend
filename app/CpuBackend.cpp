@@ -853,8 +853,734 @@ void print_defined_flags()
  std::cout << diff<float>(matrix, matrix3) << '\n';
  }
  */
+
+using namespace SIMD_NAMESPACE;
+
+template<typename T>
+class Data
+{
+		std::vector<T> m_data;
+	public:
+		class reference
+		{
+				friend class Data;
+				T *m_ptr = nullptr;
+				int m_size = 0;
+				reference(T *ptr, size_t size) :
+						m_ptr(ptr),
+						m_size(size)
+				{
+				}
+			public:
+				reference& operator=(const SIMD<T> &x) noexcept
+				{
+					x.store(m_ptr, std::min(SIMD<T>::length, m_size));
+					return *this;
+				}
+				operator SIMD<T>() const noexcept
+				{
+					return SIMD<T>(m_ptr, std::min(SIMD<T>::length, m_size));
+				}
+		};
+		class const_reference
+		{
+				friend class Data;
+				const T *m_ptr = nullptr;
+				int m_size = 0;
+				const_reference(const T *ptr, size_t size) :
+						m_ptr(ptr),
+						m_size(size)
+				{
+				}
+			public:
+				operator SIMD<T>() const noexcept
+				{
+					return SIMD<T>(m_ptr, std::min(SIMD<T>::length, m_size));
+				}
+		};
+		Data() = default;
+		Data(size_t size) :
+				m_data(size, T { })
+		{
+		}
+		reference at(int index) noexcept
+		{
+			return reference(m_data.data() + index, m_data.size() - index);
+		}
+		const_reference at(int index) const noexcept
+		{
+			return const_reference(m_data.data() + index, m_data.size() - index);
+		}
+};
+
+template<typename T, int N>
+class Fragment
+{
+		SIMD<T> m_data[N];
+	public:
+		Fragment() = default;
+		void set(T x) noexcept
+		{
+			for (int i = 0; i < N; i++)
+				m_data[i] = x;
+		}
+		void load(const Data<T> &data, int offset)
+		{
+			for (int i = 0; i < N; i++)
+				m_data[i] = data.at(offset + i * SIMD<T>::length);
+		}
+		void store(Data<T> &data, int offset) const
+		{
+			for (int i = 0; i < N; i++)
+				data.at(offset + i * SIMD<T>::length) = m_data[i];
+		}
+		SIMD<T> operator[](int index) const noexcept
+		{
+			return m_data[index];
+		}
+		SIMD<T>& operator[](int index) noexcept
+		{
+			return m_data[index];
+		}
+		constexpr int size() const noexcept
+		{
+			return N;
+		}
+};
+
+/*
+ * Operations classification
+ * - nullary
+ * - unary (trivial)
+ * - unary (compound)
+ * - binary (trivial)
+ * - binary (compound)
+ * - ternary (trivial) are there any compound ternary operations?
+ */
+
+enum class UnaryOp
+{
+	ABS,
+	CEIL,
+	COS,
+	EXP,
+	FLOOR,
+	LOG,
+	NEG,
+	RCP,
+	RSQRT,
+	SIN,
+	SQUARE,
+	SQRT,
+	TAN,
+	LOGICAL_NOT
+};
+enum class BinaryOp
+{
+	ADD,
+	SUB,
+	MUL,
+	DIV,
+	MOD,
+	POW,
+	MIN,
+	MAX,
+	COMPARE_EQ,
+	COMPARE_NEQ,
+	COMPARE_GT,
+	COMPARE_GE,
+	COMPARE_LT,
+	COMPARE_LE,
+	LOGICAL_AND,
+	LOGICAL_OR,
+	LOGICAL_XOR,
+	CROSS_ENTROPY
+};
+enum class TernaryOp
+{
+	SELECT,
+	MUL_ADD,
+	MUL_SUB,
+	NEG_MUL_ADD,
+	NEG_MUL_SUB
+};
+
+template<typename T, int N>
+void unary_op(Fragment<T, N> &result, const Fragment<T, N> &x, UnaryOp op)
+{
+	switch (op)
+	{
+		case UnaryOp::ABS:
+			for (int i = 0; i < N; i++)
+				result[i] = abs(x[i]);
+			break;
+		case UnaryOp::CEIL:
+			for (int i = 0; i < N; i++)
+				result[i] = ceil(x[i]);
+			break;
+		case UnaryOp::COS:
+			for (int i = 0; i < N; i++)
+				result[i] = cos(x[i]);
+			break;
+		case UnaryOp::EXP:
+			for (int i = 0; i < N; i++)
+				result[i] = exp(x[i]);
+			break;
+		case UnaryOp::FLOOR:
+			for (int i = 0; i < N; i++)
+				result[i] = floor(x[i]);
+			break;
+		case UnaryOp::LOG:
+			for (int i = 0; i < N; i++)
+				result[i] = log(x[i]);
+			break;
+		case UnaryOp::NEG:
+			for (int i = 0; i < N; i++)
+				result[i] = -x[i];
+			break;
+		case UnaryOp::RCP:
+			for (int i = 0; i < N; i++)
+				result[i] = rcp(x[i]);
+			break;
+		case UnaryOp::RSQRT:
+			for (int i = 0; i < N; i++)
+				result[i] = rsqrt(x[i]);
+			break;
+		case UnaryOp::SIN:
+			for (int i = 0; i < N; i++)
+				result[i] = sin(x[i]);
+			break;
+		case UnaryOp::SQUARE:
+			for (int i = 0; i < N; i++)
+				result[i] = square(x[i]);
+			break;
+		case UnaryOp::SQRT:
+			for (int i = 0; i < N; i++)
+				result[i] = sqrt(x[i]);
+			break;
+		case UnaryOp::TAN:
+			for (int i = 0; i < N; i++)
+				result[i] = tan(x[i]);
+			break;
+		case UnaryOp::LOGICAL_NOT:
+			for (int i = 0; i < N; i++)
+				result[i] = ~x[i];
+			break;
+	}
+}
+template<typename T, int N>
+void binary_op(Fragment<T, N> &result, const Fragment<T, N> &lhs, const Fragment<T, N> &rhs, BinaryOp op)
+{
+	switch (op)
+	{
+		case BinaryOp::ADD:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] + rhs[i];
+			break;
+		case BinaryOp::SUB:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] - rhs[i];
+			break;
+		case BinaryOp::MUL:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] * rhs[i];
+			break;
+		case BinaryOp::DIV:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] / rhs[i];
+			break;
+		case BinaryOp::MOD:
+			for (int i = 0; i < N; i++)
+				result[i] = mod(lhs[i], rhs[i]);
+			break;
+		case BinaryOp::POW:
+			for (int i = 0; i < N; i++)
+				result[i] = pow(lhs[i], rhs[i]);
+			break;
+		case BinaryOp::MIN:
+			for (int i = 0; i < N; i++)
+				result[i] = min(lhs[i], rhs[i]);
+			break;
+		case BinaryOp::MAX:
+			for (int i = 0; i < N; i++)
+				result[i] = max(lhs[i], rhs[i]);
+			break;
+		case BinaryOp::COMPARE_EQ:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] == rhs[i];
+			break;
+		case BinaryOp::COMPARE_NEQ:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] != rhs[i];
+			break;
+		case BinaryOp::COMPARE_GT:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] > rhs[i];
+			break;
+		case BinaryOp::COMPARE_GE:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] >= rhs[i];
+			break;
+		case BinaryOp::COMPARE_LT:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] < rhs[i];
+			break;
+		case BinaryOp::COMPARE_LE:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] <= rhs[i];
+			break;
+		case BinaryOp::LOGICAL_AND:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] & rhs[i];
+			break;
+		case BinaryOp::LOGICAL_OR:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] | rhs[i];
+			break;
+		case BinaryOp::LOGICAL_XOR:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] ^ rhs[i];
+			break;
+		case BinaryOp::CROSS_ENTROPY:
+			for (int i = 0; i < N; i++)
+				result[i] = lhs[i] * log(rhs[i]) + (SIMD<T>::one() - lhs[i]) * log(SIMD<T>::one() - rhs[i]);
+			break;
+	}
+}
+template<typename T, int N>
+void ternary_op(Fragment<T, N> &result, const Fragment<T, N> &a, const Fragment<T, N> &b, const Fragment<T, N> &c, TernaryOp op)
+{
+	switch (op)
+	{
+		case TernaryOp::SELECT:
+			for (int i = 0; i < N; i++)
+				result[i] = select(a[i], b[i], c[i]);
+			break;
+		case TernaryOp::MUL_ADD:
+			for (int i = 0; i < N; i++)
+				result[i] = mul_add(a[i], b[i], c[i]);
+			break;
+		case TernaryOp::MUL_SUB:
+			for (int i = 0; i < N; i++)
+				result[i] = mul_sub(a[i], b[i], c[i]);
+			break;
+		case TernaryOp::NEG_MUL_ADD:
+			for (int i = 0; i < N; i++)
+				result[i] = neg_mul_add(a[i], b[i], c[i]);
+			break;
+		case TernaryOp::NEG_MUL_SUB:
+			for (int i = 0; i < N; i++)
+				result[i] = neg_mul_sub(a[i], b[i], c[i]);
+			break;
+	}
+}
+
+void compute_v0(int elements)
+{
+	Data<float> data[5];
+	for (int i = 0; i < 5; i++)
+		data[i] = Data<float>(elements);
+
+	const double start = omp_get_wtime();
+//	for (int i = 0; i < elements; i += SIMD<float>::length)
+//	{
+//		SIMD<float> load = data[0].at(i);
+//		data[1].at(i) = square(load);
+//	}
+//	for (int i = 0; i < elements; i += SIMD<float>::length)
+//	{
+//		SIMD<float> load = data[2].at(i);
+//		data[3].at(i) = abs(load);
+//	}
+//	for (int i = 0; i < elements; i += SIMD<float>::length)
+//	{
+//		SIMD<float> lhs = data[1].at(i);
+//		SIMD<float> rhs = data[3].at(i);
+//		data[3].at(i) = max(lhs, rhs);
+//	}
+//	for (int i = 0; i < elements; i += SIMD<float>::length)
+//	{
+//		SIMD<float> lhs = data[1].at(i);
+//		SIMD<float> rhs = data[3].at(i);
+//		SIMD<float> dst = data[4].at(i);
+//		data[4].at(i) = mul_add(lhs, rhs, dst);
+//	}
+//	for (int i = 0; i < elements; i += SIMD<float>::length)
+//	{
+//		SIMD<float> rhs = data[3].at(i);
+//		data[4].at(i) = log(rhs);
+//	}
+
+	for (int i = 0; i < elements; i += SIMD<float>::length)
+	{
+		SIMD<float> lhs = data[0].at(i);
+		SIMD<float> rhs = data[1].at(i);
+		SIMD<float> dst = lhs * log(rhs) + (SIMD<float>::one() - lhs) * log(SIMD<float>::one() - rhs);
+		data[2].at(i) = dst;
+	}
+	const double stop = omp_get_wtime();
+	std::cout << 1000 * (stop - start) << "ms (base)\n";
+}
+void compute_v1(int elements)
+{
+	std::vector<float> data1(elements, 0.0f);
+	std::vector<float> data2(elements, 0.0f);
+	std::vector<float> data3(elements, 0.0f);
+
+	double start = omp_get_wtime();
+	for (int i = 0; i < elements; i += SIMD<float>::length)
+	{
+		const int to_load = std::min(elements - i, SIMD<float>::length);
+		SIMD<float> load1(data1.data() + i, to_load);
+		SIMD<float> load2(data2.data() + i, to_load);
+
+		SIMD<float> tmp = square(load1) * abs(load2);
+		tmp.store(data3.data() + i, to_load);
+	}
+	double stop = omp_get_wtime();
+	std::cout << 1000 * (stop - start) << "ms\n";
+}
+void compute_v2(int elements)
+{
+	std::vector<float> data1(elements, 0.0f);
+	std::vector<float> data2(elements, 0.0f);
+	std::vector<float> data3(elements, 0.0f);
+
+	constexpr int fragment_size = 8;
+	SIMD<float> fragment_1[fragment_size];
+	SIMD<float> fragment_2[fragment_size];
+	const double start = omp_get_wtime();
+	for (int i = 0; i < elements; i += fragment_size)
+	{
+		for (int j = 0, k = 0; j < fragment_size; j += SIMD<float>::length, k++)
+		{
+			const int to_load = std::min(elements - i - j, SIMD<float>::length);
+			SIMD<float> load1(data1.data() + i + j, to_load);
+			load1 = square(load1);
+			fragment_1[k] = load1;
+		}
+		for (int j = 0, k = 0; j < fragment_size; j += SIMD<float>::length, k++)
+		{
+			const int to_load = std::min(elements - i - j, SIMD<float>::length);
+			SIMD<float> load2(data2.data() + i + j, to_load);
+			load2 = abs(load2);
+			fragment_2[k] = load2;
+		}
+		for (int j = 0, k = 0; j < fragment_size; j += SIMD<float>::length, k++)
+		{
+			const int to_load = std::min(elements - i - j, SIMD<float>::length);
+			SIMD<float> load1 = fragment_1[k];
+			SIMD<float> load2 = fragment_2[k];
+			load1 = load1 * load2;
+			load1.store(data3.data() + i + j, to_load);
+		}
+	}
+	const double stop = omp_get_wtime();
+	std::cout << 1000 * (stop - start) << "ms\n";
+}
+void compute_v3(int elements)
+{
+	Data<float> data1(elements);
+	Data<float> data2(elements);
+	Data<float> data3(elements);
+
+	const double start = omp_get_wtime();
+	for (int i = 0; i < elements; i += SIMD<float>::length)
+	{
+		SIMD<float> load1 = data1.at(i);
+		SIMD<float> load2 = data2.at(i);
+
+		SIMD<float> tmp = square(load1) * abs(load2);
+		data3.at(i) = tmp;
+	}
+	const double stop = omp_get_wtime();
+	std::cout << 1000 * (stop - start) << "ms\n";
+}
+void compute_v4(int elements)
+{
+	Data<float> data1(elements);
+	Data<float> data2(elements);
+	Data<float> data3(elements);
+
+	Fragment<float, 8> fragment_1;
+	Fragment<float, 8> fragment_2;
+	const double start = omp_get_wtime();
+	for (int i = 0; i < elements; i += fragment_1.size())
+	{
+		for (int j = 0, k = 0; j < fragment_1.size(); j += SIMD<float>::length, k++)
+		{
+			SIMD<float> load1 = data1.at(i + j);
+			load1 = square(load1);
+			fragment_1[k] = load1;
+		}
+		for (int j = 0, k = 0; j < fragment_1.size(); j += SIMD<float>::length, k++)
+		{
+			SIMD<float> load2 = data2.at(i + j);
+			load2 = abs(load2);
+			fragment_2[k] = load2;
+		}
+		for (int j = 0, k = 0; j < fragment_1.size(); j += SIMD<float>::length, k++)
+		{
+			SIMD<float> load1 = fragment_1[k];
+			SIMD<float> load2 = fragment_2[k];
+			load1 = load1 * load2;
+			data3.at(i + j) = load1;
+		}
+	}
+	const double stop = omp_get_wtime();
+	std::cout << 1000 * (stop - start) << "ms\n";
+}
+
+enum class Op
+{
+	CONSTANT,
+	LOAD,
+	STORE,
+	ABS,
+	CEIL,
+	COS,
+	EXP,
+	FLOOR,
+	LOG,
+	NEG,
+	RCP,
+	RSQRT,
+	SIN,
+	SQUARE,
+	SQRT,
+	TAN,
+	LOGICAL_NOT,
+	ADD,
+	SUB,
+	MUL,
+	DIV,
+	MOD,
+	POW,
+	MIN,
+	MAX,
+	COMPARE_EQ,
+	COMPARE_NEQ,
+	COMPARE_GT,
+	COMPARE_GE,
+	COMPARE_LT,
+	COMPARE_LE,
+	LOGICAL_AND,
+	LOGICAL_OR,
+	LOGICAL_XOR,
+	CROSS_ENTROPY,
+	SELECT,
+	MUL_ADD,
+	MUL_SUB,
+	NEG_MUL_ADD,
+	NEG_MUL_SUB
+};
+
+struct Operation
+{
+		enum Type
+		{
+			UNKNOWN,
+			CONSTANT,
+			LOAD,
+			STORE,
+			UNARY,
+			BINARY,
+			TERNARY
+		};
+
+		Op op;
+		std::array<int8_t, 4> arg;
+		float value = 0.0f;
+		Operation(Op o) :
+				op(o)
+		{
+			arg.fill(0);
+		}
+		Operation(Op o, std::initializer_list<int8_t> args) :
+				op(o)
+		{
+			assert(args.size() <= 4);
+			arg.fill(0);
+			for (size_t i = 0; i < args.size(); i++)
+				arg[i] = args.begin()[i];
+		}
+		Type getType() const noexcept
+		{
+			if (isConstant())
+				return Type::CONSTANT;
+			if (isLoad())
+				return Type::LOAD;
+			if (isStore())
+				return Type::STORE;
+			if (isUnary())
+				return Type::UNARY;
+			if (isBinary())
+				return Type::BINARY;
+			if (isTernary())
+				return Type::TERNARY;
+			return Type::UNKNOWN;
+		}
+		bool isConstant() const noexcept
+		{
+			return op == Op::CONSTANT;
+		}
+		bool isLoad() const noexcept
+		{
+			return op == Op::LOAD;
+		}
+		bool isStore() const noexcept
+		{
+			return op == Op::STORE;
+		}
+		bool isUnary() const noexcept
+		{
+			return op >= Op::ABS and op <= Op::LOGICAL_NOT;
+		}
+		bool isBinary() const noexcept
+		{
+			return op >= Op::ADD and op <= Op::CROSS_ENTROPY;
+		}
+		bool isTernary() const noexcept
+		{
+			return op >= Op::SELECT;
+		}
+		UnaryOp getUnaryOp() const noexcept
+		{
+			assert(isUnary());
+			return static_cast<UnaryOp>(static_cast<int>(op) - static_cast<int>(Op::ABS));
+		}
+		BinaryOp getBinaryOp() const noexcept
+		{
+			assert(isBinary());
+			return static_cast<BinaryOp>(static_cast<int>(op) - static_cast<int>(Op::ADD));
+		}
+		TernaryOp getTernaryOp() const noexcept
+		{
+			assert(isTernary());
+			return static_cast<TernaryOp>(static_cast<int>(op) - static_cast<int>(Op::SELECT));
+		}
+		float getValue() const noexcept
+		{
+			return value;
+		}
+
+		static Operation constant(int8_t fragmentIndex, float value) noexcept
+		{
+			Operation result(Op::CONSTANT, { fragmentIndex });
+			result.value = value;
+			return result;
+		}
+		static Operation load(int8_t fragmentIndex, int8_t dataIndex) noexcept
+		{
+			return Operation(Op::LOAD, { fragmentIndex, dataIndex });
+		}
+		static Operation store(int8_t fragmentIndex, int8_t dataIndex) noexcept
+		{
+			return Operation(Op::STORE, { fragmentIndex, dataIndex });
+		}
+};
+
+template<int N>
+void compute_v5(int elements, const std::vector<Operation> &ops)
+{
+	Data<float> data[3];
+	for (int i = 0; i < 3; i++)
+		data[i] = Data<float>(elements);
+
+	Fragment<float, N> fragment[4];
+
+	const double start = omp_get_wtime();
+	for (int i = 0; i < elements; i += N * SIMD<float>::length)
+	{
+		for (size_t j = 0; j < ops.size(); j++)
+		{
+			const Operation op = ops[j];
+			switch (op.getType())
+			{
+				case Operation::UNKNOWN:
+					break;
+				case Operation::CONSTANT:
+					fragment[op.arg[0]].set(op.getValue());
+					break;
+				case Operation::LOAD:
+					fragment[op.arg[0]].load(data[op.arg[1]], i);
+					break;
+				case Operation::STORE:
+					fragment[op.arg[0]].store(data[op.arg[1]], i);
+					break;
+				case Operation::UNARY:
+					unary_op(fragment[op.arg[0]], fragment[op.arg[1]], op.getUnaryOp());
+					break;
+				case Operation::BINARY:
+					binary_op(fragment[op.arg[0]], fragment[op.arg[1]], fragment[op.arg[2]], op.getBinaryOp());
+					break;
+				case Operation::TERNARY:
+					ternary_op(fragment[op.arg[0]], fragment[op.arg[1]], fragment[op.arg[2]], fragment[op.arg[3]], op.getTernaryOp());
+					break;
+			}
+		}
+	}
+	const double stop = omp_get_wtime();
+	std::cout << N << " : " << 1000 * (stop - start) << "ms\n";
+}
+
 int main()
 {
+	print_defined_flags();
+
+	const int elements = 153600000;
+	compute_v0(elements);
+//	compute_v1(elements);
+//	compute_v2(elements);
+//	compute_v3(elements);
+//	compute_v4(elements);
+
+	std::vector<Operation> ops;
+//	ops.push_back(Operation::load(0, 0));
+//	ops.push_back(Operation::load(1, 1));
+//	ops.push_back(Operation::load(2, 2));
+//	ops.push_back(Operation(Op::ABS, { 0, 0 }));
+//	ops.push_back(Operation(Op::SQUARE, { 1, 1 }));
+//	ops.push_back(Operation(Op::MAX, { 1, 0, 1 }));
+//	ops.push_back(Operation(Op::MUL_ADD, { 0, 0, 1, 2 }));
+//	ops.push_back(Operation(Op::LOG, { 0, 0 }));
+//	ops.push_back(Operation::store(0, 2));
+
+	ops.push_back(Operation::load(0, 0));
+	ops.push_back(Operation::load(1, 1));
+	ops.push_back(Operation(Op::LOG, { 2, 1 }));
+	ops.push_back(Operation(Op::MUL, { 3, 0, 2 }));
+	ops.push_back(Operation::constant(2, 1.0f));
+	ops.push_back(Operation(Op::SUB, { 0, 2, 0 }));
+	ops.push_back(Operation(Op::SUB, { 1, 2, 1 }));
+	ops.push_back(Operation(Op::LOG, { 1, 1 }));
+	ops.push_back(Operation(Op::MUL, { 2, 0, 1 }));
+	ops.push_back(Operation(Op::ADD, { 0, 2, 3 }));
+//	ops.push_back(Operation(Op::CROSS_ENTROPY, { 0, 0, 1 }));
+	ops.push_back(Operation::store(0, 2));
+
+//	ops.push_back(Operation::load(0, 0));
+//	ops.push_back(Operation::load(1, 1));
+//	ops.push_back(Operation::constant(2, 1.0f));
+//	ops.push_back(Operation::constant(3, 2.0f));
+//	ops.push_back(Operation(Op::MUL, { 0, 0, 2 }));
+//	ops.push_back(Operation(Op::MUL_ADD, { 0, 1, 3, 0 }));
+//	ops.push_back(Operation::store(0, 2));
+
+	compute_v5<1>(elements, ops);
+	compute_v5<2>(elements, ops);
+	compute_v5<4>(elements, ops);
+	compute_v5<6>(elements, ops);
+	compute_v5<8>(elements, ops);
+	compute_v5<12>(elements, ops);
+	compute_v5<16>(elements, ops);
+	compute_v5<32>(elements, ops);
+	compute_v5<64>(elements, ops);
+	compute_v5<128>(elements, ops);
+	compute_v5<256>(elements, ops);
+	compute_v5<512>(elements, ops);
+	compute_v5<1024>(elements, ops);
+
 //	float float_data[8] = { 1.0f / 3.0f, 0.65f, -0.34f, -1.23f, 45.0f, 10.1f, 3.34f, 0.1f };
 //	float float_data[8] = { 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f };
 //	SIMD_NAMESPACE::SIMD<float16> asdf(float_data);
@@ -876,12 +1602,11 @@ int main()
 //	float dst[8];
 //	asdf2.store(dst);
 
-	print_defined_flags();
-	std::cout << SIMD_NAMESPACE::cpu_compute_banchmark(AVOCADO_DTYPE_FLOAT16, 1000000000ull) << '\n';
-	std::cout << SIMD_NAMESPACE::cpu_compute_banchmark(AVOCADO_DTYPE_BFLOAT16, 1000000000ull) << '\n';
-	std::cout << SIMD_NAMESPACE::cpu_compute_banchmark(AVOCADO_DTYPE_FLOAT32, 1000000000ull) << '\n';
-	std::cout << SIMD_NAMESPACE::cpu_compute_banchmark(AVOCADO_DTYPE_FLOAT64, 1000000000ull) << '\n';
-	std::cout << SIMD_NAMESPACE::cpu_compute_banchmark(AVOCADO_DTYPE_INT8, 1000000000ull) << '\n';
+//	std::cout << SIMD_NAMESPACE::cpu_compute_banchmark(AVOCADO_DTYPE_FLOAT16, 1000000000ull) << '\n';
+//	std::cout << SIMD_NAMESPACE::cpu_compute_banchmark(AVOCADO_DTYPE_BFLOAT16, 1000000000ull) << '\n';
+//	std::cout << SIMD_NAMESPACE::cpu_compute_banchmark(AVOCADO_DTYPE_FLOAT32, 1000000000ull) << '\n';
+//	std::cout << SIMD_NAMESPACE::cpu_compute_banchmark(AVOCADO_DTYPE_FLOAT64, 1000000000ull) << '\n';
+//	std::cout << SIMD_NAMESPACE::cpu_compute_banchmark(AVOCADO_DTYPE_INT8, 1000000000ull) << '\n';
 	return 0;
 //	std::cout << "filters old weight v2 new bf16 fp16\n";
 ////	std::cout << "filters bf16 fp16\n";
