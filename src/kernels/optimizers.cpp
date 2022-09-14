@@ -105,6 +105,7 @@ namespace
 				if (use_momentum and workspace.sizeInBytes() < elements * dataTypeSize(wDesc.dtype()))
 					return AVOCADO_STATUS_INTERNAL_ERROR;
 
+				optimizer.steps++;
 				bool use_nesterov = optimizer.flags[1];
 				T beta1 = optimizer.coef[0];
 				T learning_rate = optimizer.learning_rate;
@@ -118,13 +119,13 @@ namespace
 				}
 				else
 					kernel_learn_sgd<T, false, false>(weight, update, momentum, elements, learning_rate, beta1, alpha, beta);
-				optimizer.steps++;
 				return AVOCADO_STATUS_SUCCESS;
 			}
 			case AVOCADO_OPTIMIZER_ADAM:
 			{
 				if (workspace.sizeInBytes() < 2 * elements * dataTypeSize(wDesc.dtype()))
 					return AVOCADO_STATUS_INTERNAL_ERROR;
+				optimizer.steps++;
 				T beta1 = optimizer.coef[0];
 				T beta2 = optimizer.coef[1];
 				T learning_rate = optimizer.learning_rate;
@@ -133,7 +134,6 @@ namespace
 				T *momentum = workspace.data<T>();
 				T *variance = workspace.data<T>() + elements;
 				kernel_learn_adam(weight, update, momentum, variance, elements, learning_rate, beta1, beta2, alpha, beta);
-				optimizer.steps++;
 				return AVOCADO_STATUS_SUCCESS;
 			}
 			default:
